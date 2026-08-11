@@ -1,0 +1,158 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Department {
+  id               String               @id @default(uuid())
+  code             String?
+  name             String
+  description      String?
+  parentId         String?
+  staffLimit       Int?
+  parent           Department?          @relation("DeptHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children         Department[]         @relation("DeptHierarchy")
+  positions        Position[]
+  employees        Employee[]           @relation("CurrentDept")
+  fromTransfers    DepartmentTransfer[] @relation("FromDept")
+  toTransfers      DepartmentTransfer[] @relation("ToDept")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+model Position {
+  id                  String               @id @default(uuid())
+  departmentId        String
+  department          Department           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  title               String
+  quotaLimit          Int                  @default(1)
+  reportsToPositionId String?
+  reportsToPosition   Position?            @relation("PositionHierarchy", fields: [reportsToPositionId], references: [id], onDelete: SetNull)
+  subordinatePositions Position[]          @relation("PositionHierarchy")
+  employees           Employee[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model Employee {
+  id                  String               @id @default(uuid())
+  tabelNumber         String               @unique
+  firstName           String
+  lastName            String
+  middleName          String?
+  gender              String               @default("MALE") // MALE, FEMALE
+  dateOfBirth         DateTime
+  hireDate            DateTime
+  status              String               @default("ACTIVE") // ACTIVE, ON_LEAVE, TRANSFERRED, OFFBOARDED
+  phone               String?
+  email               String?
+  militaryCertificate String?
+  currentDepartmentId String
+  currentDepartment   Department           @relation("CurrentDept", fields: [currentDepartmentId], references: [id])
+  position            String
+  positionId          String?
+  positionRef         Position?            @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  
+  educations          Education[]
+  permits             PermitLicense[]
+  transfers           DepartmentTransfer[]
+  leaves              LeaveAttendance[]
+  disciplinaryActions DisciplinaryAction[]
+  rewards             RewardFinancialAid[]
+  kpiRecords          KpiRecord[]
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model Education {
+  id              String   @id @default(uuid())
+  employeeId      String
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  level           String   // HIGHER, SECONDARY_SPECIAL, SECONDARY, VOCATIONAL
+  institutionName String
+  fieldOfStudy    String
+  graduationYear  Int
+}
+
+model PermitLicense {
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  licenseType   String    // DRIVING, FORKLIFT_KARA, MOBILE_PHONE_ON_SITE, PROFESSIONAL_CERT
+  category      String?   // e.g. "A, B, C, D, E, F"
+  certificateNo String
+  issueDate     DateTime
+  expiryDate    DateTime?
+  status        String    @default("ACTIVE") // ACTIVE, EXPIRED
+}
+
+model DepartmentTransfer {
+  id               String     @id @default(uuid())
+  employeeId       String
+  employee         Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  fromDepartmentId String
+  fromDepartment   Department @relation("FromDept", fields: [fromDepartmentId], references: [id])
+  toDepartmentId   String
+  toDepartment     Department @relation("ToDept", fields: [toDepartmentId], references: [id])
+  transferDate     DateTime   @default(now())
+  orderNumber      String
+  reason           String?
+}
+
+model LeaveAttendance {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String   // MT, BS, BL, STUDY_LEAVE, MILITARY_DUTY, OTGUL, PROGUL, LATE_ARRIVAL
+  startDate   DateTime
+  endDate     DateTime
+  totalDays   Int
+  hoursLate   Float?
+  reason      String?
+  status      String   @default("APPROVED")
+  createdAt   DateTime @default(now())
+}
+
+model DisciplinaryAction {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  orderNumber String
+  type        String   // WARNING, REPRIMAND, SEVERE_REPRIMAND, FINANCIAL_PENALTY
+  startDate   DateTime
+  expiryDate  DateTime
+  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model RewardFinancialAid {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String   // REWARD, FINANCIAL_AID, BONUS
+  amount      Float
+  reason      String
+  orderNumber String
+  orderDate   DateTime @default(now())
+}
+
+model KpiRecord {
+  id                  String   @id @default(uuid())
+  employeeId          String
+  employee            Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month               String
+  baseBonus           Float
+  unworkedDays        Int
+  sickDays            Int
+  lateHours           Float
+  deductionPercentage Float
+  finalBonus          Float
+  attendanceRate      Float
+  createdAt           DateTime @default(now())
+}
