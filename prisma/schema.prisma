@@ -20,6 +20,8 @@ model Department {
   employees        Employee[]           @relation("CurrentDept")
   fromTransfers    DepartmentTransfer[] @relation("FromDept")
   toTransfers      DepartmentTransfer[] @relation("ToDept")
+  userAccess       UserDepartmentAccess[]
+  homeUsers        User[]               @relation("UserHomeDept")
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 }
@@ -64,6 +66,8 @@ model Employee {
   disciplinaryActions DisciplinaryAction[]
   rewards             RewardFinancialAid[]
   kpiRecords          KpiRecord[]
+  medicalCheckups     MedicalCheckup[]
+  safetyBriefings     SafetyBriefing[]
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -108,13 +112,20 @@ model LeaveAttendance {
   id          String   @id @default(uuid())
   employeeId  String
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type        String   // MT, BS, BL, STUDY_LEAVE, MILITARY_DUTY, OTGUL, PROGUL, LATE_ARRIVAL
+  // Types: MEHNAT_TATILI(MT), BS_UNPAID(B/S), SICK_LEAVE_BL(B/L), OQISH_TATILI,
+  //        OTGUL, ADMIN_TATIL, KECHIKISH_RUXSATNOMA, PROGUL, LATE_ARRIVAL
+  type        String
   startDate   DateTime
   endDate     DateTime
-  totalDays   Int
-  hoursLate   Float?
+  totalDays   Int      @default(0)
+  totalHours  Float?   // For hourly permits (KECHIKISH_RUXSATNOMA etc.)
+  startTime   String?  // "09:00" – for hourly permits
+  endTime     String?  // "11:30" – for hourly permits
+  hoursLate   Float?   // Legacy field kept for KPI compatibility
+  orderNumber String?  // Buyruq / Ariza raqami
   reason      String?
-  status      String   @default("APPROVED")
+  // Status: ACTIVE (ongoing), COMPLETED, CANCELLED, APPROVED (legacy)
+  status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
 }
 
@@ -156,3 +167,117 @@ model KpiRecord {
   attendanceRate      Float
   createdAt           DateTime @default(now())
 }
+
+// ── HR User (RBAC) ──────────────────────────────────────────────────────────
+
+model User {
+  id               String                 @id @default(uuid())
+  fullName         String
+  tabelNumber      String?                @unique
+  position         String?                @default("HR Mutaxassis")
+  userDepartmentId String?
+  userDepartment   Department?            @relation("UserHomeDept", fields: [userDepartmentId], references: [id], onDelete: SetNull)
+  username         String                 @unique
+  email            String                 @unique
+  passwordHash     String
+  // Roles: SUPER_ADMIN | EXECUTIVE_DIRECTOR | HR_OFFICER | AUDITOR
+  role             String                 @default("HR_OFFICER")
+  isActive         Boolean                @default(true)
+  createdAt        DateTime               @default(now())
+  departmentAccess UserDepartmentAccess[]
+  moduleAccess     UserModuleAccess[]
+  auditLogs        AuditLog[]
+}
+
+model UserDepartmentAccess {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, departmentId])
+}
+
+model SystemModule {
+  key          String             @id
+  title        String
+  iconName     String
+  sortOrder    Int                @default(0)
+  moduleAccess UserModuleAccess[]
+  createdAt    DateTime           @default(now())
+}
+
+model UserModuleAccess {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleKey String
+  module    SystemModule @relation(fields: [moduleKey], references: [key], onDelete: Cascade)
+  canEdit   Boolean      @default(true)
+
+  @@unique([userId, moduleKey])
+}
+
+// Legacy HrUser model maintained for database compatibility
+model HrUser {
+  id                  String     @id @default(uuid())
+  username            String     @unique
+  passwordHash        String
+  fullName            String
+  role                String     @default("HR_STAFF")
+  assignedDepartments String?
+  isActive            Boolean    @default(true)
+  createdAt           DateTime   @default(now())
+}
+
+// ── Medical Checkup (HSE) ───────────────────────────────────────────────────
+
+model MedicalCheckup {
+  id             String   @id @default(uuid())
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  checkupDate    DateTime
+  expiryDate     DateTime
+  // 6 or 12 months
+  validityMonths Int      @default(12)
+  // O'TGAN | O'TMAGAN | MUDDATI_TUGAGAN
+  status         String   @default("O'TGAN")
+  clinicName     String?
+  orderRef       String?
+  notes          String?
+  createdAt      DateTime @default(now())
+}
+
+// ── Safety Briefing (HSE) ───────────────────────────────────────────────────
+
+model SafetyBriefing {
+  id              String   @id @default(uuid())
+  employeeId      String
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title           String   // e.g. "Elektr Xavfsizligi", "Stanok Boshqarish Yo'riqnomasi"
+  completionDate  DateTime
+  expiryDate      DateTime
+  // Days the briefing stays valid (90 or 365)
+  validityDays    Int      @default(365)
+  instructorName  String?
+  protocolNumber  String?
+  notes           String?
+  createdAt       DateTime @default(now())
+}
+
+// ── Audit Log ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id               String   @id @default(uuid())
+  hrUserId         String?
+  hrUser           User?    @relation(fields: [hrUserId], references: [id], onDelete: SetNull)
+  hrName           String   // Snapshot of name at time of action
+  action           String   // e.g. "Xodim ma'lumotlari tahrirlandi"
+  targetEmployeeId String?
+  departmentName   String?
+  ipAddress        String?
+  metadata         String?  // JSON string for extra context
+  createdAt        DateTime @default(now())
+}
+

@@ -14,10 +14,17 @@ import { TransferModal } from '@/components/TransferModal';
 import { KpiEngineDashboard } from '@/components/KpiEngineDashboard';
 import { ExecutiveSvodka } from '@/components/ExecutiveSvodka';
 import { InternalMobilityView } from '@/components/InternalMobilityView';
+import { DavomatView } from '@/components/DavomatView';
+import { HseView } from '@/components/HseView';
+import { AuditLogView } from '@/components/AuditLogView';
+import { LoginModal } from '@/components/LoginModal';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ArrowLeftRight, ShieldAlert, Award } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 
-export default function HRDashboard() {
+// Inner component that uses AuthContext
+function HRDashboardInner() {
+  const { currentUser, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('workforce');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedDeptId, setSelectedDeptId] = useState<string>('');
@@ -28,6 +35,8 @@ export default function HRDashboard() {
   const [transfers, setTransfers] = useState<any[]>([]);
   const [disciplinaryList, setDisciplinaryList] = useState<any[]>([]);
   const [rewardsList, setRewardsList] = useState<any[]>([]);
+  const [activeLeaveCount, setActiveLeaveCount] = useState<number>(0);
+  const [hseAlertCount, setHseAlertCount]       = useState<number>(0);
 
   // Modals / drawers state
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
@@ -71,10 +80,32 @@ export default function HRDashboard() {
       });
   };
 
+  const fetchActiveLeaves = () => {
+    fetch('/api/leaves?status=ACTIVE')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setActiveLeaveCount(data.stats?.active || 0);
+        }
+      });
+  };
+
+  const fetchHseAlerts = () => {
+    fetch('/api/hse/medical?alertsOnly=true')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setHseAlertCount((data.stats?.expired || 0) + (data.stats?.failed || 0));
+        }
+      });
+  };
+
   useEffect(() => {
     fetchDepartments();
     fetchTransfers();
     fetchDisciplineAndRewards();
+    fetchActiveLeaves();
+    fetchHseAlerts();
   }, []);
 
   /** Called from DepartmentDrawer CTA: navigate to workforce tab filtered by dept */
@@ -89,6 +120,19 @@ export default function HRDashboard() {
     setDrawerDept(dept);
     setIsDrawerOpen(true);
   };
+
+  // Show login screen if no session
+  if (!isLoading && !currentUser) {
+    return <LoginModal isOpen={true} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0b0f19]">
+        <div className="h-8 w-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0f19]">
@@ -105,6 +149,8 @@ export default function HRDashboard() {
           setActiveTab={setActiveTab}
           employeeCount={1500}
           activeDisciplineCount={disciplinaryList.length}
+          activeLeaveCount={activeLeaveCount}
+          hseAlertCount={hseAlertCount}
         />
 
         <main className="flex-1 p-6 overflow-y-auto max-w-[1600px] mx-auto w-full">
@@ -226,6 +272,21 @@ export default function HRDashboard() {
               </div>
             </div>
           )}
+
+          {/* View 7: Davomat & Ta'tillar Boshqaruvi */}
+          {activeTab === 'davomat' && (
+            <DavomatView departments={departments} />
+          )}
+
+          {/* View 8: HSE — Med-Ko'rik va Xavfsizlik */}
+          {activeTab === 'hse' && (
+            <HseView departments={departments} />
+          )}
+
+          {/* View 9: Tizim Auditi va Loglar */}
+          {activeTab === 'audit' && (
+            <AuditLogView departments={departments} />
+          )}
         </main>
       </div>
 
@@ -272,5 +333,14 @@ export default function HRDashboard() {
         onViewEmployees={handleViewDeptEmployees}
       />
     </div>
+  );
+}
+
+// Wrap with AuthProvider for the entire app
+export default function HRDashboard() {
+  return (
+    <AuthProvider>
+      <HRDashboardInner />
+    </AuthProvider>
   );
 }

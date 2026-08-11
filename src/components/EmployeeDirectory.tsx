@@ -22,6 +22,7 @@ import {
   Building2,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Employee {
   id: string;
@@ -70,6 +71,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   selectedDepartmentId = '',
   onSelectDepartmentId,
 }) => {
+  const { canEditEmployee, isReadOnly } = useAuth();
   // State for search and filters
   const [searchVal, setSearchVal] = useState<string>('');
   const [deptSearch, setDeptSearch] = useState<string>('');
@@ -204,7 +206,9 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
 
           <button
             onClick={onOpenBulkModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition active:scale-95"
+            disabled={isReadOnly}
+            title={isReadOnly ? "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin" : "Ommaviy xodimlarni qabul qilish"}
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <UserPlus className="h-4 w-4" />
             <span>Ommaviy Qabul (30+)</span>
@@ -488,8 +492,9 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
                         </button>
                         <button
                           onClick={() => onTransferEmployee(emp.id)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition"
-                          title="Boshqa bo'limga ko'chirish"
+                          disabled={!canEditEmployee(emp.currentDepartment?.id)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                          title={canEditEmployee(emp.currentDepartment?.id) ? "Boshqa bo'limga ko'chirish" : "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin"}
                         >
                           <ArrowLeftRight className="h-3.5 w-3.5" />
                           <span>Ko'chirish</span>
