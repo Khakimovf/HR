@@ -227,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={logout}
               title="Chiqish"
-              className="shrink-0 rounded-lg p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition"
+              className="shrink-0 rounded-lg p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
             </button>

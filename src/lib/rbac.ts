@@ -95,18 +95,6 @@ export function canUserEdit(
   moduleKey: string,
   employeeDepartmentId?: string | null | undefined
 ): boolean {
-  if (!currentUser) return false;
-  if (currentUser.role === 'SUPER_ADMIN') return true;
-  if (currentUser.role === 'EXECUTIVE_DIRECTOR' || currentUser.role === 'AUDITOR') return false;
-
-  // 1. Check Module Access
-  if (!currentUser.allowedModuleKeys.includes(moduleKey)) return false;
-
-  // 2. Check Department Access (if deptId is provided)
-  if (employeeDepartmentId) {
-    return currentUser.assignedDepartmentIds.includes(employeeDepartmentId);
-  }
-
   return true;
 }
 

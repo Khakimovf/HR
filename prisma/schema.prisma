@@ -52,12 +52,41 @@ model Employee {
   status              String               @default("ACTIVE") // ACTIVE, ON_LEAVE, TRANSFERRED, OFFBOARDED
   phone               String?
   email               String?
+  address             String?
+  pinfl               String?
+  passportNumber      String?
+  avatarUrl           String?
   militaryCertificate String?
+
+  // Section 2: Employment & Schedule
   currentDepartmentId String
   currentDepartment   Department           @relation("CurrentDept", fields: [currentDepartmentId], references: [id])
   position            String
   positionId          String?
   positionRef         Position?            @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  employmentType      String?              @default("FULL_TIME") // FULL_TIME, PART_TIME, CONTRACT
+  orderNumber         String?
+  workSchedule        String?
+
+  // Section 3: Education & Qualification Quick Fields
+  educationLevel      String?
+  institutionName     String?
+  fieldOfStudy        String?
+  diplomaNumber       String?
+  foreignLanguages    String?
+  certifications      String?
+
+  // Section 4: Family & Social Status
+  maritalStatus       String?
+  familyCount         Int?
+  emergencyContactName String?
+  emergencyContactPhone String?
+
+  // Section 5: Documents & Attached Digital Files
+  passportScanUrl     String?
+  diplomaScanUrl      String?
+  contractPdfUrl      String?
+  stirInpsPdfUrl      String?
   
   educations          Education[]
   permits             PermitLicense[]

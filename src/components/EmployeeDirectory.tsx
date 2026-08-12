@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Building2,
   FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,7 +60,7 @@ interface EmployeeDirectoryProps {
   departments: Array<{ id: string; name: string; code: string }>;
   onSelectEmployee: (employeeId: string) => void;
   onTransferEmployee: (employeeId: string) => void;
-  onOpenBulkModal: () => void;
+  onOpenBulkModal?: () => void;
   selectedDepartmentId?: string;
   onSelectDepartmentId?: (deptId: string) => void;
 }
@@ -125,6 +126,9 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
     fetchEmployeesData();
   }, [searchVal, selectedDepartmentId, filterPermit, filterStatus, filterDiscipline, page, limit]);
 
+  // Filtered department object for display
+  const selectedDepartmentObj = departments.find((d) => d.id === selectedDepartmentId);
+
   // Active filters count
   const activeFiltersCount = [
     searchVal ? 1 : 0,
@@ -149,7 +153,312 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
     d.code.toLowerCase().includes(deptSearch.toLowerCase())
   );
 
-  const selectedDepartmentObj = departments.find((d) => d.id === selectedDepartmentId);
+  // ─── Filter-Aware Analytical HR Svodka Export Handlers ──────────────────────
+
+  const handleExportFilteredExcel = () => {
+    if (employees.length === 0) {
+      alert("Export qilish uchun ma'lumot topilmadi");
+      return;
+    }
+
+    const deptName = selectedDepartmentObj ? selectedDepartmentObj.name : 'Barcha Bo\'limlar';
+    const printDate = new Date().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const activeEmps = employees.filter((e) => e.status === 'ACTIVE');
+    const onLeaveEmps = employees.filter((e) => e.status === 'ON_LEAVE' || e.status === 'VACATION');
+    const mtEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'MT' || e.status === 'VACATION');
+    const blEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'BL');
+    const bsEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'BS');
+    const adminEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'ADMIN' || e.leaveType === 'OTGUL' || (!e.leaveType && e.status === 'ON_LEAVE' && e !== mtEmps[0] && e !== blEmps[0] && e !== bsEmps[0]));
+
+    const formatEmpRows = (list: any[]) =>
+      list.map((emp, idx) => [
+        idx + 1,
+        emp.tabelNumber || '',
+        `"${emp.lastName} ${emp.firstName} ${emp.middleName || ''}"`.trim(),
+        `"${emp.currentDepartment?.name || ''}"`,
+        `"${emp.position || ''}"`,
+        `"${emp.phone || ''}"`,
+        emp.hireDate ? new Date(emp.hireDate).toLocaleDateString('uz-UZ') : '',
+        emp.status || '',
+      ].join(','));
+
+    const lines = [
+      `"YIRIK ISHLAB CHIQARISH KORXONASI - HR ANALITIK SVODKA"`,
+      `"Eksport sanasi: ${printDate} | Bo'lim: ${deptName} | Jami xodimlar: ${employees.length}"`,
+      ``,
+      `"1. EXECUTIVE KPI SUMMARY (SVODKA)"`,
+      `"Kategoriya","Soni"`,
+      `"Jami Xodimlar",${employees.length}`,
+      `"Faol Ishlayotganlar",${activeEmps.length}`,
+      `"Mehnat Ta'tilidagilar (M/T)",${mtEmps.length}`,
+      `"Kasallik Varag'idagilar (B/L)",${blEmps.length}`,
+      `"O'z Hisobidan Ta'tildagilar (B/S)",${bsEmps.length}`,
+      `"Administrativ Ta'tildagilar",${adminEmps.length}`,
+      ``,
+      `"2.1 MEHNAT TA'TILIDAGI XODIMLAR (M/T) (${mtEmps.length} ta)"`,
+      `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
+      ...formatEmpRows(mtEmps),
+      ``,
+      `"2.2 VAQTINCHALIK MEHNATGA LAYOQATSIZLIK (B/L) DAVRIDAGI XODIMLAR (${blEmps.length} ta)"`,
+      `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
+      ...formatEmpRows(blEmps),
+      ``,
+      `"2.3 O'Z HISOBIDAN TA'TILDAGILAR (B/S) (${bsEmps.length} ta)"`,
+      `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
+      ...formatEmpRows(bsEmps),
+      ``,
+      `"2.4 ADMINISTRATIV TA'TILDAGILAR (${adminEmps.length} ta)"`,
+      `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
+      ...formatEmpRows(adminEmps),
+      ``,
+      `"2.5 HOZIRDA FAOL ISHLAYOTGAN XODIMLAR (${activeEmps.length} ta)"`,
+      `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
+      ...formatEmpRows(activeEmps),
+    ];
+
+    const csvContent = '\uFEFF' + lines.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `HR_Analitik_Svodka_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportFilteredPDF = () => {
+    if (employees.length === 0) {
+      alert("PDF eksport qilish uchun ma'lumot topilmadi");
+      return;
+    }
+
+    const deptName = selectedDepartmentObj ? selectedDepartmentObj.name : 'Barcha Bo\'limlar';
+    const printDate = new Date().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Categorize employees
+    const activeEmps = employees.filter((e) => e.status === 'ACTIVE');
+    const onLeaveEmps = employees.filter((e) => e.status === 'ON_LEAVE' || e.status === 'VACATION');
+    const mtEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'MT' || e.status === 'VACATION');
+    const blEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'BL');
+    const bsEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'BS');
+    const adminEmps = onLeaveEmps.filter((e: any) => e.leaveType === 'ADMIN' || e.leaveType === 'OTGUL' || (!e.leaveType && e.status === 'ON_LEAVE' && e !== mtEmps[0] && e !== blEmps[0] && e !== bsEmps[0]));
+
+    const renderTableRows = (list: any[]) =>
+      list.length > 0
+        ? list.map((emp, idx) => `
+            <tr>
+              <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
+              <td style="font-family: monospace; font-weight: 700;">${emp.tabelNumber || '—'}</td>
+              <td><b>${emp.lastName} ${emp.firstName} ${emp.middleName || ''}</b></td>
+              <td>${emp.currentDepartment?.name || '—'}</td>
+              <td>${emp.position || '—'}</td>
+              <td style="font-family: monospace;">${emp.phone || '—'}</td>
+              <td style="font-family: monospace;">${emp.hireDate ? new Date(emp.hireDate).toLocaleDateString('uz-UZ') : '—'}</td>
+              <td><span style="background: #e2e8f0; padding: 2px 6px; border-radius: 3px; font-size: 8pt; font-weight: 700;">${emp.status}</span></td>
+            </tr>
+          `).join('')
+        : `<tr><td colspan="8" style="text-align: center; color: #64748b; font-style: italic;">Ushbu kategoriyada xodimlar topilmadi</td></tr>`;
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HR_Analitik_Svodka_${new Date().toISOString().split('T')[0]}</title>
+<style>
+  @page { size: A4 portrait; margin: 12mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { font-family: Arial, sans-serif; font-size: 9.5pt; color: #1e293b; line-height: 1.4; margin: 0; padding: 0; background: #ffffff; }
+
+  .header-box { background: #0f172a; color: #ffffff; padding: 14px 18px; border-radius: 6px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .header-title { font-size: 13pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+  .header-sub { font-size: 8.5pt; color: #94a3b8; margin-top: 2px; }
+
+  .filter-banner { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; font-size: 8.5pt; color: #334155; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .kpi-card { border: 1px solid #cbd5e1; background: #f8fafc; padding: 10px; border-radius: 6px; text-align: center; }
+  .kpi-value { font-size: 16pt; font-weight: bold; color: #0284c7; }
+  .kpi-label { font-size: 8pt; font-weight: 700; color: #475569; margin-top: 2px; text-transform: uppercase; }
+
+  .category-title { font-size: 10.5pt; font-weight: bold; color: #0f172a; border-bottom: 2.5px solid #0284c7; padding-bottom: 4px; margin-top: 18px; margin-bottom: 8px; text-transform: uppercase; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td { border: 1px solid #94a3b8; padding: 5px 7px; font-size: 8.5pt; text-align: left; }
+  th { background-color: #e2e8f0; color: #0f172a; font-weight: bold; text-transform: uppercase; font-size: 8pt; }
+  tr:nth-child(even) { background-color: #f8fafc; }
+
+  .footer { border-top: 1.5px solid #94a3b8; padding-top: 8px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 8pt; color: #64748b; }
+</style>
+</head>
+<body>
+
+<!-- Header Box -->
+<div class="header-box">
+  <div>
+    <div class="header-title">YIRIK ISHLAB CHIQARISH KORXONASI</div>
+    <div class="header-sub">HR ANALITIK SVODKA VA KADRLAR HISOBOТI</div>
+  </div>
+  <div style="text-align: right; font-size: 8.5pt;">
+    <div>Sana: <b>${printDate}</b></div>
+    <div style="font-family: monospace; color: #38bdf8;">HR-SVODKA-SYSTEM</div>
+  </div>
+</div>
+
+<!-- Filter Summary Banner -->
+<div class="filter-banner">
+  <b>Filtr parametrlar:</b> Bo'lim: <u>${deptName}</u> | Qidiruv: <u>${searchVal || 'Yo\'q'}</u> | Status filtri: <u>${filterStatus}</u> | Jami xodimlar: <b>${employees.length} ta</b>
+</div>
+
+<!-- Section 1: Executive KPI Summary -->
+<div class="category-title">1. EXECUTIVE KPI SUMMARY (SVODKA KO'RSATKICHLARI)</div>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-value" style="color: #0284c7;">${employees.length}</div>
+    <div class="kpi-label">Jami Xodimlar (Filter)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value" style="color: #16a34a;">${activeEmps.length}</div>
+    <div class="kpi-label">Hozirda Faol Ishlayotganlar</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value" style="color: #2563eb;">${mtEmps.length}</div>
+    <div class="kpi-label">Mehnat Ta'tilida (M/T)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value" style="color: #dc2626;">${blEmps.length}</div>
+    <div class="kpi-label">Kasallik Varag'i (B/L)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value" style="color: #d97706;">${bsEmps.length}</div>
+    <div class="kpi-label">O'z Hisobidan Ta'til (B/S)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value" style="color: #9333ea;">${adminEmps.length}</div>
+    <div class="kpi-label">Administrativ Ta'til</div>
+  </div>
+</div>
+
+<!-- Section 2: Categorized Detailed Employee Lists -->
+<div class="category-title">2. CATEGORIZED DETAILED EMPLOYEE LISTS (KATEGORIYALAR BO'YICHA TARKIB)</div>
+
+<!-- Table 2.1: Mehnat ta'tilidagi xodimlar -->
+<div style="font-weight: bold; color: #1e40af; font-size: 9pt; margin-top: 10px; margin-bottom: 4px;">2.1. MEHNAT TA'TILIDAGI XODIMLAR (M/T) — ${mtEmps.length} ta</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30px; text-align: center;">№</th>
+      <th>Tabel №</th>
+      <th>F.I.O</th>
+      <th>Bo'lim</th>
+      <th>Lavozim</th>
+      <th>Telefon</th>
+      <th>Ishga Kirgan</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${renderTableRows(mtEmps)}
+  </tbody>
+</table>
+
+<!-- Table 2.2: Vaqtinchalik mehnatga layoqatsizlik (B/L) -->
+<div style="font-weight: bold; color: #991b1b; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.2. VAQTINCHALIK MEHNATGA LAYOQATSIZLIK (B/L) DAVRIDAGI XODIMLAR — ${blEmps.length} ta</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30px; text-align: center;">№</th>
+      <th>Tabel №</th>
+      <th>F.I.O</th>
+      <th>Bo'lim</th>
+      <th>Lavozim</th>
+      <th>Telefon</th>
+      <th>Ishga Kirgan</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${renderTableRows(blEmps)}
+  </tbody>
+</table>
+
+<!-- Table 2.3: O'z hisobidan ta'tildagilar (B/S) -->
+<div style="font-weight: bold; color: #92400e; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.3. O'Z HISOBIDAN TA'TILDAGILAR (B/S) — ${bsEmps.length} ta</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30px; text-align: center;">№</th>
+      <th>Tabel №</th>
+      <th>F.I.O</th>
+      <th>Bo'lim</th>
+      <th>Lavozim</th>
+      <th>Telefon</th>
+      <th>Ishga Kirgan</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${renderTableRows(bsEmps)}
+  </tbody>
+</table>
+
+<!-- Table 2.4: Administrativ ta'tildagilar -->
+<div style="font-weight: bold; color: #6b21a8; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.4. ADMINISTRATIV TA'TILDAGILAR — ${adminEmps.length} ta</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30px; text-align: center;">№</th>
+      <th>Tabel №</th>
+      <th>F.I.O</th>
+      <th>Bo'lim</th>
+      <th>Lavozim</th>
+      <th>Telefon</th>
+      <th>Ishga Kirgan</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${renderTableRows(adminEmps)}
+  </tbody>
+</table>
+
+<!-- Table 2.5: Hozirda faol ishlayotgan xodimlar -->
+<div style="font-weight: bold; color: #166534; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.5. HOZIRDA FAOL ISHLAYOTGAN XODIMLAR (ASOSIY TARKIB) — ${activeEmps.length} ta</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30px; text-align: center;">№</th>
+      <th>Tabel №</th>
+      <th>F.I.O</th>
+      <th>Bo'lim</th>
+      <th>Lavozim</th>
+      <th>Telefon</th>
+      <th>Ishga Kirgan</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${renderTableRows(activeEmps)}
+  </tbody>
+</table>
+
+<!-- Footer -->
+<div class="footer">
+  <span>Hujjat HR tizimidan analitik svodka formatida eksport qilindi • ${printDate}</span>
+  <span>Jami xodimlar: ${employees.length} ta</span>
+</div>
+
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=1000,height=900');
+    if (!win) { alert('Pop-up bloklangan. Brauzerdagi cheklovni olib tashlang.'); return; }
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); }, 300);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -178,7 +487,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
 
   return (
     <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
-      {/* Header Title & Bulk Action */}
+      {/* Header Title & Filter-Aware Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -194,25 +503,35 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {activeFiltersCount > 0 && (
             <button
               onClick={resetAllFilters}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-2 text-xs font-semibold hover:bg-rose-500/20 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-2 text-xs font-semibold hover:bg-rose-500/20 transition cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Filtrlarni Tozalash ({activeFiltersCount})</span>
             </button>
           )}
 
+          {/* Filter-Aware Excel Export Button */}
           <button
-            onClick={onOpenBulkModal}
-            disabled={isReadOnly}
-            title={isReadOnly ? "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin" : "Excel orqali ommaviy yuklash"}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-teal-500 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={handleExportFilteredExcel}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
+            title="Filtrlangan xodimlar ro'yxatini Excel (CSV) formatida yuklab olish"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-200" />
-            <span>📥 Excel Orqali Ommaviy Yuklash</span>
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>📊 Excel Yuklab Olish</span>
+          </button>
+
+          {/* Filter-Aware PDF Export Button */}
+          <button
+            onClick={handleExportFilteredPDF}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
+            title="Filtrlangan xodimlar ro'yxatini PDF formatida yuklab olish"
+          >
+            <Download className="w-4 h-4" />
+            <span>📄 PDF Yuklab Olish</span>
           </button>
         </div>
       </div>
@@ -485,7 +804,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => onSelectEmployee(emp.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600/80 px-2.5 py-1.5 text-[11px] font-medium text-white hover:bg-indigo-500 transition"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600/80 px-2.5 py-1.5 text-[11px] font-medium text-white hover:bg-indigo-500 transition cursor-pointer"
                           title="Profil kartasini ochish"
                         >
                           <Eye className="h-3.5 w-3.5" />
@@ -494,7 +813,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
                         <button
                           onClick={() => onTransferEmployee(emp.id)}
                           disabled={!canEditEmployee(emp.currentDepartment?.id)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           title={canEditEmployee(emp.currentDepartment?.id) ? "Boshqa bo'limga ko'chirish" : "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin"}
                         >
                           <ArrowLeftRight className="h-3.5 w-3.5" />

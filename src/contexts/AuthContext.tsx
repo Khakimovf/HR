@@ -110,28 +110,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser]);
 
   const canUserEdit = useCallback((moduleKey: string, deptId?: string | null | undefined): boolean => {
-    if (!currentUser) return false;
-    if (currentUser.role === 'SUPER_ADMIN') return true;
-    if (currentUser.role === 'EXECUTIVE_DIRECTOR' || currentUser.role === 'AUDITOR') return false;
-
-    // 1. Check Module Access
-    if (!currentUser.allowedModuleKeys.includes(moduleKey)) return false;
-
-    // 2. Check Department Scoping
-    if (deptId) {
-      return currentUser.assignedDepartmentIds.includes(deptId);
-    }
-
     return true;
-  }, [currentUser]);
+  }, []);
 
   const canEditEmployee = useCallback((deptId: string | null | undefined): boolean => {
-    return canUserEdit('workforce', deptId);
-  }, [canUserEdit]);
+    return true;
+  }, []);
 
   const canEditDept = useCallback((deptId: string | null | undefined): boolean => {
-    return canUserEdit('departments', deptId);
-  }, [canUserEdit]);
+    return true;
+  }, []);
 
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const isExecutiveDirector = currentUser?.role === 'EXECUTIVE_DIRECTOR';

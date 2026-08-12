@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   User,
@@ -11,24 +11,22 @@ import {
   ShieldAlert,
   Clock,
   Car,
-  PhoneCall,
   Trash2,
   ShieldCheck,
-  Building,
   CheckCircle2,
   AlertTriangle,
-  FileText,
   Printer,
   BadgeCheck,
   BookOpen,
   Star,
   Gift,
-  Phone,
-  Mail,
-  FileCheck,
-  XCircle,
-  Briefcase,
   Lock,
+  Pencil,
+  Plus,
+  Check,
+  Loader2,
+  Download,
+  Filter,
 } from 'lucide-react';
 import { calculateTenure } from '@/lib/kpi';
 import { formatDate, formatCurrency } from '@/lib/utils';
@@ -40,16 +38,17 @@ interface EmployeeProfileModalProps {
   onRefreshData?: () => void;
 }
 
-// ─── Demo mock data injected when real API data is empty ───────────────────────
+// ─── Demo Data Sources ─────────────────────────────────────────────────────────
 
 const MOCK_LEAVES = [
-  { id: 'l1', type: 'MT', startDate: '2024-06-01', endDate: '2024-06-28', totalDays: 28, reason: 'Yillik asosiy ta\'til (Mehnat ta\'tili)', hoursLate: null },
-  { id: 'l2', type: 'BL', startDate: '2024-02-05', endDate: '2024-02-12', totalDays: 7, reason: 'Vrachlik varag\'i (OCHA kasallik)', hoursLate: null },
-  { id: 'l3', type: 'BS', startDate: '2024-04-10', endDate: '2024-04-11', totalDays: 2, reason: 'Oilaviy sabab — harajatsiz ta\'til', hoursLate: null },
-  { id: 'l4', type: 'MT', startDate: '2023-07-03', endDate: '2023-07-28', totalDays: 26, reason: 'Yillik asosiy ta\'til', hoursLate: null },
-  { id: 'l5', type: 'BS', startDate: '2023-11-20', endDate: '2023-11-21', totalDays: 2, reason: 'Shaxsiy sabab', hoursLate: null },
-  { id: 'l6', type: 'OTGUL', startDate: '2024-03-22', endDate: '2024-03-22', totalDays: 1, reason: 'Bayrami munosabati bilan qo\'shimcha dam olish', hoursLate: null },
-  { id: 'l7', type: 'KECH', startDate: '2024-05-14', endDate: '2024-05-14', totalDays: 1, reason: 'Transport muammosi', hoursLate: 2.5 },
+  { id: 'l1', type: 'MT', startDate: '2026-06-01', endDate: '2026-06-28', totalDays: 28, reason: 'Yillik asosiy mehnat ta\'tili', hoursLate: null },
+  { id: 'l2', type: 'BL', startDate: '2026-02-05', endDate: '2026-02-12', totalDays: 7, reason: 'Vaqtinchalik mehnatga layoqatsizlik varag\'i (B/L)', hoursLate: null },
+  { id: 'l3', type: 'BS', startDate: '2026-04-10', endDate: '2026-04-11', totalDays: 2, reason: 'Oilaviy sabab — O\'z hisobidan ta\'til (B/S)', hoursLate: null },
+  { id: 'l4', type: 'ADMIN', startDate: '2026-01-15', endDate: '2026-01-17', totalDays: 3, reason: 'Kadrlar buyrug\'i bo\'yicha administrativ ta\'til', hoursLate: null },
+  { id: 'l5', type: 'KECH', startDate: '2026-05-14', endDate: '2026-05-14', totalDays: 1, reason: 'Ishga kechikish (Transport muammosi)', hoursLate: 2.5 },
+  { id: 'l6', type: 'KECH', startDate: '2026-03-22', endDate: '2026-03-22', totalDays: 1, reason: 'Shaxsiy sabab bilan kechikish', hoursLate: 1.5 },
+  { id: 'l7', type: 'MT', startDate: '2025-07-01', endDate: '2025-07-26', totalDays: 26, reason: 'Yillik asosiy ta\'til', hoursLate: null },
+  { id: 'l8', type: 'BL', startDate: '2025-11-10', endDate: '2025-11-15', totalDays: 5, reason: 'Vaqtinchalik layoqatsizlik varag\'i', hoursLate: null },
 ];
 
 const MOCK_REWARDS = [
@@ -80,7 +79,6 @@ const MOCK_REWARDS = [
 ];
 
 const MOCK_DISCIPLINARY: any[] = [
-  // Purposefully added one expired entry for realism
   {
     id: 'd1',
     type: 'Hayfsan',
@@ -92,291 +90,349 @@ const MOCK_DISCIPLINARY: any[] = [
   },
 ];
 
-const MOCK_PERMITS = [
+const DEMO_CERTIFICATES = [
   {
-    id: 'p1',
-    licenseType: 'Haydovchilik Guvohnomasi',
-    category: 'B, C',
-    certificateNo: 'UZ-2341-DL-BC',
-    issueDate: '2019-06-15',
-    expiryDate: '2029-06-14',
-    status: 'Amalda',
+    id: 'cert_1',
+    title: "Haydovchilik Guvohnomasi (B, C Kategoriya)",
+    certificateNo: "UZ-2341-DL-BC",
+    issueDate: "2019-06-15",
+    expiryDate: "2029-06-14",
+    issuedBy: "Toshkent Sh. YHXBB",
   },
   {
-    id: 'p2',
-    licenseType: 'KARA Operator Ruxsatnomasi',
-    category: 'Kran / Yuk Ko\'taruvchi',
-    certificateNo: 'KARA-OP-4412',
-    issueDate: '2022-03-01',
-    expiryDate: '2025-03-01',
-    status: 'Amalda',
+    id: 'cert_2',
+    title: "KARA Operatorlik Guvohnomasi",
+    certificateNo: "KARA-OP-4412",
+    issueDate: "2022-03-01",
+    expiryDate: "2027-03-01",
+    issuedBy: "Sanoat Xavfsizligi Davlat Qo'mitasi",
   },
   {
-    id: 'p3',
-    licenseType: 'Korporativ Telefon Ruxsatnomasi',
-    category: 'Level-2 Foydalanish',
-    certificateNo: 'MOB-2024-0077',
-    issueDate: '2024-01-10',
-    expiryDate: '2025-01-09',
-    status: 'Amalda',
+    id: 'cert_3',
+    title: "ISO 9001:2015 Sifat Menejmenti Auditori",
+    certificateNo: "ISO-AUD-8831",
+    issueDate: "2023-10-10",
+    expiryDate: "",
+    issuedBy: "CERT International",
   },
 ];
 
-const MOCK_CERTIFICATES = [
-  {
-    id: 'c1',
-    title: 'ISO 9001:2015 Sifat Menejmenti Tizimlari',
-    field: 'Sifat Boshqaruvi / QMS',
-    issueDate: '2023-04-15',
-    expiryDate: '2026-04-14',
-    status: 'Amalda',
-    issuedBy: 'Bureau Veritas Certification',
-  },
-  {
-    id: 'c2',
-    title: 'Sanoat Xavfsizligi va Mehnat Muhofazasi',
-    field: 'EHS / Xavfsizlik',
-    issueDate: '2024-01-20',
-    expiryDate: '2025-01-19',
-    status: 'Amalda',
-    issuedBy: 'O\'zbekiston Mehnat Xavfsizligi Markazi',
-  },
-  {
-    id: 'c3',
-    title: 'Lean Manufacturing & 5S Metodologiyasi',
-    field: 'Ishlab Chiqarish Optimizatsiyasi',
-    issueDate: '2022-11-10',
-    expiryDate: '2024-11-09',
-    status: 'Muddati o\'tgan',
-    issuedBy: 'KAIZEN Institute Uzbekistan',
-  },
-  {
-    id: 'c4',
-    title: 'Kuchli Elektr Asbob-uskunalar Bilan Ishlash',
-    field: 'Elektrotexnika / Energetika',
-    issueDate: '2024-06-01',
-    expiryDate: '2026-05-31',
-    status: 'Amalda',
-    issuedBy: 'Energiya Nazorat Instituti',
-  },
-];
+// ─── Single Unified 5-Section Employee PDF Generator ─────────────────────────
 
-// ─── Objektivka Print Helper ────────────────────────────────────────────────────
+function handleDownloadEmployeePDF(
+  employee: any,
+  tenure: any,
+  disciplinaryList: any[],
+  rewardsList: any[],
+  certificateList: any[]
+) {
+  const printWindow = window.open('', '_blank', 'width=900,height=1200');
+  if (!printWindow) {
+    alert('Pop-up bloklangan. Brauzerdagi cheklovni olib tashlang.');
+    return;
+  }
 
-function triggerObjektivkaPrint(employee: any, tenure: any) {
   const fullName = `${employee.lastName} ${employee.firstName} ${employee.middleName || ''}`.trim();
-  const dept = employee.currentDepartment?.name || '—';
-  const position = employee.position || '—';
-  const hireDate = employee.hireDate ? new Date(employee.hireDate).toLocaleDateString('uz-UZ') : '—';
-  const dob = employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString('uz-UZ') : '—';
-  const tabel = employee.tabelNumber || '—';
-  const gender = employee.gender === 'MALE' ? 'Erkak' : 'Ayol';
-  const status = employee.status || '—';
-
-  // Education
-  const eduHtml = (employee.educations && employee.educations.length > 0
-    ? employee.educations
-    : [{ level: 'HIGHER', institutionName: 'Toshkent Davlat Texnika Universiteti', fieldOfStudy: 'Mexanika Muhandisligi', graduationYear: 2018 }]
-  ).map((e: any) =>
-    `<tr><td>${e.institutionName}</td><td>${e.fieldOfStudy}</td><td>${e.graduationYear}</td></tr>`
-  ).join('');
-
-  // Transfers
-  const leavesData = (employee.leaves && employee.leaves.length > 0) ? employee.leaves : MOCK_LEAVES;
-  const mt = leavesData.filter((l: any) => l.type === 'MT').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
-  const bl = leavesData.filter((l: any) => l.type === 'BL').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
-  const bs = leavesData.filter((l: any) => l.type === 'BS').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
-
-  // Permits
-  const permitsData = (employee.permits && employee.permits.length > 0) ? employee.permits : MOCK_PERMITS;
-  const permitsHtml = permitsData.map((p: any) =>
-    `<tr><td>${p.licenseType}</td><td>${p.category || '—'}</td><td>${p.certificateNo}</td><td>${p.status}</td></tr>`
-  ).join('');
-
-  // Rewards
-  const rewardsData = (employee.rewards && employee.rewards.length > 0) ? employee.rewards : MOCK_REWARDS;
-  const rewardsHtml = rewardsData.map((r: any) =>
-    `<tr><td>${r.type}</td><td style="font-size:9px">${r.reason}</td><td>${r.orderNumber}</td><td>${new Date(r.orderDate).toLocaleDateString('uz-UZ')}</td></tr>`
-  ).join('');
-
-  // Transfers
-  const transfersData = employee.transfers || [];
-  const transfersHtml = transfersData.length > 0
-    ? transfersData.map((t: any) =>
-        `<tr><td>${t.fromDepartment?.name || '—'}</td><td>${t.toDepartment?.name || '—'}</td><td>${new Date(t.transferDate).toLocaleDateString('uz-UZ')}</td><td>${t.orderNumber || '—'}</td></tr>`
-      ).join('')
-    : `<tr><td colspan="4" style="color:#666;text-align:center">Bo'limlararo ko'chish amalga oshirilmagan</td></tr>`;
-
   const printDate = new Date().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+  const hashKey = `SHA256:${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`.toUpperCase();
 
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Spravka-Ob'yektivka — ${fullName}</title>
-<style>
-  @page { size: A4; margin: 15mm 20mm; }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Times New Roman', serif; }
-  body { color: #111; background: #fff; font-size: 11pt; line-height: 1.5; }
-
-  .doc-header { display: flex; align-items: center; gap: 20px; border-bottom: 2.5px solid #1a1a6e; padding-bottom: 10px; margin-bottom: 14px; }
-  .avatar { width: 70px; height: 70px; border-radius: 4px; background: linear-gradient(135deg, #1a1a6e 0%, #4338ca 100%); color: white; display: flex; align-items: center; justify-content: center; font-size: 28pt; font-weight: 700; flex-shrink: 0; }
-  .org-block { flex: 1; }
-  .org-name { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a6e; }
-  .doc-title { font-size: 15pt; font-weight: 700; color: #111; margin-top: 2px; }
-  .doc-subtitle { font-size: 9pt; color: #555; }
-  .stamp-zone { text-align: right; font-size: 8pt; color: #555; }
-  .stamp-box { border: 1px dashed #aaa; padding: 6px 10px; display: inline-block; text-align: center; min-width: 120px; }
-
-  .emp-card { display: flex; gap: 16px; background: #f9f9fb; border: 1px solid #d0d0e0; border-radius: 6px; padding: 12px; margin-bottom: 14px; }
-  .emp-avatar { width: 90px; height: 100px; background: linear-gradient(135deg, #1a1a6e, #4338ca); color: white; display: flex; align-items: center; justify-content: center; font-size: 36pt; font-weight: 700; border-radius: 4px; flex-shrink: 0; }
-  .emp-info h2 { font-size: 14pt; font-weight: 700; color: #111; }
-  .emp-info .tabel { font-size: 9pt; color: #555; font-family: monospace; background: #e8e8f5; padding: 2px 8px; border-radius: 3px; display: inline-block; margin-top: 2px; }
-  .emp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin-top: 8px; font-size: 10pt; }
-  .emp-grid .lbl { color: #666; }
-  .emp-grid .val { font-weight: 600; color: #111; }
-
-  section { margin-bottom: 12px; }
-  .section-title { font-size: 10pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1a1a6e; border-bottom: 1.5px solid #1a1a6e; padding-bottom: 3px; margin-bottom: 8px; }
-  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
-  th { background: #e8e8f5; color: #1a1a6e; text-align: left; font-weight: 700; padding: 5px 7px; border: 1px solid #c8c8e0; font-size: 9pt; }
-  td { padding: 4px 7px; border: 1px solid #d8d8e8; vertical-align: top; }
-  tr:nth-child(even) td { background: #f5f5fb; }
-
-  .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 8pt; font-weight: 700; }
-  .badge-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-  .badge-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
-  .stats-row { display: flex; gap: 12px; margin-bottom: 10px; }
-  .stat-box { flex: 1; border: 1px solid #d0d0e0; border-radius: 4px; padding: 8px; text-align: center; }
-  .stat-box .num { font-size: 18pt; font-weight: 700; color: #1a1a6e; }
-  .stat-box .lbl { font-size: 8pt; color: #666; margin-top: 2px; }
-
-  .footer { border-top: 1.5px solid #1a1a6e; margin-top: 16px; padding-top: 8px; display: flex; justify-content: space-between; font-size: 8.5pt; color: #555; }
-  .signature-block { margin-top: 20px; display: flex; justify-content: space-between; font-size: 9pt; }
-  .sig-line { border-top: 1px solid #333; min-width: 160px; text-align: center; padding-top: 4px; color: #555; font-size: 8pt; }
-</style>
-</head>
-<body>
-
-<!-- Header -->
-<div class="doc-header">
-  <div class="avatar">${fullName[0] || 'X'}</div>
-  <div class="org-block">
-    <div class="org-name">O'zbekiston Respublikasi — Korxona HR Tizimi</div>
-    <div class="doc-title">SPRAVKA-OB'YEKTIVKA</div>
-    <div class="doc-subtitle">Xodimning rasmiy shaxsiy malaka varaqasi • Ish o'rni tavsifnomasi</div>
-  </div>
-  <div class="stamp-zone">
-    <div class="stamp-box">
-      M.O.<br><br><br>
-      <span style="color:#aaa">Imzo / Muhr</span>
-    </div><br>
-    <small>Sana: ${printDate}</small>
-  </div>
-</div>
-
-<!-- Employee Card -->
-<div class="emp-card">
-  <div class="emp-avatar">${fullName[0] || 'X'}</div>
-  <div class="emp-info" style="flex:1">
-    <h2>${fullName}</h2>
-    <div class="tabel">Tabel №: ${tabel}</div>
-    <div class="emp-grid" style="margin-top:10px">
-      <span class="lbl">Lavozim:</span><span class="val">${position}</span>
-      <span class="lbl">Bo'lim:</span><span class="val">${dept}</span>
-      <span class="lbl">Jinsi:</span><span class="val">${gender}</span>
-      <span class="lbl">Tug'ilgan sana:</span><span class="val">${dob}</span>
-      <span class="lbl">Ishga qabul:</span><span class="val">${hireDate}</span>
-      <span class="lbl">Mehnat staji:</span><span class="val">${tenure.formatted || '—'}</span>
-      <span class="lbl">Shtat holati:</span><span class="val">${status}</span>
-      <span class="lbl">Harbiy guvohnoma:</span><span class="val">${employee.militaryCertificate || '—'}</span>
+  // Page 1 HTML
+  const page1Html = `
+    <!-- Top Executive Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3.5px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px;">
+      <div>
+        <div style="font-size: 9pt; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px; text-transform: uppercase;">ENTERPRISE HR SYSTEM MCHJ</div>
+        <div style="font-size: 14pt; font-weight: 800; color: #0f172a; margin-top: 2px;">XODIMNING TO'LIQ MEHNAT VA SHAXSIY VARAKASI (360° PROFILE)</div>
+        <div style="font-size: 8.5pt; font-weight: 600; color: #475569;">Rasmiy Kadrlar Dosyesi va Shaxsiy Malaka Varaqasi</div>
+      </div>
+      <div style="text-align: right; font-size: 8.5pt;">
+        <span style="display: inline-block; background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-bottom: 4px;">VERIFIED HR E-DOCUMENT</span>
+        <div style="color: #64748b; font-family: monospace;">DOC-360-${employee.tabelNumber || '000'}</div>
+        <div style="color: #64748b;">Sana: ${printDate}</div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Section 1: Education -->
-<section>
-  <div class="section-title">1. Ta'lim va Malaka Ma'lumotlari</div>
-  <table>
-    <thead><tr><th>Ta'lim Muassasasi</th><th>Mutaxassislik</th><th>Bitirgan Yili</th></tr></thead>
-    <tbody>${eduHtml}</tbody>
-  </table>
-</section>
-
-<!-- Section 2: Department Transfer History -->
-<section>
-  <div class="section-title">2. Bo'limlar Rotatsiya Tarixi</div>
-  <table>
-    <thead><tr><th>Avvalgi Bo'lim</th><th>Yangi Bo'lim</th><th>Ko'chirish Sanasi</th><th>Buyruq №</th></tr></thead>
-    <tbody>${transfersHtml}</tbody>
-  </table>
-</section>
-
-<!-- Section 3: Leaves Summary -->
-<section>
-  <div class="section-title">3. Ta'tillar va Davomat Xulasasi</div>
-  <div class="stats-row">
-    <div class="stat-box">
-      <div class="num" style="color:#1d4ed8">${mt}</div>
-      <div class="lbl">M/T — Mehnat Ta'tili (kun)</div>
+    <!-- Profile Hero Banner -->
+    <div style="display: flex; gap: 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 14px;">
+      <div style="width: 72px; height: 72px; border-radius: 6px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; display: flex; align-items: center; justify-content: center; font-size: 26pt; font-weight: 800; flex-shrink: 0;">
+        ${fullName[0] || 'X'}
+      </div>
+      <div style="flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h2 style="font-size: 13.5pt; font-weight: 800; color: #0f172a; margin: 0;">${fullName}</h2>
+            <div style="font-size: 9.5pt; color: #334155; font-weight: 600; margin-top: 2px;">
+              Tabel №: <span style="font-family: monospace; background: #e2e8f0; padding: 1px 6px; border-radius: 3px;">${employee.tabelNumber || '—'}</span>
+              <span style="margin-left: 8px; background: #dcfce7; color: #166534; border: 1px solid #86efac; padding: 1px 6px; border-radius: 3px; font-size: 8.5pt;">${employee.status || 'ACTIVE'}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 8px; font-size: 9pt;">
+          <div><span style="color: #64748b;">Bo'lim:</span> <b>${employee.currentDepartment?.name || '—'}</b></div>
+          <div><span style="color: #64748b;">Lavozim:</span> <b>${employee.position || '—'}</b></div>
+          <div><span style="color: #64748b;">Ishga qabul sanasi:</span> <b>${formatDate(employee.hireDate)}</b></div>
+          <div><span style="color: #64748b;">Umumiy mehnat staji:</span> <b>${tenure.formatted || '—'}</b></div>
+        </div>
+      </div>
     </div>
-    <div class="stat-box">
-      <div class="num" style="color:#dc2626">${bl}</div>
-      <div class="lbl">B/L — Kasallik Varag'i (kun)</div>
+
+    <!-- Section 1: Shaxsiy Ma'lumotlar -->
+    <div class="section-title">1. Shaxsiy Ma'lumotlar</div>
+    <div class="grid-2" style="margin-bottom: 12px;">
+      <div class="info-box">
+        <div style="color: #64748b; font-size: 8.5pt;">F.I.O (To'liq Familiya, Ismi, Sharifi):</div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 9.5pt;">${fullName}</div>
+      </div>
+      <div class="info-box">
+        <div style="color: #64748b; font-size: 8.5pt;">JSHSHIR (PINFL):</div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 9.5pt; font-family: monospace;">${employee.pinfl || 'Kiritilmagan'}</div>
+      </div>
+      <div class="info-box">
+        <div style="color: #64748b; font-size: 8.5pt;">Telefon Raqami:</div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 9.5pt; font-family: monospace;">${employee.phone || 'Kiritilmagan'}</div>
+      </div>
+      <div class="info-box">
+        <div style="color: #64748b; font-size: 8.5pt;">Elektron Pochta:</div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 9.5pt; font-family: monospace;">${employee.email || 'Kiritilmagan'}</div>
+      </div>
+      <div class="info-box">
+        <div style="color: #64748b; font-size: 8.5pt;">Tug'ilgan Sanasi & Jinsi:</div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 9.5pt;">${formatDate(employee.dateOfBirth)} • ${employee.gender === 'MALE' ? 'Erkak' : 'Ayol'}</div>
+      </div>
+      <div class="info-box">
+        <div style="color: #64748b; font-size: 8.5pt;">Harbiy Guvohnoma:</div>
+        <div style="font-weight: 700; color: #0f172a; font-size: 9.5pt;">${employee.militaryCertificate || 'Mavjud emas'}</div>
+      </div>
     </div>
-    <div class="stat-box">
-      <div class="num" style="color:#d97706">${bs}</div>
-      <div class="lbl">B/S — Harajatsiz Ta'til (kun)</div>
+
+    <!-- Section 2: Mehnat Faoliyati & Lavozim -->
+    <div class="section-title">2. Mehnat Faoliyati & Lavozim</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Avvalgi Bo'lim</th>
+          <th>Yangi Bo'lim / Lavozim</th>
+          <th>Ko'chirish Sanasi</th>
+          <th>Buyruq № va Sababi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${(employee.transfers && employee.transfers.length > 0)
+          ? employee.transfers.map((t: any) => `
+              <tr>
+                <td>${t.fromDepartment?.name || '—'}</td>
+                <td><b>${t.toDepartment?.name || '—'}</b></td>
+                <td style="font-family: monospace;">${formatDate(t.transferDate)}</td>
+                <td>Buyruq №: ${t.orderNumber || '—'} (${t.reason || 'Kadrlar rotatsiyasi'})</td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="4" style="text-align: center; color: #64748b;">Xodim boshqa bo'limlarga ko'chirilmagan (Joriy bo'limda faoliyat yuritmoqda)</td></tr>`
+        }
+      </tbody>
+    </table>
+  `;
+
+  // Page 2 HTML
+  const page2Html = `
+    <!-- Section 3: Ma'lumoti va Malaka -->
+    <div class="section-title">3. Ma'lumoti va Malaka (Oliy va Maxsus Ta'lim)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ta'lim Darajasi</th>
+          <th>Ta'lim Muassasasi Nomi</th>
+          <th>Mutaxassislik Yo'nalishi</th>
+          <th>Bitirgan Yili</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${(employee.educations && employee.educations.length > 0)
+          ? employee.educations.map((e: any) => `
+              <tr>
+                <td><span style="background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 3px; font-weight: 700; font-size: 8.5pt;">${e.level}</span></td>
+                <td><b>${e.institutionName}</b></td>
+                <td>${e.fieldOfStudy}</td>
+                <td style="font-family: monospace; font-weight: 700;">${e.graduationYear || '—'}</td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="4" style="text-align: center; color: #64748b;">Ta'lim ma'lumotlari kiritilmagan</td></tr>`
+        }
+      </tbody>
+    </table>
+
+    <!-- Section 4: Jazo & Mukofotlar Logi -->
+    <div class="section-title">4. Jazo & Mukofotlar Logi</div>
+    <div style="font-weight: 700; color: #b91c1c; font-size: 9pt; margin-bottom: 4px;">• Intizomiy Jazolar (Hayfsanlar)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Jazo Turi</th>
+          <th>Buyruq №</th>
+          <th>Sababi / Izoh</th>
+          <th>Berilgan Sana</th>
+          <th>Amal Qilish Muddati</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${disciplinaryList.length > 0
+          ? disciplinaryList.map((d: any) => `
+              <tr>
+                <td><b style="color: #b91c1c;">${d.type}</b></td>
+                <td style="font-family: monospace;">${d.orderNumber}</td>
+                <td>${d.notes}</td>
+                <td>${formatDate(d.startDate)}</td>
+                <td>${formatDate(d.expiryDate)}</td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="5" style="text-align: center; color: #166534; background: #f0fdf4;">Intizomiy jazolar mavjud emas (Mehnat intizomi a'lo)</td></tr>`
+        }
+      </tbody>
+    </table>
+
+    <div style="font-weight: 700; color: #15803d; font-size: 9pt; margin-top: 8px; margin-bottom: 4px;">• Mukofotlar va Moddiy Rag'batlantirish Logi</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Mukofot Turi</th>
+          <th>Buyruq №</th>
+          <th>Sababiy Asos</th>
+          <th>Summasi / Mukofot</th>
+          <th>Buyruq Sanasi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rewardsList.length > 0
+          ? rewardsList.map((r: any) => `
+              <tr>
+                <td><b style="color: #15803d;">${r.type}</b></td>
+                <td style="font-family: monospace;">${r.orderNumber}</td>
+                <td>${r.reason}</td>
+                <td><b>${r.amount > 0 ? formatCurrency(r.amount) : 'Faxriy Yorliq'}</b></td>
+                <td>${formatDate(r.orderDate)}</td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="5" style="text-align: center; color: #64748b;">Mukofot ma'lumotlari kiritilmagan</td></tr>`
+        }
+      </tbody>
+    </table>
+
+    <!-- Section 5: Sertifikatlar va Guvohnomalar -->
+    <div class="section-title">5. Sertifikatlar va Guvohnomalar</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sertifikat / Guvohnoma Nomi</th>
+          <th>Seriya va Raqami</th>
+          <th>Bergan Tashkilot</th>
+          <th>Berilgan Sana</th>
+          <th>Amal Qilish Muddati</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${certificateList.length > 0
+          ? certificateList.map((c: any) => `
+              <tr>
+                <td><b>${c.title}</b></td>
+                <td style="font-family: monospace;">${c.certificateNo || '—'}</td>
+                <td>${c.issuedBy || '—'}</td>
+                <td>${formatDate(c.issueDate)}</td>
+                <td>
+                  ${!c.expiryDate
+                    ? `<span style="background: #dbeafe; color: #1e40af; padding: 1px 6px; border-radius: 3px; font-weight: 700; font-size: 8.5pt;">Muddatsiz</span>`
+                    : formatDate(c.expiryDate)
+                  }
+                </td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="5" style="text-align: center; color: #64748b;">Sertifikatlar kiritilmagan</td></tr>`
+        }
+      </tbody>
+    </table>
+
+    <!-- Official Bottom Footer (Stamps & Verification) -->
+    <div style="position: absolute; bottom: 8mm; left: 12mm; right: 12mm; border-top: 2px solid #cbd5e1; padding-top: 8px; display: flex; justify-content: space-between; align-items: flex-end;">
+      <div style="font-size: 8pt; color: #64748b; display: flex; align-items: center; gap: 10px;">
+        <div style="border: 1.5px solid #0f172a; padding: 4px 8px; font-family: monospace; font-weight: 700; color: #0f172a; text-align: center; border-radius: 4px;">
+          [ QR VERIFIED ]
+        </div>
+        <div>
+          <div>Hujjat avtomatik ravishda HR tizimidan eksport qilindi</div>
+          <div style="font-family: monospace; font-size: 7.5pt; color: #94a3b8;">${hashKey}</div>
+        </div>
+      </div>
+
+      <div style="text-align: right; font-size: 8.5pt; color: #334155;">
+        <div style="border-top: 1px dashed #475569; padding-top: 3px; width: 180px; text-align: center; margin-left: auto;">
+          Kadrlar Bo'limi Boshlig'i Imzosi
+        </div>
+        <div style="font-size: 7.5pt; color: #94a3b8; margin-top: 2px;">Sana: ${printDate}</div>
+      </div>
     </div>
-  </div>
-</section>
+  `;
 
-<!-- Section 4: Rewards -->
-<section>
-  <div class="section-title">4. Mukofotlar va Moddiy Rag'batlar</div>
-  <table>
-    <thead><tr><th>Tur</th><th>Sabab</th><th>Buyruq №</th><th>Sana</th></tr></thead>
-    <tbody>${rewardsHtml}</tbody>
-  </table>
-</section>
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Xodim_360_Varakasi_${employee.tabelNumber || '000'}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm;
+          }
+          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 9.5pt;
+            color: #0f172a;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+            line-height: 1.35;
+          }
+          .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 8mm;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+          }
+          .page-break { page-break-before: always; break-before: page; }
+          .section-title {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #1e3a8a;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 4px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+          }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+          th, td { border: 1px solid #cbd5e1; padding: 5px 8px; font-size: 9pt; text-align: left; }
+          th { background-color: #f1f5f9; color: #1e293b; font-weight: 600; }
+          .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+          .info-box { border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 10px; background: #f8fafc; }
+        </style>
+      </head>
+      <body>
+        <div class="page">
+          ${page1Html}
+        </div>
+        
+        <div class="page page-break">
+          ${page2Html}
+        </div>
+      </body>
+    </html>
+  `);
 
-<!-- Section 5: Active Permits -->
-<section>
-  <div class="section-title">5. Faol Ruxsatnomalar va Guvohnomalar</div>
-  <table>
-    <thead><tr><th>Turi</th><th>Kategoriya</th><th>Guvohnoma №</th><th>Holati</th></tr></thead>
-    <tbody>${permitsHtml}</tbody>
-  </table>
-</section>
-
-<!-- Footer -->
-<div class="signature-block">
-  <div>
-    <div class="sig-line">Kadrlar bo'limi boshlig'i</div>
-  </div>
-  <div>
-    <div class="sig-line">Xodimning imzosi</div>
-  </div>
-  <div>
-    <div class="sig-line">Rais / Direktor imzosi</div>
-  </div>
-</div>
-
-<div class="footer">
-  <span>Hujjat avtomatik ravishda HR tizimi orqali yaratilgan • ${printDate}</span>
-  <span>Tabel №: ${tabel} • Holat: ${status}</span>
-</div>
-
-</body>
-</html>`;
-
-  const win = window.open('', '_blank', 'width=850,height=1100');
-  if (!win) { alert('Pop-up bloklangan. Brauzerdagi cheklovni olib tashlang.'); return; }
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(() => { win.print(); }, 400);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 300);
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
@@ -391,7 +447,55 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'personal_edu' | 'transfers' | 'leaves' | 'discipline_rewards' | 'permits'>('personal_edu');
 
-  React.useEffect(() => {
+  // Micro Field-Level Editing States
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [fieldInput, setFieldInput] = useState<string>('');
+  const [savingField, setSavingField] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Dynamic Education Editing States
+  const [showNewEduForm, setShowNewEduForm] = useState(false);
+  const [newEdu, setNewEdu] = useState({
+    institutionName: '',
+    fieldOfStudy: '',
+    level: 'HIGHER',
+    graduationYear: new Date().getFullYear(),
+  });
+  const [editingEduId, setEditingEduId] = useState<string | null>(null);
+  const [editEduData, setEditEduData] = useState({
+    institutionName: '',
+    fieldOfStudy: '',
+    level: 'HIGHER',
+    graduationYear: new Date().getFullYear(),
+  });
+
+  // Leave & Attendance Section Filters
+  const [leaveCategoryFilter, setLeaveCategoryFilter] = useState<string>('ALL');
+  const [leaveDateFrom, setLeaveDateFrom] = useState<string>('');
+  const [leaveDateTo, setLeaveDateTo] = useState<string>('');
+
+  // Section 4 (Discipline & Rewards) Dynamic States
+  const [disciplinaryList, setDisciplinaryList] = useState<any[]>(MOCK_DISCIPLINARY);
+  const [rewardsList, setRewardsList] = useState<any[]>(MOCK_REWARDS);
+
+  const [showNewDisciplineForm, setShowNewDisciplineForm] = useState(false);
+  const [newDisciplineData, setNewDisciplineData] = useState({ type: 'Hayfsan', notes: '', orderNumber: '', startDate: '', expiryDate: '' });
+  const [editingDisciplineId, setEditingDisciplineId] = useState<string | null>(null);
+  const [editDisciplineData, setEditDisciplineData] = useState({ type: '', notes: '', orderNumber: '', startDate: '', expiryDate: '' });
+
+  const [showNewRewardForm, setShowNewRewardForm] = useState(false);
+  const [newRewardData, setNewRewardData] = useState({ type: "Moddiy Rag'batlantirish", reason: '', orderNumber: '', amount: 0, orderDate: '' });
+  const [editingRewardId, setEditingRewardId] = useState<string | null>(null);
+  const [editRewardData, setEditRewardData] = useState({ type: '', reason: '', orderNumber: '', amount: 0, orderDate: '' });
+
+  // Section 5 (Sertifikatlar va Guvohnomalar Data-Only) Handlers
+  const [certificateList, setCertificateList] = useState<any[]>(DEMO_CERTIFICATES);
+  const [showNewCertForm, setShowNewCertForm] = useState(false);
+  const [newCertData, setNewCertData] = useState({ title: '', certificateNo: '', issueDate: '', expiryDate: '', issuedBy: '' });
+  const [editingCertId, setEditingCertId] = useState<string | null>(null);
+  const [editCertData, setEditCertData] = useState({ title: '', certificateNo: '', issueDate: '', expiryDate: '', issuedBy: '' });
+
+  useEffect(() => {
     if (!employeeId) return;
     setLoading(true);
     fetch(`/api/employees/${employeeId}`)
@@ -399,6 +503,15 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
       .then((data) => {
         if (data.success) {
           setEmployee(data.employee);
+          if (data.employee.disciplinaryActions && data.employee.disciplinaryActions.length > 0) {
+            setDisciplinaryList(data.employee.disciplinaryActions);
+          }
+          if (data.employee.rewards && data.employee.rewards.length > 0) {
+            setRewardsList(data.employee.rewards);
+          }
+          if (data.employee.certificates && data.employee.certificates.length > 0) {
+            setCertificateList(data.employee.certificates);
+          }
         }
       })
       .finally(() => setLoading(false));
@@ -406,18 +519,360 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
   if (!employeeId) return null;
 
-  const tenure = employee ? calculateTenure(employee.hireDate) : { formatted: '...' };
-
-  // Use real data if available, otherwise fall back to demo mock data
-  const leavesData = (employee?.leaves && employee.leaves.length > 0) ? employee.leaves : MOCK_LEAVES;
-  const rewardsData = (employee?.rewards && employee.rewards.length > 0) ? employee.rewards : MOCK_REWARDS;
-  const disciplinaryData = (employee?.disciplinaryActions && employee.disciplinaryActions.length > 0) ? employee.disciplinaryActions : MOCK_DISCIPLINARY;
-  const permitsData = (employee?.permits && employee.permits.length > 0) ? employee.permits : MOCK_PERMITS;
-
   const isAllowedToEdit = canEditEmployee(employee?.currentDepartmentId);
 
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleStartEditField = (fieldName: string, initialValue: string) => {
+    setEditingField(fieldName);
+    setFieldInput(initialValue || '');
+  };
+
+  const handleSaveField = async (fieldName: string, value: any) => {
+    setSavingField(fieldName);
+    try {
+      const res = await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [fieldName]: value, tabSection: fieldName }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEmployee(data.employee || data);
+        setEditingField(null);
+        showToast("✅ Saqlandi");
+        if (onRefreshData) onRefreshData();
+      } else {
+        showToast(data.error || "Xatolik yuz berdi");
+      }
+    } catch {
+      showToast("Tarmoq xatoligi yuz berdi");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  // Education Handlers
+  const handleSaveNewEducation = async () => {
+    if (!newEdu.institutionName.trim()) {
+      showToast("Muassasa nomini kiriting");
+      return;
+    }
+    const currentEdus = employee.educations || [];
+    const updatedEdus = [
+      ...currentEdus,
+      {
+        level: newEdu.level,
+        institutionName: newEdu.institutionName.trim(),
+        fieldOfStudy: newEdu.fieldOfStudy.trim() || 'Umumiy mutaxassislik',
+        graduationYear: newEdu.graduationYear || new Date().getFullYear(),
+      },
+    ];
+
+    setSavingField('educations');
+    try {
+      const res = await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ educations: updatedEdus, tabSection: "Ta'lim ma'lumotlari" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEmployee(data.employee || data);
+        setShowNewEduForm(false);
+        setNewEdu({ institutionName: '', fieldOfStudy: '', level: 'HIGHER', graduationYear: new Date().getFullYear() });
+        showToast("✅ Saqlandi");
+        if (onRefreshData) onRefreshData();
+      } else {
+        showToast(data.error || "Xatolik yuz berdi");
+      }
+    } catch {
+      showToast("Tarmoq xatoligi yuz berdi");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleSaveEditEducation = async (eduId: string) => {
+    if (!editEduData.institutionName.trim()) return;
+    const currentEdus = employee.educations || [];
+    const updatedEdus = currentEdus.map((e: any) =>
+      e.id === eduId
+        ? {
+            ...e,
+            level: editEduData.level,
+            institutionName: editEduData.institutionName.trim(),
+            fieldOfStudy: editEduData.fieldOfStudy.trim(),
+            graduationYear: editEduData.graduationYear,
+          }
+        : e
+    );
+
+    setSavingField(`edu_${eduId}`);
+    try {
+      const res = await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ educations: updatedEdus, tabSection: "Ta'lim ma'lumotlari" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEmployee(data.employee || data);
+        setEditingEduId(null);
+        showToast("✅ Saqlandi");
+        if (onRefreshData) onRefreshData();
+      } else {
+        showToast(data.error || "Xatolik yuz berdi");
+      }
+    } catch {
+      showToast("Tarmoq xatoligi yuz berdi");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleDeleteEducation = async (eduId: string) => {
+    if (!confirm("Ushbu ta'lim muassasasi ma'lumotini o'chirishni tasdiqlaysizmi?")) return;
+    const currentEdus = employee.educations || [];
+    const updatedEdus = currentEdus.filter((e: any) => e.id !== eduId);
+
+    setSavingField(`delete_edu_${eduId}`);
+    try {
+      const res = await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ educations: updatedEdus, tabSection: "Ta'lim ma'lumotlari" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEmployee(data.employee || data);
+        showToast("✅ Saqlandi");
+        if (onRefreshData) onRefreshData();
+      }
+    } catch {
+      showToast("Tarmoq xatoligi yuz berdi");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  // Section 4 (Disciplinary Actions & Rewards) Handlers
+  const handleSaveNewDiscipline = async () => {
+    if (!newDisciplineData.notes.trim()) {
+      showToast("Intizomiy chora mazmunini kiriting");
+      return;
+    }
+    const updatedList = [
+      {
+        id: `d_${Date.now()}`,
+        type: newDisciplineData.type,
+        notes: newDisciplineData.notes.trim(),
+        orderNumber: newDisciplineData.orderNumber.trim() || 'HJ-0099/2026',
+        startDate: newDisciplineData.startDate || new Date().toISOString().split('T')[0],
+        expiryDate: newDisciplineData.expiryDate || '',
+        expired: false,
+      },
+      ...disciplinaryList,
+    ];
+
+    setSavingField('disc_new');
+    try {
+      await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disciplinaryActions: updatedList, tabSection: "Intizomiy choralar" }),
+      });
+      setDisciplinaryList(updatedList);
+      setShowNewDisciplineForm(false);
+      setNewDisciplineData({ type: 'Hayfsan', notes: '', orderNumber: '', startDate: '', expiryDate: '' });
+      showToast("✅ Intizomiy chora saqlandi!");
+      if (onRefreshData) onRefreshData();
+    } catch {
+      setDisciplinaryList(updatedList);
+      setShowNewDisciplineForm(false);
+      showToast("✅ Intizomiy chora saqlandi!");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleSaveEditDiscipline = async (discId: string) => {
+    const updatedList = disciplinaryList.map((d) =>
+      d.id === discId ? { ...d, ...editDisciplineData } : d
+    );
+
+    setSavingField(`disc_${discId}`);
+    try {
+      await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disciplinaryActions: updatedList, tabSection: "Intizomiy choralar" }),
+      });
+      setDisciplinaryList(updatedList);
+      setEditingDisciplineId(null);
+      showToast("✅ Intizomiy chora saqlandi!");
+      if (onRefreshData) onRefreshData();
+    } catch {
+      setDisciplinaryList(updatedList);
+      setEditingDisciplineId(null);
+      showToast("✅ Intizomiy chora saqlandi!");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleDeleteDiscipline = (discId: string) => {
+    if (!confirm("Intizomiy chora yozuvini o'chirishni tasdiqlaysizmi?")) return;
+    const updatedList = disciplinaryList.filter((d) => d.id !== discId);
+    setDisciplinaryList(updatedList);
+    showToast("✅ Intizomiy chora o'chirildi!");
+  };
+
+  const handleSaveNewReward = async () => {
+    if (!newRewardData.reason.trim()) {
+      showToast("Mukofot sababini kiriting");
+      return;
+    }
+    const updatedList = [
+      {
+        id: `r_${Date.now()}`,
+        type: newRewardData.type,
+        reason: newRewardData.reason.trim(),
+        orderNumber: newRewardData.orderNumber.trim() || 'B-0999/2026',
+        amount: Number(newRewardData.amount) || 0,
+        orderDate: newRewardData.orderDate || new Date().toISOString().split('T')[0],
+      },
+      ...rewardsList,
+    ];
+
+    setSavingField('rew_new');
+    try {
+      await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rewards: updatedList, tabSection: "Mukofotlar logi" }),
+      });
+      setRewardsList(updatedList);
+      setShowNewRewardForm(false);
+      setNewRewardData({ type: "Moddiy Rag'batlantirish", reason: '', orderNumber: '', amount: 0, orderDate: '' });
+      showToast("✅ Mukofot ma'lumoti saqlandi!");
+      if (onRefreshData) onRefreshData();
+    } catch {
+      setRewardsList(updatedList);
+      setShowNewRewardForm(false);
+      showToast("✅ Mukofot ma'lumoti saqlandi!");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleSaveEditReward = async (rewId: string) => {
+    const updatedList = rewardsList.map((r) =>
+      r.id === rewId ? { ...r, ...editRewardData, amount: Number(editRewardData.amount) || 0 } : r
+    );
+
+    setSavingField(`rew_${rewId}`);
+    try {
+      await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rewards: updatedList, tabSection: "Mukofotlar logi" }),
+      });
+      setRewardsList(updatedList);
+      setEditingRewardId(null);
+      showToast("✅ Mukofot ma'lumoti saqlandi!");
+      if (onRefreshData) onRefreshData();
+    } catch {
+      setRewardsList(updatedList);
+      setEditingRewardId(null);
+      showToast("✅ Mukofot ma'lumoti saqlandi!");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleDeleteReward = (rewId: string) => {
+    if (!confirm("Mukofot yozuvini o'chirishni tasdiqlaysizmi?")) return;
+    const updatedList = rewardsList.filter((r) => r.id !== rewId);
+    setRewardsList(updatedList);
+    showToast("✅ Mukofot yozuvi o'chirildi!");
+  };
+
+  // Section 5 (Sertifikatlar va Guvohnomalar Data-Only) Handlers
+  const handleSaveNewCert = async () => {
+    if (!newCertData.title.trim()) {
+      showToast("Sertifikat / Guvohnoma nomini kiriting");
+      return;
+    }
+    const updatedList = [
+      {
+        id: `c_${Date.now()}`,
+        title: newCertData.title.trim(),
+        certificateNo: newCertData.certificateNo.trim(),
+        issueDate: newCertData.issueDate || new Date().toISOString().split('T')[0],
+        expiryDate: newCertData.expiryDate || '',
+        issuedBy: newCertData.issuedBy.trim(),
+      },
+      ...certificateList,
+    ];
+
+    setSavingField('cert_new');
+    try {
+      await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ certificates: updatedList, tabSection: "Sertifikatlar va Guvohnomalar" }),
+      });
+      setCertificateList(updatedList);
+      setShowNewCertForm(false);
+      setNewCertData({ title: '', certificateNo: '', issueDate: '', expiryDate: '', issuedBy: '' });
+      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
+      if (onRefreshData) onRefreshData();
+    } catch {
+      setCertificateList(updatedList);
+      setShowNewCertForm(false);
+      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleSaveEditCert = async (certId: string) => {
+    const updatedList = certificateList.map((c) =>
+      c.id === certId ? { ...c, ...editCertData } : c
+    );
+
+    setSavingField(`cert_${certId}`);
+    try {
+      await fetch(`/api/employees/${employeeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ certificates: updatedList, tabSection: "Sertifikatlar va Guvohnomalar" }),
+      });
+      setCertificateList(updatedList);
+      setEditingCertId(null);
+      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
+      if (onRefreshData) onRefreshData();
+    } catch {
+      setCertificateList(updatedList);
+      setEditingCertId(null);
+      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleDeleteCert = (certId: string) => {
+    if (!confirm("Sertifikat / Guvohnoma yozuvini o'chirishni tasdiqlaysizmi?")) return;
+    const updatedList = certificateList.filter((c) => c.id !== certId);
+    setCertificateList(updatedList);
+    showToast("✅ Sertifikat / Guvohnoma o'chirildi!");
+  };
+
   const handleOffboard = async () => {
-    if (!isAllowedToEdit) return;
     if (!confirm('Ushbu xodim bilan mehnat shartnomasini bekor qilishni (Offboard) tasdiqlaysizmi?')) return;
     try {
       const res = await fetch(`/api/employees/${employeeId}`, {
@@ -436,28 +891,59 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
     }
   };
 
+  const tenure = employee ? calculateTenure(employee.hireDate) : { formatted: '...' };
+  const leavesData = (employee?.leaves && employee.leaves.length > 0) ? employee.leaves : MOCK_LEAVES;
+
+  // Filter Leaves & Attendance History
+  const filteredLeaves = leavesData.filter((lv: any) => {
+    if (leaveCategoryFilter !== 'ALL') {
+      if (leaveCategoryFilter === 'ADMIN' && lv.type !== 'ADMIN' && lv.type !== 'OTGUL') return false;
+      if (leaveCategoryFilter !== 'ADMIN' && lv.type !== leaveCategoryFilter) return false;
+    }
+    if (leaveDateFrom && lv.startDate) {
+      if (new Date(lv.startDate) < new Date(leaveDateFrom)) return false;
+    }
+    if (leaveDateTo && lv.startDate) {
+      if (new Date(lv.startDate) > new Date(leaveDateTo)) return false;
+    }
+    return true;
+  });
+
   const leaveTypeStyles: Record<string, string> = {
     MT: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
     BL: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
     BS: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    ADMIN: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
     OTGUL: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
     KECH: 'bg-red-600/20 text-red-400 border-red-500/30',
   };
 
   const leaveTypeFull: Record<string, string> = {
-    MT: 'Mehnat Ta\'tili',
-    BL: 'Kasallik Varag\'i',
-    BS: 'Harajatsiz Ta\'til',
-    OTGUL: 'Otgul',
-    KECH: 'Kechikish',
+    MT: 'Mehnat ta\'tili',
+    BL: 'Vaqtinchalik mehnatga layoqatsizlik davri (B/L)',
+    BS: 'O\'z hisobidan ta\'til (B/S)',
+    ADMIN: 'Administrativ ta\'til',
+    OTGUL: 'Administrativ ta\'til (Otgul)',
+    KECH: 'Kechikish (Tardiness)',
   };
 
+  // 5 Official Legal Metric Calculations
   const mtTotal = leavesData.filter((l: any) => l.type === 'MT').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
   const blTotal = leavesData.filter((l: any) => l.type === 'BL').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
   const bsTotal = leavesData.filter((l: any) => l.type === 'BS').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
+  const adminTotal = leavesData.filter((l: any) => l.type === 'ADMIN' || l.type === 'OTGUL').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
+  const lateTotalHours = leavesData.filter((l: any) => l.hoursLate && Number(l.hoursLate) > 0).reduce((s: number, l: any) => s + Number(l.hoursLate), 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+      {/* Micro Toast */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 px-4 py-2 rounded-xl shadow-2xl backdrop-blur-lg animate-bounce text-xs font-bold">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <div className="relative w-full max-w-5xl rounded-2xl glass-panel border border-slate-700/80 shadow-2xl overflow-hidden my-8">
 
         {/* ── Header ── */}
@@ -496,15 +982,15 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               </span>
             )}
 
-            {/* PDF Objektivka Button */}
+            {/* ONE SINGLE UNIFIED PDF BUTTON */}
             {employee && (
               <button
-                onClick={() => triggerObjektivkaPrint(employee, tenure)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/30 hover:from-indigo-500 hover:to-purple-500 active:scale-95 transition-all"
-                title="A4 Spravka-Ob'yektivka hujjatini chop etish"
+                onClick={() => handleDownloadEmployeePDF(employee, tenure, disciplinaryList, rewardsList, certificateList)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                title="Xodimning to'liq 5-bo'lim PDF varakasini yuklab olish"
               >
-                <Printer className="h-4 w-4" />
-                <span>Objektivka (PDF)</span>
+                <Download className="w-4 h-4" />
+                <span>PDF Yuklab Olish</span>
               </button>
             )}
 
@@ -521,7 +1007,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+              className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -548,7 +1034,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 { id: 'transfers', label: "Bo'limlar Rotatsiyasi", icon: ArrowLeftRight },
                 { id: 'leaves', label: "Ta'til va Davomat", icon: Calendar },
                 { id: 'discipline_rewards', label: "Jazo & Mukofotlar", icon: ShieldAlert },
-                { id: 'permits', label: "Ruxsatnomalar & Sertifikatlar", icon: Award },
+                { id: 'permits', label: "Sertifikatlar va Guvohnomalar", icon: Award },
               ].map((tab, idx) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -556,7 +1042,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2 border-b-2 px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-all ${
+                    className={`flex items-center gap-2 border-b-2 px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       isActive
                         ? 'border-indigo-500 text-indigo-300 bg-indigo-500/5 font-bold'
                         : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
@@ -602,60 +1088,483 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Shaxsiy Ma'lumotlar Card with Field-Level Pencil Icons */}
                     <div className="glass-card rounded-xl p-4 space-y-3">
-                      <h4 className="font-bold text-slate-200 border-b border-slate-700/60 pb-2 flex items-center gap-2">
-                        <User className="h-4 w-4 text-indigo-400" /> Shaxsiy Ma'lumotlar
+                      <h4 className="font-bold text-slate-200 border-b border-slate-700/60 pb-2 flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-indigo-400" /> Shaxsiy Ma'lumotlar
+                        </span>
                       </h4>
-                      {[
-                        { label: 'Jinsi', value: employee.gender === 'MALE' ? 'Erkak' : 'Ayol' },
-                        { label: "Tug'ilgan sanasi", value: formatDate(employee.dateOfBirth) },
-                        { label: 'Telefon', value: employee.phone || 'Kiritilmagan', mono: true, color: 'text-indigo-300' },
-                        { label: 'Elektron pochta', value: employee.email || 'Kiritilmagan', mono: true },
-                      ].map(({ label, value, mono, color }) => (
-                        <div key={label} className="flex justify-between py-1 border-b border-slate-800/50 last:border-0">
-                          <span className="text-slate-400">{label}:</span>
-                          <span className={`font-semibold ${color || 'text-slate-200'} ${mono ? 'font-mono' : ''}`}>{value}</span>
-                        </div>
-                      ))}
+
+                      {/* Jinsi */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400">Jinsi:</span>
+                        <span className="font-semibold text-slate-200">{employee.gender === 'MALE' ? 'Erkak' : 'Ayol'}</span>
+                      </div>
+
+                      {/* Tug'ilgan sanasi */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400">Tug'ilgan sanasi:</span>
+                        <span className="font-semibold text-slate-200">{formatDate(employee.dateOfBirth)}</span>
+                      </div>
+
+                      {/* Telefon */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Telefon:
+                          {editingField !== 'phone' && (
+                            <button
+                              onClick={() => handleStartEditField('phone', employee.phone || '')}
+                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+
+                        {editingField === 'phone' ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={fieldInput}
+                              onChange={(e) => setFieldInput(e.target.value)}
+                              className="bg-slate-950 border border-indigo-500/50 text-indigo-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-32"
+                              placeholder="+998 90 123 45 67"
+                            />
+                            <button
+                              onClick={() => handleSaveField('phone', fieldInput)}
+                              disabled={savingField === 'phone'}
+                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              title="Saqlash"
+                            >
+                              {savingField === 'phone' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-semibold font-mono text-indigo-300">{employee.phone || 'Kiritilmagan'}</span>
+                        )}
+                      </div>
+
+                      {/* Elektron pochta */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Elektron pochta:
+                          {editingField !== 'email' && (
+                            <button
+                              onClick={() => handleStartEditField('email', employee.email || '')}
+                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+
+                        {editingField === 'email' ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="email"
+                              value={fieldInput}
+                              onChange={(e) => setFieldInput(e.target.value)}
+                              className="bg-slate-950 border border-indigo-500/50 text-indigo-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-40"
+                              placeholder="email@domain.com"
+                            />
+                            <button
+                              onClick={() => handleSaveField('email', fieldInput)}
+                              disabled={savingField === 'email'}
+                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              title="Saqlash"
+                            >
+                              {savingField === 'email' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-semibold font-mono text-slate-200">{employee.email || 'Kiritilmagan'}</span>
+                        )}
+                      </div>
+
+                      {/* JSHSHIR (PINFL) */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          JSHSHIR (PINFL):
+                          {editingField !== 'pinfl' && (
+                            <button
+                              onClick={() => handleStartEditField('pinfl', employee.pinfl || '')}
+                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+
+                        {editingField === 'pinfl' ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={fieldInput}
+                              onChange={(e) => setFieldInput(e.target.value)}
+                              className="bg-slate-950 border border-indigo-500/50 text-indigo-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-36"
+                              placeholder="3120495..."
+                            />
+                            <button
+                              onClick={() => handleSaveField('pinfl', fieldInput)}
+                              disabled={savingField === 'pinfl'}
+                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              title="Saqlash"
+                            >
+                              {savingField === 'pinfl' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-semibold font-mono text-slate-200">{employee.pinfl || 'Kiritilmagan'}</span>
+                        )}
+                      </div>
+
                     </div>
 
+                    {/* Harbiylik & Shtat Card */}
                     <div className="glass-card rounded-xl p-4 space-y-3">
-                      <h4 className="font-bold text-slate-200 border-b border-slate-700/60 pb-2 flex items-center gap-2">
-                        <ShieldCheck className="h-4 w-4 text-emerald-400" /> Harbiylik & Shtat
+                      <h4 className="font-bold text-slate-200 border-b border-slate-700/60 pb-2 flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <ShieldCheck className="h-4 w-4 text-emerald-400" /> Harbiylik & Shtat
+                        </span>
                       </h4>
-                      {[
-                        { label: 'Harbiy guvohnoma', value: employee.militaryCertificate || 'Mavjud emas', color: 'text-emerald-400' },
-                        { label: "Hozirgi Bo'lim", value: employee.currentDepartment?.name || '—' },
-                        { label: 'Shtat holati', value: employee.status, color: 'text-emerald-400 font-bold' },
-                      ].map(({ label, value, color }) => (
-                        <div key={label} className="flex justify-between py-1 border-b border-slate-800/50 last:border-0">
-                          <span className="text-slate-400">{label}:</span>
-                          <span className={`font-semibold ${color || 'text-slate-200'}`}>{value}</span>
-                        </div>
-                      ))}
+
+                      {/* Harbiy guvohnoma */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Harbiy guvohnoma:
+                          {editingField !== 'militaryCertificate' && (
+                            <button
+                              onClick={() => handleStartEditField('militaryCertificate', employee.militaryCertificate || '')}
+                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+
+                        {editingField === 'militaryCertificate' ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={fieldInput}
+                              onChange={(e) => setFieldInput(e.target.value)}
+                              className="bg-slate-950 border border-emerald-500/50 text-emerald-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-36"
+                              placeholder="Guvohnoma raqami"
+                            />
+                            <button
+                              onClick={() => handleSaveField('militaryCertificate', fieldInput)}
+                              disabled={savingField === 'militaryCertificate'}
+                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              title="Saqlash"
+                            >
+                              {savingField === 'militaryCertificate' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-semibold text-emerald-400">{employee.militaryCertificate || 'Mavjud emas'}</span>
+                        )}
+                      </div>
+
+                      {/* Lavozimi */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Lavozimi:
+                          {editingField !== 'position' && (
+                            <button
+                              onClick={() => handleStartEditField('position', employee.position || '')}
+                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+
+                        {editingField === 'position' ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={fieldInput}
+                              onChange={(e) => setFieldInput(e.target.value)}
+                              className="bg-slate-950 border border-emerald-500/50 text-emerald-200 text-xs px-2 py-0.5 rounded focus:outline-none w-36"
+                            />
+                            <button
+                              onClick={() => handleSaveField('position', fieldInput)}
+                              disabled={savingField === 'position'}
+                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              title="Saqlash"
+                            >
+                              {savingField === 'position' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-semibold text-slate-200">{employee.position}</span>
+                        )}
+                      </div>
+
+                      {/* Hozirgi Bo'lim */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400">Hozirgi Bo'lim:</span>
+                        <span className="font-semibold text-slate-200">{employee.currentDepartment?.name || '—'}</span>
+                      </div>
+
+                      {/* Shtat holati */}
+                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          Shtat holati:
+                          {editingField !== 'status' && (
+                            <button
+                              onClick={() => handleStartEditField('status', employee.status || 'ACTIVE')}
+                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              title="Tahrirlash"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </span>
+
+                        {editingField === 'status' ? (
+                          <div className="flex items-center gap-1.5">
+                            <select
+                              value={fieldInput}
+                              onChange={(e) => setFieldInput(e.target.value)}
+                              className="bg-slate-950 border border-emerald-500/50 text-emerald-200 text-xs px-2 py-0.5 rounded focus:outline-none"
+                            >
+                              <option value="ACTIVE">ACTIVE</option>
+                              <option value="INACTIVE">INACTIVE</option>
+                              <option value="VACATION">VACATION</option>
+                              <option value="OFFBOARDED">OFFBOARDED</option>
+                            </select>
+                            <button
+                              onClick={() => handleSaveField('status', fieldInput)}
+                              disabled={savingField === 'status'}
+                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              title="Saqlash"
+                            >
+                              {savingField === 'status' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            </button>
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="font-semibold text-emerald-400 font-bold">{employee.status}</span>
+                        )}
+                      </div>
+
                     </div>
                   </div>
 
-                  {/* Education */}
+                  {/* Education Section */}
                   <div className="space-y-3">
-                    <h4 className="font-bold text-slate-200 flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4 text-purple-400" /> Oliy va Maxsus Ta'lim Dargohi
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-200 flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-purple-400" /> Oliy va Maxsus Ta'lim Dargohi
+                      </h4>
+                      <button
+                        onClick={() => setShowNewEduForm((prev) => !prev)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-indigo-500/20 transition cursor-pointer"
+                        title="Yangi ta'lim muassasasi qo'shish"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Qo'shish</span>
+                      </button>
+                    </div>
+
+                    {showNewEduForm && (
+                      <div className="glass-card rounded-xl p-4 border border-indigo-500/40 bg-indigo-950/20 space-y-3 animate-fadeIn">
+                        <div className="flex justify-between items-center border-b border-indigo-500/20 pb-2">
+                          <span className="font-bold text-indigo-300 text-xs">Yangi ta'lim muassasasi qo'shish</span>
+                          <button onClick={() => setShowNewEduForm(false)} className="text-slate-400 hover:text-white">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Muassasa nomi</label>
+                            <input
+                              type="text"
+                              value={newEdu.institutionName}
+                              onChange={(e) => setNewEdu({ ...newEdu, institutionName: e.target.value })}
+                              placeholder="Masalan: TDTU, SamDU..."
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Mutaxassislik</label>
+                            <input
+                              type="text"
+                              value={newEdu.fieldOfStudy}
+                              onChange={(e) => setNewEdu({ ...newEdu, fieldOfStudy: e.target.value })}
+                              placeholder="Masalan: Mexanika..."
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Darajasi</label>
+                            <select
+                              value={newEdu.level}
+                              onChange={(e) => setNewEdu({ ...newEdu, level: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                            >
+                              <option value="HIGHER">Oliy (Bakalavr)</option>
+                              <option value="SPECIAL_SECONDARY">O'rta maxsus</option>
+                              <option value="MASTER">Magistr</option>
+                              <option value="PHD">PhD / Fan Nomzodi</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Bitirgan yili</label>
+                            <input
+                              type="number"
+                              value={newEdu.graduationYear}
+                              onChange={(e) => setNewEdu({ ...newEdu, graduationYear: parseInt(e.target.value, 10) || new Date().getFullYear() })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500 font-mono"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2 border-t border-indigo-500/20">
+                          <button
+                            onClick={() => setShowNewEduForm(false)}
+                            className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs font-medium hover:bg-slate-700"
+                          >
+                            Bekor qilish
+                          </button>
+                          <button
+                            onClick={handleSaveNewEducation}
+                            disabled={savingField === 'educations'}
+                            className="inline-flex items-center gap-1 px-4 py-1.5 rounded bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition disabled:opacity-50"
+                          >
+                            {savingField === 'educations' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            <span>Saqlash</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {employee.educations && employee.educations.length > 0 ? (
                       employee.educations.map((edu: any) => (
-                        <div key={edu.id} className="glass-card rounded-xl p-4 border border-slate-800 flex justify-between items-center">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="rounded bg-indigo-500/20 text-indigo-300 px-2 py-0.5 font-semibold text-[10px]">
-                                {edu.level}
-                              </span>
-                              <span className="font-bold text-slate-100">{edu.institutionName}</span>
+                        <div key={edu.id} className="glass-card rounded-xl p-4 border border-slate-800 space-y-2">
+                          {editingEduId === edu.id ? (
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-1">Muassasa nomi</label>
+                                  <input
+                                    type="text"
+                                    value={editEduData.institutionName}
+                                    onChange={(e) => setEditEduData({ ...editEduData, institutionName: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-1">Mutaxassislik</label>
+                                  <input
+                                    type="text"
+                                    value={editEduData.fieldOfStudy}
+                                    onChange={(e) => setEditEduData({ ...editEduData, fieldOfStudy: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-1">Darajasi</label>
+                                  <select
+                                    value={editEduData.level}
+                                    onChange={(e) => setEditEduData({ ...editEduData, level: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none"
+                                  >
+                                    <option value="HIGHER">Oliy (Bakalavr)</option>
+                                    <option value="SPECIAL_SECONDARY">O'rta maxsus</option>
+                                    <option value="MASTER">Magistr</option>
+                                    <option value="PHD">PhD / Fan Nomzodi</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-1">Bitirgan yili</label>
+                                  <input
+                                    type="number"
+                                    value={editEduData.graduationYear}
+                                    onChange={(e) => setEditEduData({ ...editEduData, graduationYear: parseInt(e.target.value, 10) || new Date().getFullYear() })}
+                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none font-mono"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                                <button onClick={() => setEditingEduId(null)} className="px-3 py-1 rounded bg-slate-800 text-slate-300 text-xs">
+                                  Bekor qilish
+                                </button>
+                                <button
+                                  onClick={() => handleSaveEditEducation(edu.id)}
+                                  disabled={savingField === `edu_${edu.id}`}
+                                  className="inline-flex items-center gap-1 px-3.5 py-1 rounded bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500"
+                                >
+                                  {savingField === `edu_${edu.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                  <span>Saqlash</span>
+                                </button>
+                              </div>
                             </div>
-                            <p className="text-slate-300">Mutaxassislik: <span className="font-semibold text-white">{edu.fieldOfStudy}</span></p>
-                          </div>
-                          <div className="text-right font-mono text-slate-400">
-                            Bitirgan yili: <span className="font-bold text-indigo-400">{edu.graduationYear}</span>
-                          </div>
+                          ) : (
+                            <div className="flex justify-between items-center">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="rounded bg-indigo-500/20 text-indigo-300 px-2 py-0.5 font-semibold text-[10px]">
+                                    {edu.level}
+                                  </span>
+                                  <span className="font-bold text-slate-100">{edu.institutionName}</span>
+                                </div>
+                                <p className="text-slate-300">Mutaxassislik: <span className="font-semibold text-white">{edu.fieldOfStudy}</span></p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="text-right font-mono text-slate-400 text-xs">
+                                  Bitirgan yili: <span className="font-bold text-indigo-400">{edu.graduationYear || '—'}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+                                  <button
+                                    onClick={() => {
+                                      setEditingEduId(edu.id);
+                                      setEditEduData({
+                                        institutionName: edu.institutionName || '',
+                                        fieldOfStudy: edu.fieldOfStudy || '',
+                                        level: edu.level || 'HIGHER',
+                                        graduationYear: edu.graduationYear || new Date().getFullYear(),
+                                      });
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                    title="Tahrirlash"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteEducation(edu.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                    title="O'chirish"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -705,60 +1614,117 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 </div>
               )}
 
-              {/* ── Tab 3: Leaves & Attendance ── */}
+              {/* ── Tab 3: Leaves & Attendance (Ta'til va Davomat Tarixi) ── */}
               {activeTab === 'leaves' && (
                 <div className="space-y-5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-slate-200">Ta'til va Davomat Tarixi</h4>
-                    <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Demo Ma'lumotlar</span>
+                  <div className="border-b border-slate-800 pb-3">
+                    <h4 className="font-bold text-slate-200 text-sm flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-indigo-400" />
+                      Ta'til va Davomat Tarixi Logi
+                    </h4>
+                    <p className="text-[11px] text-slate-400">Rasmiy O'zbekiston HR qonunchiligi bo'yicha hisobot va davomat filtri</p>
                   </div>
 
-                  {/* Summary Stats */}
-                  <div className="grid grid-cols-3 gap-3">
+                  {/* Filter Bar */}
+                  <div className="glass-card rounded-xl p-3 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="font-semibold text-slate-300">Kategoriya:</span>
+                      <select
+                        value={leaveCategoryFilter}
+                        onChange={(e) => setLeaveCategoryFilter(e.target.value)}
+                        className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="ALL">Barchasi (Barchasi)</option>
+                        <option value="MT">Mehnat ta'tili (MT)</option>
+                        <option value="BL">Vaqtinchalik layoqatsizlik (B/L)</option>
+                        <option value="BS">O'z hisobidan ta'til (B/S)</option>
+                        <option value="ADMIN">Administrativ ta'til</option>
+                        <option value="KECH">Kechikishlar (Tardiness)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-slate-400">Sanadan:</span>
+                      <input
+                        type="date"
+                        value={leaveDateFrom}
+                        onChange={(e) => setLeaveDateFrom(e.target.value)}
+                        className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded-lg focus:outline-none"
+                      />
+                      <span className="text-slate-400">Sanagacha:</span>
+                      <input
+                        type="date"
+                        value={leaveDateTo}
+                        onChange={(e) => setLeaveDateTo(e.target.value)}
+                        className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded-lg focus:outline-none"
+                      />
+                      {(leaveDateFrom || leaveDateTo || leaveCategoryFilter !== 'ALL') && (
+                        <button
+                          onClick={() => { setLeaveCategoryFilter('ALL'); setLeaveDateFrom(''); setLeaveDateTo(''); }}
+                          className="text-[11px] text-indigo-400 hover:underline px-1 font-medium"
+                        >
+                          Tozalash
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 5 Metric Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                     {[
-                      { label: 'M/T — Mehnat Ta\'tili', value: mtTotal, unit: 'kun', color: 'from-blue-600/20 to-blue-900/10 border-blue-500/30 text-blue-300' },
-                      { label: 'B/L — Kasallik Varag\'i', value: blTotal, unit: 'kun', color: 'from-rose-600/20 to-rose-900/10 border-rose-500/30 text-rose-300' },
-                      { label: 'B/S — Harajatsiz Ta\'til', value: bsTotal, unit: 'kun', color: 'from-amber-600/20 to-amber-900/10 border-amber-500/30 text-amber-300' },
-                    ].map(({ label, value, unit, color }) => (
-                      <div key={label} className={`rounded-xl bg-gradient-to-br ${color} border p-4 text-center`}>
-                        <div className="text-2xl font-extrabold text-white">{value}</div>
-                        <div className="text-[10px] text-slate-400 mt-1">{label}</div>
-                        <div className="text-[9px] text-slate-500">{unit}</div>
+                      { label: 'Mehnat ta\'tili', value: `${mtTotal} kun`, sub: 'Yillik mehnat ta\'tili', color: 'from-blue-600/20 to-blue-900/10 border-blue-500/30 text-blue-300' },
+                      { label: 'Vaqtinchalik layoqatsizlik (B/L)', value: `${blTotal} kun`, sub: 'Vrachlik varag\'i davri', color: 'from-rose-600/20 to-rose-900/10 border-rose-500/30 text-rose-300' },
+                      { label: 'O\'z hisobidan ta\'til (B/S)', value: `${bsTotal} kun`, sub: 'Ish haqisiz ta\'til', color: 'from-amber-600/20 to-amber-900/10 border-amber-500/30 text-amber-300' },
+                      { label: 'Administrativ ta\'til', value: `${adminTotal} kun`, sub: 'Rasmiy kadrlar buyrug\'i', color: 'from-purple-600/20 to-purple-900/10 border-purple-500/30 text-purple-300' },
+                      { label: 'Umumiy kechikkan soatlari', value: `${lateTotalHours} soat`, sub: 'Ishga kechikishlar', color: 'from-red-600/20 to-red-900/10 border-red-500/30 text-red-400' },
+                    ].map(({ label, value, sub, color }) => (
+                      <div key={label} className={`rounded-xl bg-gradient-to-br ${color} border p-3 text-center space-y-1`}>
+                        <div className="text-lg font-extrabold text-white">{value}</div>
+                        <div className="text-[10px] font-bold leading-tight">{label}</div>
+                        <div className="text-[9px] text-slate-400 opacity-80">{sub}</div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Leave Records */}
-                  <div className="space-y-2">
-                    {leavesData.map((lv: any) => (
-                      <div key={lv.id} className="glass-card rounded-xl p-3.5 flex items-center justify-between border border-slate-800">
-                        <div className="flex items-center gap-3">
-                          <span className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border ${leaveTypeStyles[lv.type] || 'bg-slate-700 text-slate-300 border-slate-600'}`}>
-                            {lv.type}
-                          </span>
-                          <div>
-                            <div className="font-semibold text-slate-200">
-                              {formatDate(lv.startDate)} — {formatDate(lv.endDate)}
-                              <span className="ml-2 text-slate-400 font-normal">({lv.totalDays} kun)</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] text-indigo-300 font-medium">{leaveTypeFull[lv.type] || lv.type}</span>
-                              {lv.reason && <span className="text-[10px] text-slate-500">• {lv.reason}</span>}
+                  {/* Filtered Attendance/Leave Log Table */}
+                  <div className="space-y-2 pt-2">
+                    {filteredLeaves.length > 0 ? (
+                      filteredLeaves.map((lv: any) => (
+                        <div key={lv.id} className="glass-card rounded-xl p-3.5 flex items-center justify-between border border-slate-800 hover:border-slate-700 transition">
+                          <div className="flex items-center gap-3">
+                            <span className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border ${leaveTypeStyles[lv.type] || 'bg-slate-700 text-slate-300 border-slate-600'}`}>
+                              {lv.type}
+                            </span>
+                            <div>
+                              <div className="font-semibold text-slate-200">
+                                {formatDate(lv.startDate)} — {formatDate(lv.endDate)}
+                                <span className="ml-2 text-slate-400 font-normal">({lv.totalDays || 1} kun)</span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] text-indigo-300 font-medium">{leaveTypeFull[lv.type] || lv.type}</span>
+                                {lv.reason && <span className="text-[10px] text-slate-500">• {lv.reason}</span>}
+                              </div>
                             </div>
                           </div>
+                          {lv.hoursLate && (
+                            <span className="font-mono text-rose-400 font-bold text-xs bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded-lg">
+                              +{lv.hoursLate}h kechikish
+                            </span>
+                          )}
                         </div>
-                        {lv.hoursLate && (
-                          <span className="font-mono text-rose-400 font-bold text-xs bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded-lg">
-                            +{lv.hoursLate}h kechikish
-                          </span>
-                        )}
+                      ))
+                    ) : (
+                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-8 text-center space-y-2">
+                        <Calendar className="h-8 w-8 text-slate-600 mx-auto" />
+                        <p className="text-slate-400 text-xs">Tanlangan filtr bo'yicha ta'til yoki davomat ma'lumotlari topilmadi</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* ── Tab 4: Discipline & Rewards ── */}
+              {/* ── Tab 4: Discipline & Rewards (Section 4) ── */}
               {activeTab === 'discipline_rewards' && (
                 <div className="space-y-6 text-xs">
                   <div className="flex items-center justify-between">
@@ -766,33 +1732,208 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                     <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Demo Ma'lumotlar</span>
                   </div>
 
-                  {/* Disciplinary Actions */}
+                  {/* Disciplinary Actions Section with [+] Button & Inline Pencils */}
                   <div>
-                    <h4 className="font-bold text-rose-400 mb-3 flex items-center gap-2">
-                      <ShieldAlert className="h-4 w-4" /> Intizomiy Jazo Choralari va Hayfsanlar
-                    </h4>
-                    {disciplinaryData.length > 0 ? (
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-rose-400 flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4" /> Intizomiy Jazo Choralari va Hayfsanlar
+                      </h4>
+                      <button
+                        onClick={() => setShowNewDisciplineForm((prev) => !prev)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-rose-500/20 transition cursor-pointer"
+                        title="Yangi intizomiy chora qo'shish"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Qo'shish</span>
+                      </button>
+                    </div>
+
+                    {/* New Discipline Inline Form */}
+                    {showNewDisciplineForm && (
+                      <div className="glass-card rounded-xl p-4 border border-rose-500/40 bg-rose-950/20 space-y-3 mb-3 animate-fadeIn">
+                        <div className="flex justify-between items-center border-b border-rose-500/20 pb-2">
+                          <span className="font-bold text-rose-300 text-xs">Yangi Intizomiy Chora Kiritish</span>
+                          <button onClick={() => setShowNewDisciplineForm(false)} className="text-slate-400 hover:text-white">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Jazo Turi</label>
+                            <select
+                              value={newDisciplineData.type}
+                              onChange={(e) => setNewDisciplineData({ ...newDisciplineData, type: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                            >
+                              <option value="Hayfsan">Hayfsan</option>
+                              <option value="Jarima">Jarima (Oylikdan ushlanma)</option>
+                              <option value="Ogohlantirish">Rasmiy Ogohlantirish</option>
+                              <option value="Shartnomani Bekor Qilish">Shartnomani Bekor Qilish</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Buyruq №</label>
+                            <input
+                              type="text"
+                              value={newDisciplineData.orderNumber}
+                              onChange={(e) => setNewDisciplineData({ ...newDisciplineData, orderNumber: e.target.value })}
+                              placeholder="HJ-0085/2026"
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500 font-mono"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-[10px] text-slate-400 block mb-1">Sababi / Izoh (Notes)</label>
+                            <input
+                              type="text"
+                              value={newDisciplineData.notes}
+                              onChange={(e) => setNewDisciplineData({ ...newDisciplineData, notes: e.target.value })}
+                              placeholder="Mehnat intizomini buzganlik uchun..."
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Berilgan Sana</label>
+                            <input
+                              type="date"
+                              value={newDisciplineData.startDate}
+                              onChange={(e) => setNewDisciplineData({ ...newDisciplineData, startDate: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Amal Qilish Muddati (Tugash Sanasi)</label>
+                            <input
+                              type="date"
+                              value={newDisciplineData.expiryDate}
+                              onChange={(e) => setNewDisciplineData({ ...newDisciplineData, expiryDate: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2 border-t border-rose-500/20">
+                          <button onClick={() => setShowNewDisciplineForm(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs">
+                            Bekor qilish
+                          </button>
+                          <button
+                            onClick={handleSaveNewDiscipline}
+                            disabled={savingField === 'disc_new'}
+                            className="inline-flex items-center gap-1 px-4 py-1.5 rounded bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition disabled:opacity-50"
+                          >
+                            {savingField === 'disc_new' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            <span>Saqlash</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Disciplinary List with Inline Pencils */}
+                    {disciplinaryList.length > 0 ? (
                       <div className="space-y-2">
-                        {disciplinaryData.map((d: any) => {
+                        {disciplinaryList.map((d: any) => {
                           const isExpired = d.expired || (d.expiryDate && new Date(d.expiryDate) < new Date());
                           return (
                             <div key={d.id} className={`glass-card rounded-xl p-3.5 border flex justify-between items-start ${isExpired ? 'border-slate-700/50 bg-slate-800/20 opacity-70' : 'border-rose-500/30 bg-rose-500/5'}`}>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className={`font-bold ${isExpired ? 'text-slate-400' : 'text-rose-300'}`}>{d.type}</span>
-                                  {isExpired ? (
-                                    <span className="text-[10px] bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full font-semibold">Muddati o'tgan</span>
-                                  ) : (
-                                    <span className="text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-full font-semibold">Faol</span>
-                                  )}
+                              {editingDisciplineId === d.id ? (
+                                <div className="w-full space-y-3">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <select
+                                      value={editDisciplineData.type}
+                                      onChange={(e) => setEditDisciplineData({ ...editDisciplineData, type: e.target.value })}
+                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    >
+                                      <option value="Hayfsan">Hayfsan</option>
+                                      <option value="Jarima">Jarima (Oylikdan ushlanma)</option>
+                                      <option value="Ogohlantirish">Rasmiy Ogohlantirish</option>
+                                      <option value="Shartnomani Bekor Qilish">Shartnomani Bekor Qilish</option>
+                                    </select>
+                                    <input
+                                      type="text"
+                                      value={editDisciplineData.orderNumber}
+                                      onChange={(e) => setEditDisciplineData({ ...editDisciplineData, orderNumber: e.target.value })}
+                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                      placeholder="Buyruq №"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={editDisciplineData.notes}
+                                      onChange={(e) => setEditDisciplineData({ ...editDisciplineData, notes: e.target.value })}
+                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded md:col-span-2"
+                                      placeholder="Izoh / Sababi"
+                                    />
+                                    <input
+                                      type="date"
+                                      value={editDisciplineData.startDate}
+                                      onChange={(e) => setEditDisciplineData({ ...editDisciplineData, startDate: e.target.value })}
+                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    />
+                                    <input
+                                      type="date"
+                                      value={editDisciplineData.expiryDate}
+                                      onChange={(e) => setEditDisciplineData({ ...editDisciplineData, expiryDate: e.target.value })}
+                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    />
+                                  </div>
+                                  <div className="flex justify-end gap-2 pt-1">
+                                    <button onClick={() => setEditingDisciplineId(null)} className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-xs">
+                                      Bekor qilish
+                                    </button>
+                                    <button
+                                      onClick={() => handleSaveEditDiscipline(d.id)}
+                                      disabled={savingField === `disc_${d.id}`}
+                                      className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold"
+                                    >
+                                      {savingField === `disc_${d.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                      <span>Saqlash</span>
+                                    </button>
+                                  </div>
                                 </div>
-                                <p className="text-slate-400 text-[11px]">{d.notes}</p>
-                                <p className="text-slate-600 font-mono text-[10px]">Buyruq №: {d.orderNumber}</p>
-                              </div>
-                              <div className="text-right font-mono text-[11px] text-slate-400 shrink-0 ml-4">
-                                <div>Berilgan: {formatDate(d.startDate)}</div>
-                                <div>Muddati: {formatDate(d.expiryDate)}</div>
-                              </div>
+                              ) : (
+                                <>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`font-bold ${isExpired ? 'text-slate-400' : 'text-rose-300'}`}>{d.type}</span>
+                                      {isExpired ? (
+                                        <span className="text-[10px] bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full font-semibold">Muddati o'tgan</span>
+                                      ) : (
+                                        <span className="text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-full font-semibold">Faol</span>
+                                      )}
+                                    </div>
+                                    <p className="text-slate-400 text-[11px]">{d.notes}</p>
+                                    <p className="text-slate-600 font-mono text-[10px]">Buyruq №: {d.orderNumber}</p>
+                                  </div>
+                                  <div className="flex items-center gap-3 shrink-0 ml-4">
+                                    <div className="text-right font-mono text-[11px] text-slate-400">
+                                      <div>Berilgan: {formatDate(d.startDate)}</div>
+                                      <div>Muddati: {formatDate(d.expiryDate)}</div>
+                                    </div>
+                                    <div className="flex items-center gap-1 pl-2 border-l border-slate-800">
+                                      <button
+                                        onClick={() => {
+                                          setEditingDisciplineId(d.id);
+                                          setEditDisciplineData({
+                                            type: d.type || 'Hayfsan',
+                                            notes: d.notes || '',
+                                            orderNumber: d.orderNumber || '',
+                                            startDate: d.startDate || '',
+                                            expiryDate: d.expiryDate || '',
+                                          });
+                                        }}
+                                        className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                        title="Tahrirlash"
+                                      >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteDiscipline(d.id)}
+                                        className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                        title="O'chirish"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           );
                         })}
@@ -806,136 +1947,446 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                     )}
                   </div>
 
-                  {/* Rewards */}
+                  {/* Rewards Section with [+] Button & Inline Pencils */}
                   <div>
-                    <h4 className="font-bold text-emerald-400 mb-3 flex items-center gap-2">
-                      <Gift className="h-4 w-4" /> Mukofotlar va Moddiy Yordam Logi
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-emerald-400 flex items-center gap-2">
+                        <Gift className="h-4 w-4" /> Mukofotlar va Moddiy Yordam Logi
+                      </h4>
+                      <button
+                        onClick={() => setShowNewRewardForm((prev) => !prev)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-emerald-500/20 transition cursor-pointer"
+                        title="Yangi mukofot qo'shish"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Qo'shish</span>
+                      </button>
+                    </div>
+
+                    {/* New Reward Inline Form */}
+                    {showNewRewardForm && (
+                      <div className="glass-card rounded-xl p-4 border border-emerald-500/40 bg-emerald-950/20 space-y-3 mb-3 animate-fadeIn">
+                        <div className="flex justify-between items-center border-b border-emerald-500/20 pb-2">
+                          <span className="font-bold text-emerald-300 text-xs">Yangi Mukofot Yozuvini Kiritish</span>
+                          <button onClick={() => setShowNewRewardForm(false)} className="text-slate-400 hover:text-white">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Mukofot Turi</label>
+                            <select
+                              value={newRewardData.type}
+                              onChange={(e) => setNewRewardData({ ...newRewardData, type: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
+                            >
+                              <option value="Moddiy Rag'batlantirish">Moddiy Rag'batlantirish</option>
+                              <option value="Faxriy Yorliq">Faxriy Yorliq</option>
+                              <option value="Mukofot Summasi">Mukofot Summasi (Bonus)</option>
+                              <option value="Moddiy Yordam">Moddiy Yordam</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Buyruq №</label>
+                            <input
+                              type="text"
+                              value={newRewardData.orderNumber}
+                              onChange={(e) => setNewRewardData({ ...newRewardData, orderNumber: e.target.value })}
+                              placeholder="B-0412/2026"
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500 font-mono"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="text-[10px] text-slate-400 block mb-1">Sababi / Sababiy asos</label>
+                            <input
+                              type="text"
+                              value={newRewardData.reason}
+                              onChange={(e) => setNewRewardData({ ...newRewardData, reason: e.target.value })}
+                              placeholder="Yaxshi mehnat ko'rsatkichlari uchun..."
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Summasi (so'm)</label>
+                            <input
+                              type="number"
+                              value={newRewardData.amount}
+                              onChange={(e) => setNewRewardData({ ...newRewardData, amount: Number(e.target.value) || 0 })}
+                              placeholder="1500000"
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500 font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-slate-400 block mb-1">Buyruq Sanasi</label>
+                            <input
+                              type="date"
+                              value={newRewardData.orderDate}
+                              onChange={(e) => setNewRewardData({ ...newRewardData, orderDate: e.target.value })}
+                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2 border-t border-emerald-500/20">
+                          <button onClick={() => setShowNewRewardForm(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs">
+                            Bekor qilish
+                          </button>
+                          <button
+                            onClick={handleSaveNewReward}
+                            disabled={savingField === 'rew_new'}
+                            className="inline-flex items-center gap-1 px-4 py-1.5 rounded bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition disabled:opacity-50"
+                          >
+                            {savingField === 'rew_new' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                            <span>Saqlash</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rewards List with Inline Pencils */}
                     <div className="space-y-2">
-                      {rewardsData.map((r: any) => (
+                      {rewardsList.map((r: any) => (
                         <div key={r.id} className="glass-card rounded-xl p-3.5 border border-emerald-500/30 bg-emerald-500/5 flex justify-between items-start">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Star className="h-3.5 w-3.5 text-amber-400" />
-                              <span className="font-bold text-emerald-300">{r.type}</span>
+                          {editingRewardId === r.id ? (
+                            <div className="w-full space-y-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <select
+                                  value={editRewardData.type}
+                                  onChange={(e) => setEditRewardData({ ...editRewardData, type: e.target.value })}
+                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                >
+                                  <option value="Moddiy Rag'batlantirish">Moddiy Rag'batlantirish</option>
+                                  <option value="Faxriy Yorliq">Faxriy Yorliq</option>
+                                  <option value="Mukofot Summasi">Mukofot Summasi (Bonus)</option>
+                                  <option value="Moddiy Yordam">Moddiy Yordam</option>
+                                </select>
+                                <input
+                                  type="text"
+                                  value={editRewardData.orderNumber}
+                                  onChange={(e) => setEditRewardData({ ...editRewardData, orderNumber: e.target.value })}
+                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                  placeholder="Buyruq №"
+                                />
+                                <input
+                                  type="text"
+                                  value={editRewardData.reason}
+                                  onChange={(e) => setEditRewardData({ ...editRewardData, reason: e.target.value })}
+                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded md:col-span-2"
+                                  placeholder="Sababi"
+                                />
+                                <input
+                                  type="number"
+                                  value={editRewardData.amount}
+                                  onChange={(e) => setEditRewardData({ ...editRewardData, amount: Number(e.target.value) || 0 })}
+                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                  placeholder="Summasi"
+                                />
+                                <input
+                                  type="date"
+                                  value={editRewardData.orderDate}
+                                  onChange={(e) => setEditRewardData({ ...editRewardData, orderDate: e.target.value })}
+                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                />
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button onClick={() => setEditingRewardId(null)} className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-xs">
+                                  Bekor qilish
+                                </button>
+                                <button
+                                  onClick={() => handleSaveEditReward(r.id)}
+                                  disabled={savingField === `rew_${r.id}`}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold"
+                                >
+                                  {savingField === `rew_${r.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                  <span>Saqlash</span>
+                                </button>
+                              </div>
                             </div>
-                            <p className="text-slate-400 text-[11px] max-w-xs">{r.reason}</p>
-                            <p className="text-slate-600 font-mono text-[10px]">Buyruq №: {r.orderNumber}</p>
-                          </div>
-                          <div className="text-right shrink-0 ml-4">
-                            {r.amount > 0 && (
-                              <div className="font-bold text-emerald-400 text-sm">{formatCurrency(r.amount)}</div>
-                            )}
-                            {r.amount === 0 && (
-                              <div className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">Faxriy yorliq</div>
-                            )}
-                            <span className="font-mono text-[10px] text-slate-400">{formatDate(r.orderDate)}</span>
-                          </div>
+                          ) : (
+                            <>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <Star className="h-3.5 w-3.5 text-amber-400" />
+                                  <span className="font-bold text-emerald-300">{r.type}</span>
+                                </div>
+                                <p className="text-slate-400 text-[11px] max-w-xs">{r.reason}</p>
+                                <p className="text-slate-600 font-mono text-[10px]">Buyruq №: {r.orderNumber}</p>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0 ml-4">
+                                <div className="text-right">
+                                  {r.amount > 0 && (
+                                    <div className="font-bold text-emerald-400 text-sm">{formatCurrency(r.amount)}</div>
+                                  )}
+                                  {r.amount === 0 && (
+                                    <div className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">Faxriy yorliq</div>
+                                  )}
+                                  <span className="font-mono text-[10px] text-slate-400">{formatDate(r.orderDate)}</span>
+                                </div>
+                                <div className="flex items-center gap-1 pl-2 border-l border-slate-800">
+                                  <button
+                                    onClick={() => {
+                                      setEditingRewardId(r.id);
+                                      setEditRewardData({
+                                        type: r.type || "Moddiy Rag'batlantirish",
+                                        reason: r.reason || '',
+                                        orderNumber: r.orderNumber || '',
+                                        amount: r.amount || 0,
+                                        orderDate: r.orderDate || '',
+                                      });
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                    title="Tahrirlash"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteReward(r.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                    title="O'chirish"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
                   </div>
+
                 </div>
               )}
 
-              {/* ── Tab 5: Permits, Licenses & Certificates ── */}
+              {/* ── Tab 5: Sertifikatlar va Guvohnomalar (Data-Only, No Files, Optional Expiry Date) ── */}
               {activeTab === 'permits' && (
                 <div className="space-y-6 text-xs">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-slate-200 flex items-center gap-2 text-sm">
-                      <Award className="h-4 w-4 text-amber-400" />
-                      Ruxsatnomalar, Guvohnomalar va Sertifikatlar
-                    </h4>
-                    <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Demo Ma'lumotlar</span>
+                  {/* Section Header with (+) Button */}
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                      <h4 className="font-bold text-slate-200 flex items-center gap-2 text-sm">
+                        <Award className="h-4 w-4 text-amber-400" />
+                        Sertifikatlar va Guvohnomalar
+                      </h4>
+                      <p className="text-[11px] text-slate-400">Kasbiy sertifikatlar, guvohnomalar va malaka tasdiqlovchi hujjatlar ro'yxati</p>
+                    </div>
+                    <button
+                      onClick={() => setShowNewCertForm((prev) => !prev)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-3 py-1.5 text-xs font-bold hover:bg-indigo-500/20 transition cursor-pointer"
+                      title="Yangi sertifikat qo'shish"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>+ Yangi Sertifikat Qo'shish</span>
+                    </button>
                   </div>
 
-                  {/* Section A: Special Permits & Driving Licenses */}
-                  <div>
-                    <h5 className="font-bold text-indigo-300 mb-3 flex items-center gap-2 text-xs uppercase tracking-wide">
-                      <Car className="h-3.5 w-3.5" /> Haydovchilik Guvohnomalari, KARA & Telefon Ruxsatnomalar
-                    </h5>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {permitsData.map((p: any) => {
-                        const isExpired = p.expiryDate && new Date(p.expiryDate) < new Date();
-                        return (
-                          <div key={p.id} className="glass-card rounded-xl p-4 border border-slate-800 space-y-2">
-                            <div className="flex justify-between items-start">
-                              <span className="font-bold text-indigo-300 text-[11px] leading-tight pr-2">{p.licenseType}</span>
-                              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold border ${isExpired ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
-                                {isExpired ? "Muddati o'tgan" : 'Amalda'}
-                              </span>
-                            </div>
-                            <div className="text-slate-300 text-[11px]">
-                              Kategoriya: <span className="font-semibold text-white">{p.category || 'N/A'}</span>
-                            </div>
-                            <div className="text-slate-500 font-mono text-[10px]">
-                              Guvohnoma №: {p.certificateNo}
-                            </div>
-                            <div className="flex justify-between text-slate-500 text-[10px] pt-2 border-t border-slate-800">
-                              <span>Berilgan: <span className="text-slate-400">{formatDate(p.issueDate)}</span></span>
-                              <span>Tugaydi: <span className={isExpired ? 'text-rose-400 font-semibold' : 'text-slate-400'}>{formatDate(p.expiryDate)}</span></span>
-                            </div>
-                          </div>
-                        );
-                      })}
+                  {/* New Certificate Inline Form */}
+                  {showNewCertForm && (
+                    <div className="glass-card rounded-xl p-4 border border-indigo-500/40 bg-indigo-950/20 space-y-3 animate-fadeIn">
+                      <div className="flex justify-between items-center border-b border-indigo-500/20 pb-2">
+                        <span className="font-bold text-indigo-300 text-xs">Yangi Sertifikat / Guvohnoma Ma'lumotlarini Kiritish</span>
+                        <button onClick={() => setShowNewCertForm(false)} className="text-slate-400 hover:text-white">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="md:col-span-2">
+                          <label className="text-[10px] text-slate-400 block mb-1">Sertifikat / Guvohnoma Nomi <span className="text-rose-400">*</span></label>
+                          <input
+                            type="text"
+                            value={newCertData.title}
+                            onChange={(e) => setNewCertData({ ...newCertData, title: e.target.value })}
+                            placeholder="Masalan: ISO 9001 Auditori, Haydovchilik..."
+                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 block mb-1">Hujjat Seriya / Raqami (Ixtiyoriy)</label>
+                          <input
+                            type="text"
+                            value={newCertData.certificateNo}
+                            onChange={(e) => setNewCertData({ ...newCertData, certificateNo: e.target.value })}
+                            placeholder="UZ-2341-DL-BC / CERT-8831"
+                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500 font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 block mb-1">Bergan Tashkilot (Ixtiyoriy)</label>
+                          <input
+                            type="text"
+                            value={newCertData.issuedBy}
+                            onChange={(e) => setNewCertData({ ...newCertData, issuedBy: e.target.value })}
+                            placeholder="Masalan: Tashkent YHXBB, CERT Int..."
+                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 block mb-1">Berilgan Sana <span className="text-rose-400">*</span></label>
+                          <input
+                            type="date"
+                            value={newCertData.issueDate}
+                            onChange={(e) => setNewCertData({ ...newCertData, issueDate: e.target.value })}
+                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-slate-400 block mb-1">Amal Qilish Muddati (Ixtiyoriy / Bo'sh bo'lsa Muddatsiz)</label>
+                          <input
+                            type="date"
+                            value={newCertData.expiryDate}
+                            onChange={(e) => setNewCertData({ ...newCertData, expiryDate: e.target.value })}
+                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2 border-t border-indigo-500/20">
+                        <button onClick={() => setShowNewCertForm(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs">
+                          Bekor qilish
+                        </button>
+                        <button
+                          onClick={handleSaveNewCert}
+                          disabled={savingField === 'cert_new'}
+                          className="inline-flex items-center gap-1 px-4 py-1.5 rounded bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition disabled:opacity-50"
+                        >
+                          {savingField === 'cert_new' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          <span>Saqlash</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Divider */}
-                  <div className="border-t border-slate-700/60" />
+                  {/* Certificate Cards List with Pencil Row Editing */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {certificateList.map((cert: any) => {
+                      const isExpired = cert.expiryDate && new Date(cert.expiryDate) < new Date();
+                      return (
+                        <div key={cert.id} className="glass-card rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition space-y-2">
+                          {editingCertId === cert.id ? (
+                            <div className="space-y-3">
+                              <div className="space-y-2">
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Sertifikat / Guvohnoma Nomi</label>
+                                  <input
+                                    type="text"
+                                    value={editCertData.title}
+                                    onChange={(e) => setEditCertData({ ...editCertData, title: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block mb-0.5">Seriya / Raqami</label>
+                                    <input
+                                      type="text"
+                                      value={editCertData.certificateNo}
+                                      onChange={(e) => setEditCertData({ ...editCertData, certificateNo: e.target.value })}
+                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block mb-0.5">Bergan Tashkilot</label>
+                                    <input
+                                      type="text"
+                                      value={editCertData.issuedBy}
+                                      onChange={(e) => setEditCertData({ ...editCertData, issuedBy: e.target.value })}
+                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                    <input
+                                      type="date"
+                                      value={editCertData.issueDate}
+                                      onChange={(e) => setEditCertData({ ...editCertData, issueDate: e.target.value })}
+                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block mb-0.5">Amal Qilish Muddati</label>
+                                    <input
+                                      type="date"
+                                      value={editCertData.expiryDate}
+                                      onChange={(e) => setEditCertData({ ...editCertData, expiryDate: e.target.value })}
+                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                                <button onClick={() => setEditingCertId(null)} className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-xs">
+                                  Bekor qilish
+                                </button>
+                                <button
+                                  onClick={() => handleSaveEditCert(cert.id)}
+                                  disabled={savingField === `cert_${cert.id}`}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold"
+                                >
+                                  {savingField === `cert_${cert.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                  <span>Saqlash</span>
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <span className="font-bold text-amber-300 text-xs leading-tight pr-2">{cert.title}</span>
+                                  {cert.issuedBy && <div className="text-slate-400 text-[10px] mt-0.5">Tashkilot: <span className="text-slate-300">{cert.issuedBy}</span></div>}
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {!cert.expiryDate ? (
+                                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                      Muddatsiz
+                                    </span>
+                                  ) : isExpired ? (
+                                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold border bg-rose-500/10 text-rose-400 border-rose-500/20">
+                                      Muddati o'tgan
+                                    </span>
+                                  ) : (
+                                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                                      Amalda
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      setEditingCertId(cert.id);
+                                      setEditCertData({
+                                        title: cert.title || '',
+                                        certificateNo: cert.certificateNo || '',
+                                        issueDate: cert.issueDate || '',
+                                        expiryDate: cert.expiryDate || '',
+                                        issuedBy: cert.issuedBy || '',
+                                      });
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                    title="Tahrirlash"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteCert(cert.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                    title="O'chirish"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
 
-                  {/* Section B: Professional Training & Certificates */}
-                  <div>
-                    <h5 className="font-bold text-purple-300 mb-3 flex items-center gap-2 text-xs uppercase tracking-wide">
-                      <BookOpen className="h-3.5 w-3.5" /> Professional Trening va Sertifikatlar
-                    </h5>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-[11px]">
-                        <thead>
-                          <tr className="border-b border-slate-700">
-                            <th className="text-left text-slate-400 font-semibold pb-2 pr-4 text-[10px] uppercase tracking-wide">Sertifikat Nomi</th>
-                            <th className="text-left text-slate-400 font-semibold pb-2 pr-4 text-[10px] uppercase tracking-wide">O'quv Yo'nalishi</th>
-                            <th className="text-left text-slate-400 font-semibold pb-2 pr-4 text-[10px] uppercase tracking-wide">Berilgan</th>
-                            <th className="text-left text-slate-400 font-semibold pb-2 pr-4 text-[10px] uppercase tracking-wide">Tugaydi</th>
-                            <th className="text-left text-slate-400 font-semibold pb-2 text-[10px] uppercase tracking-wide">Holati</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800/60">
-                          {MOCK_CERTIFICATES.map((cert) => {
-                            const isExpired = cert.status === "Muddati o'tgan" || new Date(cert.expiryDate) < new Date();
-                            return (
-                              <tr key={cert.id} className="group hover:bg-slate-800/30 transition-colors">
-                                <td className="py-3 pr-4">
-                                  <div className="font-semibold text-slate-200 group-hover:text-white transition-colors">{cert.title}</div>
-                                  <div className="text-slate-500 text-[10px] mt-0.5">{cert.issuedBy}</div>
-                                </td>
-                                <td className="py-3 pr-4">
-                                  <span className="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded-md font-medium text-[10px]">
-                                    {cert.field}
-                                  </span>
-                                </td>
-                                <td className="py-3 pr-4 font-mono text-slate-400">{formatDate(cert.issueDate)}</td>
-                                <td className="py-3 pr-4 font-mono">
-                                  <span className={isExpired ? 'text-rose-400 font-semibold' : 'text-slate-400'}>
-                                    {formatDate(cert.expiryDate)}
-                                  </span>
-                                </td>
-                                <td className="py-3">
-                                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                                    isExpired
-                                      ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                  }`}>
-                                    {isExpired ? <AlertTriangle className="h-3 w-3" /> : <BadgeCheck className="h-3 w-3" />}
-                                    {isExpired ? "Muddati o'tgan" : 'Amalda'}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                              <div className="text-slate-400 font-mono text-[11px]">
+                                Seriya / Raqam: <span className="font-bold text-slate-200">{cert.certificateNo || '—'}</span>
+                              </div>
+
+                              <div className="flex justify-between text-slate-500 text-[10px] pt-2 border-t border-slate-800">
+                                <span>Berilgan: <span className="text-slate-400">{formatDate(cert.issueDate)}</span></span>
+                                <span>Tugaydi: <span className={!cert.expiryDate ? 'text-blue-400 font-semibold' : isExpired ? 'text-rose-400 font-semibold' : 'text-slate-400'}>{cert.expiryDate ? formatDate(cert.expiryDate) : 'Muddatsiz'}</span></span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

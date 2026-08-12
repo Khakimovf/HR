@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               value={searchVal}
               onChange={handleSearch}
               placeholder="Qidiruv: Tabel №, Ism, Bo'lim yoki Guvohnoma turi..."
-              className="w-full rounded-xl bg-slate-900/80 border border-slate-700/60 py-2 left-10 pl-10 pr-12 text-sm text-slate-100 placeholder-slate-400 transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-xl bg-slate-900/80 border border-slate-700/60 py-2 pl-10 pr-12 text-sm text-slate-100 placeholder-slate-400 transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 border border-slate-700">
               Ctrl K
@@ -81,11 +81,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls & Live Clock */}
         <div className="flex items-center gap-3">
-          {/* + Yangi Xodim button (replaces Ommaviy Qabul) */}
+          {/* + Yangi Xodim button */}
           <button
             id="btn-new-employee"
             onClick={onOpenSingleModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-600/30 transition hover:from-indigo-500 hover:to-indigo-400 active:scale-95 border border-indigo-400/20"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-600/30 transition hover:from-indigo-500 hover:to-indigo-400 active:scale-95 border border-indigo-400/20 cursor-pointer"
           >
             <UserPlus className="h-4 w-4" />
             <span>+ Yangi Xodim</span>
