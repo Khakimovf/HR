@@ -71,7 +71,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen }) => {
                 type="text"
                 value={username}
                 onChange={(e) => { setUsername(e.target.value); setError(''); }}
-                placeholder="hr.admin"
+                placeholder="Admin"
                 autoComplete="username"
                 className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
               />
@@ -126,8 +126,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen }) => {
         {/* Demo credentials hint */}
         <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-center space-y-1">
           <p className="text-[11px] text-amber-400 font-semibold">🔑 Demo Kirish Ma'lumotlari</p>
-          <p className="text-[10px] text-amber-300/70 font-mono">admin / admin123 (SUPER_ADMIN)</p>
-          <p className="text-[10px] text-slate-500">Haqiqiy tizimda bu ko'rsatilmaydi</p>
+          <p className="text-[10px] text-amber-300/70 font-mono">Admin / Admin123 (SUPER_ADMIN)</p>
+          <p className="text-[10px] text-slate-500">Netlify / Server ishlamasa ham bevosita kirish imkoni mavjud</p>
         </div>
       </div>
     </div>

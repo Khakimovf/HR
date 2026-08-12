@@ -123,10 +123,10 @@ async function main() {
 
   // 3. Create Default Super Admin & HR User Accounts
   console.log('🔑 Creating Default Admin & HR Accounts...');
-  const defaultAdminPasswordHash = await hashPassword('admin');
+  const defaultAdminPasswordHash = await hashPassword('Admin123');
   const superAdminUser = await prisma.user.create({
     data: {
-      username: 'admin',
+      username: 'Admin',
       email: 'admin@enterprise.uz',
       passwordHash: defaultAdminPasswordHash,
       fullName: 'Alisher Botirovich Karimov (Super Admin)',
@@ -162,7 +162,7 @@ async function main() {
   // Also seed in HrUser legacy model for backward compatibility
   await prisma.hrUser.create({
     data: {
-      username: 'admin',
+      username: 'Admin',
       passwordHash: defaultAdminPasswordHash,
       fullName: 'Alisher Botirovich Karimov (Super Admin)',
       role: 'SUPER_ADMIN',
