@@ -34,6 +34,7 @@ interface DepartmentTreeProps {
   departments: DepartmentNode[];
   onNodeClick: (dept: DepartmentNode) => void;
   selectedDepartmentId?: string;
+  onOpenBulkModal?: () => void;
 }
 
 /* ── helpers ── */
@@ -112,6 +113,7 @@ export const DepartmentTree: React.FC<DepartmentTreeProps> = ({
   departments,
   onNodeClick,
   selectedDepartmentId,
+  onOpenBulkModal,
 }) => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [allExpanded, setAllExpanded] = useState(false);
@@ -324,20 +326,30 @@ export const DepartmentTree: React.FC<DepartmentTreeProps> = ({
               )}
             </p>
           </div>
-          {/* Expand / Collapse All */}
-          <button
-            id="btn-expand-collapse-all"
-            onClick={handleExpandCollapseAll}
-            disabled={!!hasActiveFilters}
-            title={hasActiveFilters ? 'Filtr faol paytida qo\'lda kengaytirish' : (allExpanded ? 'Hammasini yopish' : 'Hammasini ochish')}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/80 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 hover:text-white active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {allExpanded ? (
-              <><ChevronsDownUp className="h-3.5 w-3.5 text-indigo-400" />Hammasini Yopish</>
-            ) : (
-              <><ChevronsUpDown className="h-3.5 w-3.5 text-indigo-400" />Barcha Bo'limlar</>
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            {onOpenBulkModal && (
+              <button
+                onClick={onOpenBulkModal}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-teal-500 transition active:scale-95"
+              >
+                <span>📥 Excel Orqali Ommaviy Yuklash</span>
+              </button>
             )}
-          </button>
+            <button
+              id="btn-expand-collapse-all"
+              onClick={handleExpandCollapseAll}
+              disabled={!!hasActiveFilters}
+              title={hasActiveFilters ? 'Filtr faol paytida qo\'lda kengaytirish' : (allExpanded ? 'Hammasini yopish' : 'Hammasini ochish')}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/80 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 hover:text-white active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {allExpanded ? (
+                <><ChevronsDownUp className="h-3.5 w-3.5 text-indigo-400" />Hammasini Yopish</>
+              ) : (
+                <><ChevronsUpDown className="h-3.5 w-3.5 text-indigo-400" />Barcha Bo'limlar</>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* ── FILTER TOOLBAR ── */}

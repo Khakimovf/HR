@@ -76,11 +76,15 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { employeeId, checkupDate, validityMonths = 12, status, clinicName, orderRef, notes } = body;
+    const { employeeId, employeeIds, checkupDate, validityMonths = 12, status, clinicName, orderRef, notes } = body;
 
-    if (!employeeId || !checkupDate) {
+    const idsToProcess: string[] = employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0
+      ? employeeIds
+      : (employeeId ? [employeeId] : []);
+
+    if (idsToProcess.length === 0 || !checkupDate) {
       return NextResponse.json(
-        { success: false, error: 'Xodim va ko\'rik sanasi kiritilishi shart' },
+        { success: false, error: 'Xodim(lar) va ko\'rik sanasi kiritilishi shart' },
         { status: 400 }
       );
     }
@@ -89,31 +93,38 @@ export async function POST(req: Request) {
     const eDate = new Date(cDate);
     eDate.setMonth(eDate.getMonth() + parseInt(validityMonths));
 
-    const checkup = await prisma.medicalCheckup.create({
-      data: {
-        employeeId,
-        checkupDate: cDate,
-        expiryDate:  eDate,
-        validityMonths: parseInt(validityMonths),
-        status: status || "O'TGAN",
-        clinicName: clinicName || null,
-        orderRef:   orderRef   || null,
-        notes:      notes      || null,
-      },
-      include: { employee: { include: { currentDepartment: true } } },
-    });
+    const createdRecords: any[] = [];
+    for (const empId of idsToProcess) {
+      const checkup = await prisma.medicalCheckup.create({
+        data: {
+          employeeId: empId,
+          checkupDate: cDate,
+          expiryDate:  eDate,
+          validityMonths: parseInt(validityMonths),
+          status: status || "O'TGAN",
+          clinicName: clinicName || null,
+          orderRef:   orderRef   || null,
+          notes:      notes      || null,
+        },
+        include: { employee: { include: { currentDepartment: true } } },
+      });
+      createdRecords.push(checkup);
+    }
 
     // Audit
     const hrUser = await resolveHrUser(req);
     await writeAuditLog({
       hrUserId: hrUser?.id,
       hrName:   hrUser?.fullName || 'Tizim',
-      action:   "Tibbiy ko'rik yozuvi qo'shildi",
-      targetEmployeeId: employeeId,
-      departmentName: checkup.employee?.currentDepartment?.name,
+      action:   `Tibbiy ko'rik yozuvi paketli (${createdRecords.length} ta xodim) qo'shildi`,
+      metadata: { count: createdRecords.length, idsToProcess },
     });
 
-    return NextResponse.json({ success: true, checkup: { ...checkup, effectiveStatus: computeStatus(checkup) } });
+    return NextResponse.json({
+      success: true,
+      count: createdRecords.length,
+      checkup: createdRecords[0] ? { ...createdRecords[0], effectiveStatus: computeStatus(createdRecords[0]) } : null,
+    });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

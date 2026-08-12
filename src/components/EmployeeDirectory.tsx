@@ -20,6 +20,7 @@ import {
   RotateCcw,
   ShieldCheck,
   Building2,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -207,11 +208,11 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
           <button
             onClick={onOpenBulkModal}
             disabled={isReadOnly}
-            title={isReadOnly ? "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin" : "Ommaviy xodimlarni qabul qilish"}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            title={isReadOnly ? "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin" : "Excel orqali ommaviy yuklash"}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-teal-500 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <UserPlus className="h-4 w-4" />
-            <span>Ommaviy Qabul (30+)</span>
+            <FileSpreadsheet className="h-4 w-4 text-emerald-200" />
+            <span>📥 Excel Orqali Ommaviy Yuklash</span>
           </button>
         </div>
       </div>

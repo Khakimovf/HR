@@ -16,6 +16,8 @@ import {
   LogOut,
   Crown,
   Lock,
+  FileCheck,
+  UploadCloud,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -50,6 +52,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'departments',
       label: 'Bo\'limlar Ierarxiyasi',
       icon: GitFork,
+    },
+    {
+      id: 'arizalar',
+      label: 'Arizalar & Hujjat Aylanishi',
+      icon: FileCheck,
+      badge: '6-Bosqich',
+      badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
     },
     {
       id: 'kpi',
@@ -93,7 +102,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  // Audit log goes at the VERY BOTTOM (separate from main nav)
+  // Import Hub item positioned directly ABOVE Audit
+  const importNavItem = {
+    id: 'import',
+    label: 'Ommaviy Fayllarni Yuklash',
+    icon: UploadCloud,
+    badge: 'Excel/CSV',
+    badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  };
+
+  // Audit log goes at the VERY BOTTOM
   const bottomNavItem = {
     id: 'audit',
     label: 'Tizim Auditi va Loglar',
@@ -181,8 +199,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Bottom: Current User chip + Audit + logout */}
+      {/* Bottom: Current User chip + Import Hub + Audit + logout */}
       <div className="space-y-2 border-t border-slate-800 pt-3">
+        {/* Standalone Import Hub directly ABOVE Tizim Auditi va Loglar */}
+        <NavButton item={importNavItem} />
+
         {/* Audit at very bottom of nav tree */}
         <NavButton item={bottomNavItem} />
 

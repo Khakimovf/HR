@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           parsed.assignedDepartmentIds = (parsed as any).assignedDepartments || [];
         }
         if (!parsed.assignedDepartmentIds) parsed.assignedDepartmentIds = [];
-        if (!parsed.allowedModuleKeys) parsed.allowedModuleKeys = ['workforce', 'departments', 'kpi', 'svodka', 'transfers', 'discipline', 'davomat', 'hse', 'audit'];
+        if (!parsed.allowedModuleKeys) parsed.allowedModuleKeys = ['workforce', 'departments', 'arizalar', 'kpi', 'svodka', 'transfers', 'discipline', 'davomat', 'hse', 'audit'];
         setCurrentUser(parsed);
       }
     } catch {
@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.success && data.user) {
         const user = data.user as UserSession;
         if (!user.assignedDepartmentIds) user.assignedDepartmentIds = [];
-        if (!user.allowedModuleKeys) user.allowedModuleKeys = ['workforce', 'departments', 'kpi', 'svodka', 'transfers', 'discipline', 'davomat', 'hse', 'audit'];
+        if (!user.allowedModuleKeys) user.allowedModuleKeys = ['workforce', 'departments', 'arizalar', 'kpi', 'svodka', 'transfers', 'discipline', 'davomat', 'hse', 'audit'];
         setCurrentUser(user);
         localStorage.setItem(SESSION_KEY, JSON.stringify(user));
         return { success: true };

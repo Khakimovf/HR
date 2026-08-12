@@ -63,6 +63,7 @@ model Employee {
   permits             PermitLicense[]
   transfers           DepartmentTransfer[]
   leaves              LeaveAttendance[]
+  leaveRequests       LeaveRequest[]
   disciplinaryActions DisciplinaryAction[]
   rewards             RewardFinancialAid[]
   kpiRecords          KpiRecord[]
@@ -280,4 +281,41 @@ model AuditLog {
   metadata         String?  // JSON string for extra context
   createdAt        DateTime @default(now())
 }
+
+// ── Leave Request & 6-Step Approval Workflow ───────────────────────────────
+
+model LeaveRequest {
+  id               String              @id @default(uuid())
+  employeeId       String
+  employee         Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  // Types: BS_UNPAID, MEHNAT_TATILI, SICK_LEAVE_BL, HOURLY_PERMIT
+  type             String
+  requestDate      DateTime            @default(now())
+  startDate        DateTime
+  endDate          DateTime
+  totalDays        Int
+  reason           String
+  // Status: PENDING, APPROVED, REJECTED, CANCELLED
+  status           String              @default("PENDING")
+  currentStep      Int                 @default(1) // 1 to 6
+  rejectionComment String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  approvalSteps    LeaveApprovalStep[]
+}
+
+model LeaveApprovalStep {
+  id           String       @id @default(uuid())
+  requestId    String
+  request      LeaveRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  stepNumber   Int          // 1: Bo'lim Boshlig'i, 2: HR Xodimi, 3: Texnik Direktor, 4: Direktor O'rinbosari, 5: Moliya Direktori, 6: Bosh Direktor
+  // Roles: DEPARTMENT_HEAD, HR_OFFICER, TECHNICAL_DIRECTOR, DEPUTY_DIRECTOR, FINANCE_DIRECTOR, GENERAL_DIRECTOR
+  approverRole String
+  approverName String?
+  // Status: PENDING, APPROVED, REJECTED
+  status       String       @default("PENDING")
+  comment      String?
+  actionDate   DateTime?
+}
+
 

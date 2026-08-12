@@ -14,9 +14,12 @@ import { TransferModal } from '@/components/TransferModal';
 import { KpiEngineDashboard } from '@/components/KpiEngineDashboard';
 import { ExecutiveSvodka } from '@/components/ExecutiveSvodka';
 import { InternalMobilityView } from '@/components/InternalMobilityView';
+import { LeaveWorkflowView } from '@/components/LeaveWorkflowView';
 import { DavomatView } from '@/components/DavomatView';
 import { HseView } from '@/components/HseView';
 import { AuditLogView } from '@/components/AuditLogView';
+import { ImportHubView } from '@/components/ImportHubView';
+import { BulkImportModal, ImportType } from '@/components/BulkImportModal';
 import { LoginModal } from '@/components/LoginModal';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ArrowLeftRight, ShieldAlert, Award } from 'lucide-react';
@@ -43,6 +46,13 @@ function HRDashboardInner() {
   const [activeTransferEmpId, setActiveTransferEmpId] = useState<string | null>(null);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState<boolean>(false);
   const [isSingleModalOpen, setIsSingleModalOpen] = useState<boolean>(false);
+  const [isExcelImportOpen, setIsExcelImportOpen] = useState<boolean>(false);
+  const [excelImportType, setExcelImportType]   = useState<ImportType>('EMPLOYEES');
+
+  const handleOpenExcelImport = (type: ImportType) => {
+    setExcelImportType(type);
+    setIsExcelImportOpen(true);
+  };
 
   // Department drawer
   const [drawerDept, setDrawerDept] = useState<DepartmentNode | null>(null);
@@ -172,7 +182,13 @@ function HRDashboardInner() {
               departments={deptTree}
               onNodeClick={handleDeptNodeClick}
               selectedDepartmentId={drawerDept?.id}
+              onOpenBulkModal={() => handleOpenExcelImport('DEPARTMENTS')}
             />
+          )}
+
+          {/* View 2.5: Arizalar & Hujjat Aylanishi */}
+          {activeTab === 'arizalar' && (
+            <LeaveWorkflowView departments={departments} />
           )}
 
           {/* View 3: Automated KPI Engine */}
@@ -280,7 +296,15 @@ function HRDashboardInner() {
 
           {/* View 8: HSE — Med-Ko'rik va Xavfsizlik */}
           {activeTab === 'hse' && (
-            <HseView departments={departments} />
+            <HseView
+              departments={departments}
+              onOpenBulkModal={() => handleOpenExcelImport('HSE')}
+            />
+          )}
+
+          {/* View 8.5: Standalone Ommaviy Fayllarni Yuklash Hub */}
+          {activeTab === 'import' && (
+            <ImportHubView />
           )}
 
           {/* View 9: Tizim Auditi va Loglar */}
@@ -321,6 +345,17 @@ function HRDashboardInner() {
         departments={departments}
         onSuccess={() => {
           fetchDepartments();
+        }}
+      />
+
+      <BulkImportModal
+        isOpen={isExcelImportOpen}
+        onClose={() => setIsExcelImportOpen(false)}
+        defaultType={excelImportType}
+        onSuccess={() => {
+          fetchDepartments();
+          fetchActiveLeaves();
+          fetchHseAlerts();
         }}
       />
 

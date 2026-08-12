@@ -92,3 +92,56 @@ body {
   /* Ensure links don't show href in print */
   a[href]::after { content: none !important; }
 }
+
+/* ── Leave Request Print & PDF CSS ─────────────────────────────────────────── */
+@media print {
+  /* Hide all background dashboard elements, sidebars, modals, and overlays */
+  body * {
+    visibility: hidden !important;
+  }
+  
+  /* Show ONLY the printable leave document container */
+  #printable-leave-document,
+  #printable-leave-document * {
+    visibility: visible !important;
+  }
+  
+  /* Reset document layout for clean A4 printing */
+  #printable-leave-document {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 20mm 15mm !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Force light mode colors for text and tables in print */
+  #printable-leave-document h1,
+  #printable-leave-document h2,
+  #printable-leave-document h3,
+  #printable-leave-document p,
+  #printable-leave-document span,
+  #printable-leave-document td,
+  #printable-leave-document th {
+    color: #000000 !important;
+  }
+
+  /* Ensure digital approval stamps and QR codes remain visible and sharp */
+  .digital-stamp-box {
+    border: 2px solid #1e3a8a !important;
+    background-color: #f8fafc !important;
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+}
+

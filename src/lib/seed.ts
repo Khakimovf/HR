@@ -1,11 +1,16 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from './rbac';
+import { APPROVAL_STEPS_CONFIG } from './leaveConfig';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting Enterprise HR Database Seeding (50+ Departments & 1500+ Employees)...');
+  console.log('🌱 Starting Enterprise HR Database Seeding (52 Departments & 1500+ Employees)...');
 
-  // Clean existing data
+  // 0. Clean existing data in correct dependency order
+  console.log('🧹 Cleaning existing database records...');
+  await prisma.leaveApprovalStep.deleteMany();
+  await prisma.leaveRequest.deleteMany();
   await prisma.kpiRecord.deleteMany();
   await prisma.rewardFinancialAid.deleteMany();
   await prisma.disciplinaryAction.deleteMany();
@@ -13,10 +18,37 @@ async function main() {
   await prisma.departmentTransfer.deleteMany();
   await prisma.permitLicense.deleteMany();
   await prisma.education.deleteMany();
+  await prisma.medicalCheckup.deleteMany();
+  await prisma.safetyBriefing.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.userDepartmentAccess.deleteMany();
+  await prisma.userModuleAccess.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.hrUser.deleteMany();
+  await prisma.systemModule.deleteMany();
   await prisma.employee.deleteMany();
   await prisma.department.deleteMany();
 
-  // 1. Define 52 Enterprise Departments
+  // 1. Seed System Modules
+  console.log('📦 Seeding System Modules...');
+  const moduleKeys = [
+    { key: 'workforce', title: 'Xodimlar Kontingenti', iconName: 'Users', sortOrder: 1 },
+    { key: 'departments', title: 'Tashkiliy Tuzilma', iconName: 'Building2', sortOrder: 2 },
+    { key: 'kpi', title: 'KPI Engine & Deductions', iconName: 'TrendingUp', sortOrder: 3 },
+    { key: 'svodka', title: 'Operativ Svodka', iconName: 'FileSpreadsheet', sortOrder: 4 },
+    { key: 'transfers', title: "Kadrlar Ko'chishi (Rotatsiya)", iconName: 'ArrowRightLeft', sortOrder: 5 },
+    { key: 'discipline', title: 'Intizom & Rag\'bat', iconName: 'Award', sortOrder: 6 },
+    { key: 'davomat', title: 'Davomat & Ta\'tillar', iconName: 'Calendar', sortOrder: 7 },
+    { key: 'arizalar', title: 'Arizalar & Hujjat Aylanishi', iconName: 'FileCheck', sortOrder: 8 },
+    { key: 'hse', title: 'Mehnat Muhofazasi (HSE)', iconName: 'ShieldAlert', sortOrder: 9 },
+    { key: 'audit', title: 'Audit Logs & Xavfsizlik', iconName: 'History', sortOrder: 10 },
+  ];
+
+  for (const m of moduleKeys) {
+    await prisma.systemModule.create({ data: m });
+  }
+
+  // 2. Define 52 Enterprise Departments
   const deptNames = [
     "Direksiya va Boshqaruv",
     "Tarjimonlar bo'limi",
@@ -32,7 +64,7 @@ async function main() {
     "Yig'uv sexi (Assembly Line B)",
     "Dvigatel yig'uv sexi",
     "Kolip va Shtamplarni Ta'mirlash (Die Maintenance)",
-    "Robototexnika va PLC Avtomatlashtirish",
+    "Robototexnika va PLC Avtomatlashtwristiruv",
     "Bosh Energetik Bo'limi",
     "Texnik Xizmat va Mexanika",
     "Eksport Logistikasi",
@@ -83,12 +115,62 @@ async function main() {
         code,
         name,
         description: `Sanoat korxonasining ${name} tarkibiy bo'linmasi`,
+        staffLimit: 30 + Math.floor(Math.random() * 40),
       },
     });
     createdDepartments.push(dept);
   }
 
-  // 2. Data generator helper pools
+  // 3. Create Default Super Admin & HR User Accounts
+  console.log('🔑 Creating Default Admin & HR Accounts...');
+  const defaultAdminPasswordHash = await hashPassword('admin');
+  const superAdminUser = await prisma.user.create({
+    data: {
+      username: 'admin',
+      email: 'admin@enterprise.uz',
+      passwordHash: defaultAdminPasswordHash,
+      fullName: 'Alisher Botirovich Karimov (Super Admin)',
+      role: 'SUPER_ADMIN',
+      position: 'Bosh Direktor / HR Admin',
+      tabelNumber: 'TB-1000',
+      userDepartmentId: createdDepartments[0].id,
+      isActive: true,
+    },
+  });
+
+  // Assign department access to Super Admin (all 52 departments)
+  for (const dept of createdDepartments) {
+    await prisma.userDepartmentAccess.create({
+      data: {
+        userId: superAdminUser.id,
+        departmentId: dept.id,
+      },
+    });
+  }
+
+  // Assign module access to Super Admin (all 10 modules)
+  for (const m of moduleKeys) {
+    await prisma.userModuleAccess.create({
+      data: {
+        userId: superAdminUser.id,
+        moduleKey: m.key,
+        canEdit: true,
+      },
+    });
+  }
+
+  // Also seed in HrUser legacy model for backward compatibility
+  await prisma.hrUser.create({
+    data: {
+      username: 'admin',
+      passwordHash: defaultAdminPasswordHash,
+      fullName: 'Alisher Botirovich Karimov (Super Admin)',
+      role: 'SUPER_ADMIN',
+      isActive: true,
+    },
+  });
+
+  // 4. Data generator helper pools for 1500+ employees
   const maleFirstNames = ['Alisher', 'Javohir', 'Sardor', 'Bekzod', 'Dilshod', 'Shahrzod', 'Jamshid', 'Otabek', 'Azamat', 'Rustam', 'Sherzod', 'Sanjar', 'Bobur', 'Ilhom', 'Qobil', 'Jasur', 'Farhod', 'Shohruh', 'Ulug\'bek', 'Davron', 'Anvar', 'Elyor', 'Umid', 'Muzaffar', 'Akmal'];
   const femaleFirstNames = ['Nodira', 'Malika', 'Sevara', 'Gulnoza', 'Feruza', 'Madina', 'Kamola', 'Zuhra', 'Shahnoza', 'Nilufar', 'Lola', 'Dildora', 'Zilola', 'Nargiza', 'Aziza'];
   const lastNames = ['Karimov', 'Tashmatov', 'Abdullayev', 'Usmanov', 'Raximov', 'Sultanov', 'Ismoilov', 'Kamilov', 'Nazarov', 'Yusupov', 'Xodjayev', 'Tursunov', 'Axmedov', 'Aliyev', 'Mirzayev', 'Qodirov', 'Qayumov', 'Sobirov', 'Ergashev', 'Oripov'];
@@ -98,111 +180,112 @@ async function main() {
   const positions = [
     'Bosh Muhandis',
     'Bosh Texnolog',
-    'Bo\'lim Boshlig\'i',
-    'Sex Mudiri',
-    'Katta Nazoratchi (QC)',
-    'KARA / Avtoyuklagich Haydovchisi',
-    'Shtamplash Operatori',
-    'Konveyer Yig\'uvchisi',
-    'PLC Avtomatlashtirish Muhandisi',
-    'Tarjimon-Kordinatyor (Xitoy/Koreys/Ingliz)',
+    'Sex Boshlig\'i',
+    'Seksiya Boshlig\'i',
+    'Katta Mutaxassis',
     'Logistika Menejeri',
+    'Sifat Nazoratchisi (QA Inspector)',
+    'PLC Dasturchi va Avtomatlashtirish Muhandisi',
+    'Robot Operator',
+    'Stanok Sozlovchisi (CNC Setter)',
+    'Payvandchi (3-Razryad)',
+    'Payvandchi (5-Razryad Master)',
+    'Shtamplovchi',
+    'KARA Haydovchisi (Forklift Operator)',
     'Omborxona Mudiri',
-    'Laborant-Kimyogar',
-    'Mехаnik-Sozlovchi',
-    'Bosh Energetik',
-    'HSE Sanoat Xavfsizligi Mutaxassisi',
-    'Xalqaro Yuk Tashuvchi Haydovchi',
-    'IT Infratuzilma Muhandisi',
-    'Moliya Tahlilchisi',
-    'Turniket Xavfsizlik Nazoratchisi'
+    'Omborchi',
+    'KONTROLER (QC)',
+    'Bosh Buxgalter O\'rinbosari',
+    'HR Meneger',
+    'HSE Inspektor',
+    'Elekrik (4-Guruh)',
+    'Mexanik-Ta\'mirchi',
+    'Yig\'uvchi Usta (Assembler)',
+    'Laborant',
+    'Axborot Xavfsizligi Mutaxassisi'
   ];
 
   const institutions = [
     'Toshkent Davlat Texnika Universiteti (TDTU)',
     'Toshkent Avtomobil Yo\'llari Universiteti (TAYI)',
     'Toshkent Axborot Texnologiyalari Universiteti (TATU)',
-    'O\'zbekiston Milliy Universiteti (O\'zMU)',
-    'Toshkent Kimyo-Texnologiya Instituti (TKTI)',
-    'Samarqand Davlat Universiteti (SamDU)',
+    'Samarqand Davlat Universiteti',
+    'Farg\'ona Politexnika Instituti',
     'Andijon Mashinasozlik Instituti',
-    'Toshkent Sanoat Kolleji'
+    'Toshkent Sanoat va Avtomobil Kasset Kolleji',
+    'Turin Politexnika Universiteti (TTPU)',
+    'Inha Universiteti Toshkentda'
   ];
 
   const fieldsOfStudy = [
     'Mashinasozlik va Avtomatlashtirish',
     'Transport Logistikasi',
-    'Axborot Xavfsizligi va IT',
-    'Sanoat Muhandisligi',
-    'Biznesni Boshqarish (MBA)',
-    'Kimyoviy Texnologiyalar',
-    'Elektr energetika',
-    'Xalqaro Huquq va Tarjimonlik'
+    'Dasturiy Muhandislik',
+    'Mehnat Muhofazasi va Ekologiya',
+    'Elektr Energetikasi',
+    'Moliya va Buxgalteriya',
+    'Materialshunoslik va Payvandlash',
+    'Robototexnika',
+    'Sanoat Menejmenti'
   ];
 
   const TOTAL_EMPLOYEES = 1500;
-  console.log(`👥 Generating ${TOTAL_EMPLOYEES} realistic enterprise employee records...`);
+  console.log(`👨‍💼 Generating ${TOTAL_EMPLOYEES} Mock Employee Records...`);
 
-  // Batch insert optimization for high speed
-  const empBatches = [];
-  const batchSize = 100;
+  const createdEmployees: any[] = [];
+  const empBatchData: any[] = [];
 
   for (let i = 1; i <= TOTAL_EMPLOYEES; i++) {
-    const isFemale = i % 5 === 0;
-    const gender = isFemale ? 'FEMALE' : 'MALE';
-    const firstName = isFemale ? femaleFirstNames[i % femaleFirstNames.length] : maleFirstNames[i % maleFirstNames.length];
+    const isFemale = i % 4 === 0;
+    const firstName = isFemale 
+      ? femaleFirstNames[i % femaleFirstNames.length] 
+      : maleFirstNames[i % maleFirstNames.length];
     const lastName = lastNames[i % lastNames.length] + (isFemale ? 'a' : '');
-    const middleName = isFemale ? femaleMiddleNames[i % femaleMiddleNames.length] : maleMiddleNames[i % maleMiddleNames.length];
+    const middleName = isFemale 
+      ? femaleMiddleNames[i % femaleMiddleNames.length] 
+      : maleMiddleNames[i % maleMiddleNames.length];
 
-    const tabelNumber = `TB-${8000 + i}`;
+    const tabelNumber = `TB-${1000 + i}`;
     const dept = createdDepartments[i % createdDepartments.length];
     const position = positions[i % positions.length];
+    const isOnLeave = i % 25 === 0; // ~4% on leave
 
-    const birthYear = 1970 + (i % 32);
-    const dateOfBirth = new Date(birthYear, i % 12, (i % 27) + 1);
+    // Spread hire dates from 2012 to 2026
+    const hireYear = 2012 + (i % 14);
+    const hireMonth = (i % 12);
+    const hireDay = 1 + (i % 27);
+    const hireDate = new Date(hireYear, hireMonth, hireDay);
 
-    const hireYear = 2010 + (i % 15);
-    const hireDate = new Date(hireYear, (i * 2) % 12, (i * 3) % 27 + 1);
-
-    const status = i % 25 === 0 ? 'ON_LEAVE' : i % 40 === 0 ? 'OFFBOARDED' : 'ACTIVE';
-    const militaryCert = !isFemale ? `HBI-${700000 + i} (Zaxiradagi serjant)` : null;
-
-    const phone = `+998 90 ${100 + (i % 899)} ${10 + (i % 89)} ${10 + ((i * 3) % 89)}`;
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@enterprise-hr.uz`;
-
-    const empData = {
-      id: `emp-id-${i}`,
+    empBatchData.push({
       tabelNumber,
       firstName,
       lastName,
       middleName,
-      gender,
-      dateOfBirth,
-      hireDate,
-      status,
-      phone,
-      email,
-      militaryCertificate: militaryCert,
+      gender: isFemale ? 'FEMALE' : 'MALE',
       currentDepartmentId: dept.id,
       position,
-    };
-
-    empBatches.push(empData);
-  }
-
-  // Create Employees in chunks
-  console.log('⚡ Inserting employees into SQLite database...');
-  for (let i = 0; i < empBatches.length; i += batchSize) {
-    const chunk = empBatches.slice(i, i + batchSize);
-    await prisma.employee.createMany({
-      data: chunk,
+      status: isOnLeave ? 'ON_LEAVE' : 'ACTIVE',
+      hireDate,
+      dateOfBirth: new Date(1975 + (i % 25), i % 12, 1 + (i % 25)),
+      phone: `+99890${String(1000000 + i).slice(0, 7)}`,
+      email: `${tabelNumber.toLowerCase()}@enterprise-hr.uz`,
     });
   }
 
-  console.log('🎖️ Seeding Permits, Education, Leaves, Transfers, Discipline & KPI records for employees...');
+  // Insert in batches of 300 for SQLite efficiency
+  for (let i = 0; i < empBatchData.length; i += 300) {
+    const batch = empBatchData.slice(i, i + 300);
+    for (const empData of batch) {
+      const emp = await prisma.employee.create({ data: empData });
+      createdEmployees.push(emp);
+    }
+  }
 
-  // Select sample subset for rich child records
-  const sampleEmployees = await prisma.employee.findMany({ take: 300 });
+  console.log(`✅ Created ${createdEmployees.length} Employee records.`);
+
+  // 5. Seed Child Records (Education, Permits, HSE, KPI, Leaves)
+  console.log('🎖️ Seeding Child Records (Permits, Education, HSE, KPI)...');
+  const sampleEmployees = createdEmployees.slice(0, 400);
 
   for (let idx = 0; idx < sampleEmployees.length; idx++) {
     const emp = sampleEmployees[idx];
@@ -218,117 +301,40 @@ async function main() {
       },
     });
 
-    // Permits & Licenses
-    if (idx % 2 === 0 || emp.position.includes('KARA') || emp.position.includes('Haydovchi')) {
-      await prisma.permitLicense.create({
-        data: {
-          employeeId: emp.id,
-          licenseType: 'DRIVING',
-          category: idx % 3 === 0 ? 'A, B, C, D, E, F' : 'B, C',
-          certificateNo: `DL-UZ-${900000 + idx}`,
-          issueDate: new Date(2019, 1, 15),
-          expiryDate: new Date(2029, 1, 15),
-          status: 'ACTIVE',
-        },
-      });
-    }
-
-    if (idx % 3 === 0 || emp.position.includes('KARA')) {
-      await prisma.permitLicense.create({
-        data: {
-          employeeId: emp.id,
-          licenseType: 'FORKLIFT_KARA',
-          category: 'KARA Heavy Equipment Operator',
-          certificateNo: `KARA-PERMIT-${1000 + idx}`,
-          issueDate: new Date(2021, 4, 10),
-          expiryDate: new Date(2027, 12, 31),
-          status: 'ACTIVE',
-        },
-      });
-    }
-
-    if (idx % 4 === 0 || emp.position.includes('Bosh') || emp.position.includes('Menejer')) {
-      await prisma.permitLicense.create({
-        data: {
-          employeeId: emp.id,
-          licenseType: 'MOBILE_PHONE_ON_SITE',
-          category: 'Ruxsat etilgan Smartfon',
-          certificateNo: `PHONE-ALLOW-${500 + idx}`,
-          issueDate: new Date(2024, 0, 1),
-          expiryDate: new Date(2027, 0, 1),
-          status: 'ACTIVE',
-        },
-      });
-    }
-
-    // Professional Certs
-    await prisma.permitLicense.create({
+    // Medical Checkup
+    await prisma.medicalCheckup.create({
       data: {
         employeeId: emp.id,
-        licenseType: 'PROFESSIONAL_CERT',
-        category: 'Sanoat Xavfsizligi va HSE Sertifikati',
-        certificateNo: `HSE-CERT-${2000 + idx}`,
-        issueDate: new Date(2023, 2, 1),
-        expiryDate: new Date(2026, 2, 1),
-        status: 'ACTIVE',
+        checkupDate: new Date(2025, idx % 12, 10),
+        expiryDate: new Date(2026, idx % 12, 10),
+        status: idx % 15 === 0 ? "MUDDATI_TUGAGAN" : "O'TGAN",
+        clinicName: "Toshkent Shoshilinch Tibbiy Markazi #4",
+        notes: "Yillik majburiy tibbiy ko'rikdan o'tdi",
       },
     });
 
-    // Leave records
-    if (idx % 5 === 0) {
-      await prisma.leaveAttendance.create({
-        data: {
-          employeeId: emp.id,
-          type: 'BS',
-          startDate: new Date(2026, 7, 1),
-          endDate: new Date(2026, 7, 3),
-          totalDays: 3,
-          reason: 'Oilaviy sharoitiga ko\'ra (O\'z hisobidan ta\'til)',
-          status: 'APPROVED',
-        },
-      });
-    }
+    // Safety Briefing
+    await prisma.safetyBriefing.create({
+      data: {
+        employeeId: emp.id,
+        title: idx % 2 === 0 ? "Elektr Xavfsizligi va Stanok Yo'riqnomasi" : "Sanoat Xavfsizligi va Yong'in Xavfsizligi",
+        completionDate: new Date(2026, 0, 15),
+        expiryDate: new Date(2027, 0, 15),
+        instructorName: "Ergashev Jamshid (Bosh HSE Inspektor)",
+      },
+    });
 
-    if (idx % 7 === 0) {
-      await prisma.leaveAttendance.create({
+    // Permits
+    if (idx % 2 === 0 || emp.position.includes('KARA')) {
+      await prisma.permitLicense.create({
         data: {
           employeeId: emp.id,
-          type: 'BL',
-          startDate: new Date(2026, 6, 12),
-          endDate: new Date(2026, 6, 18),
-          totalDays: 6,
-          reason: 'Kasallik varaqasi (B/L)',
-          status: 'APPROVED',
-        },
-      });
-    }
-
-    // Disciplinary Actions
-    if (idx % 12 === 0) {
-      await prisma.disciplinaryAction.create({
-        data: {
-          employeeId: emp.id,
-          orderNumber: `BUYRUK-DISC-${300 + idx}`,
-          type: 'WARNING',
-          startDate: new Date(2026, 1, 15),
-          expiryDate: new Date(2027, 1, 15),
+          licenseType: emp.position.includes('KARA') ? 'FORKLIFT_KARA' : 'DRIVING',
+          category: emp.position.includes('KARA') ? 'KARA Heavy Equipment' : 'B, C',
+          certificateNo: `PERMIT-UZ-${900000 + idx}`,
+          issueDate: new Date(2021, 1, 15),
+          expiryDate: new Date(2028, 1, 15),
           status: 'ACTIVE',
-          notes: 'Ish smenasiga kechikkanligi va intizom buzilishi uchun hayfsan',
-        },
-      });
-    }
-
-    // Transfers
-    if (idx % 9 === 0) {
-      const prevDept = createdDepartments[(idx + 1) % createdDepartments.length];
-      await prisma.departmentTransfer.create({
-        data: {
-          employeeId: emp.id,
-          fromDepartmentId: prevDept.id,
-          toDepartmentId: emp.currentDepartmentId,
-          transferDate: new Date(2025, idx % 12, 10),
-          orderNumber: `BUYRUK-TR-${500 + idx}`,
-          reason: 'Ishlab chiqarish zaruriyati va rotatsiya dasturi',
         },
       });
     }
@@ -349,12 +355,113 @@ async function main() {
     });
   }
 
-  console.log('✅ Enterprise HR Database Seeding Completed Successfully (1500 Employees & 52 Departments)!');
+  // 6. Seed Sample Leave Requests with 6-Step Approval Workflows
+  console.log('📄 Seeding Demo Leave Requests & 6-Step Approvals...');
+  const leaveTypes = ['BS_UNPAID', 'MEHNAT_TATILI', 'SICK_LEAVE_BL', 'HOURLY_PERMIT'];
+  const leaveReasons = [
+    "Oilaviy sharoitiga ko'ra o'z hisobimdan navbatsiz ta'til berishingizni so'rayman.",
+    "Navbatdagi yillik mehnat ta'tili grafik bo'yicha berilishi uchun.",
+    "Shukronalik va salomatlikni tiklash maqsadida qisqa muddatli ruxsatnoma.",
+    "Shaxsiy masalalar yuzasidan 2 ish kuniga o'z hisobimdan ta'til."
+  ];
+
+  const leaveSampleEmps = createdEmployees.slice(0, 30);
+
+  for (let i = 0; i < leaveSampleEmps.length; i++) {
+    const emp = leaveSampleEmps[i];
+    const type = leaveTypes[i % leaveTypes.length];
+    const reason = leaveReasons[i % leaveReasons.length];
+
+    // Determine status (Pending, Approved, Rejected)
+    const isApproved = i % 3 === 0;
+    const isRejected = i % 7 === 0;
+    const status = isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : 'PENDING';
+    const currentStep = isApproved ? 6 : isRejected ? (1 + (i % 3)) : (1 + (i % 5));
+
+    const startDate = new Date(2026, 7, 10 + (i % 10));
+    const endDate = new Date(2026, 7, 12 + (i % 10));
+    const totalDays = 3;
+
+    const req = await prisma.leaveRequest.create({
+      data: {
+        employeeId: emp.id,
+        type,
+        requestDate: new Date(2026, 7, 1 + (i % 5)),
+        startDate,
+        endDate,
+        totalDays,
+        reason,
+        status,
+        currentStep,
+        rejectionComment: isRejected ? "Hozirgi smenada ishchi kuchi yetishmasligi sababli rad etildi" : null,
+      },
+    });
+
+    // Create the 6 approval steps for this request
+    for (const cfg of APPROVAL_STEPS_CONFIG) {
+      let stepStatus = 'PENDING';
+      let approverName: string | null = null;
+      let actionDate: Date | null = null;
+      let comment: string | null = null;
+
+      if (cfg.stepNumber < currentStep || isApproved) {
+        stepStatus = 'APPROVED';
+        approverName = `${cfg.label} (Mas'ul Rahbar)`;
+        actionDate = new Date(2026, 7, 2 + cfg.stepNumber);
+        comment = "Hujjat tekshirildi va tasdiqlandi";
+      } else if (cfg.stepNumber === currentStep && isRejected) {
+        stepStatus = 'REJECTED';
+        approverName = `${cfg.label} (Mas'ul Rahbar)`;
+        actionDate = new Date(2026, 7, 3);
+        comment = "Smenada mutaxassis yetarli emas";
+      } else if (cfg.stepNumber === currentStep && !isApproved) {
+        stepStatus = 'PENDING';
+        approverName = `${cfg.label}`;
+      }
+
+      await prisma.leaveApprovalStep.create({
+        data: {
+          requestId: req.id,
+          stepNumber: cfg.stepNumber,
+          approverRole: cfg.approverRole,
+          approverName,
+          status: stepStatus,
+          comment,
+          actionDate,
+        },
+      });
+    }
+
+    // Also populate LeaveAttendance if approved
+    if (isApproved) {
+      await prisma.leaveAttendance.create({
+        data: {
+          employeeId: emp.id,
+          type: type === 'BS_UNPAID' ? 'BS' : type === 'SICK_LEAVE_BL' ? 'BL' : 'TATIL',
+          startDate,
+          endDate,
+          totalDays,
+          reason,
+          status: 'APPROVED',
+        },
+      });
+    }
+  }
+
+  console.log('🎉 Enterprise HR Database Seeding Finished Successfully!');
+  console.log(`📊 Summary:
+  - 52 Departments Created
+  - 10 System Modules Created
+  - 1 Super Admin User (Username: admin, Password: admin)
+  - 1500 Employee Records Created (TB-1001 to TB-2500)
+  - 400 Child Records (Education, HSE, Permits, KPI)
+  - 30 Leave Requests with 6-Step Approval Workflows
+  `);
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding Error:', e);
+    console.error('❌ Database Seeding Failed:', e);
     process.exit(1);
   })
   .finally(async () => {

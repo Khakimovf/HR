@@ -74,11 +74,15 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { employeeId, title, completionDate, validityDays = 365, instructorName, protocolNumber, notes } = body;
+    const { employeeId, employeeIds, title, completionDate, validityDays = 365, instructorName, protocolNumber, notes } = body;
 
-    if (!employeeId || !title || !completionDate) {
+    const idsToProcess: string[] = employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0
+      ? employeeIds
+      : (employeeId ? [employeeId] : []);
+
+    if (idsToProcess.length === 0 || !title || !completionDate) {
       return NextResponse.json(
-        { success: false, error: 'Xodim, yo\'riqnoma sarlavhasi va o\'tkazish sanasi kiritilishi shart' },
+        { success: false, error: 'Xodim(lar), yo\'riqnoma sarlavhasi va o\'tkazish sanasi kiritilishi shart' },
         { status: 400 }
       );
     }
@@ -87,32 +91,38 @@ export async function POST(req: Request) {
     const eDate = new Date(cDate);
     eDate.setDate(eDate.getDate() + parseInt(validityDays));
 
-    const briefing = await prisma.safetyBriefing.create({
-      data: {
-        employeeId,
-        title: title.trim(),
-        completionDate: cDate,
-        expiryDate:     eDate,
-        validityDays:   parseInt(validityDays),
-        instructorName: instructorName || null,
-        protocolNumber: protocolNumber || null,
-        notes:          notes         || null,
-      },
-      include: { employee: { include: { currentDepartment: true } } },
-    });
+    const createdRecords: any[] = [];
+    for (const empId of idsToProcess) {
+      const briefing = await prisma.safetyBriefing.create({
+        data: {
+          employeeId: empId,
+          title: title.trim(),
+          completionDate: cDate,
+          expiryDate:     eDate,
+          validityDays:   parseInt(validityDays),
+          instructorName: instructorName || null,
+          protocolNumber: protocolNumber || null,
+          notes:          notes         || null,
+        },
+        include: { employee: { include: { currentDepartment: true } } },
+      });
+      createdRecords.push(briefing);
+    }
 
     // Audit
     const hrUser = await resolveHrUser(req);
     await writeAuditLog({
       hrUserId: hrUser?.id,
       hrName:   hrUser?.fullName || 'Tizim',
-      action:   "Xavfsizlik yo'riqnomasi yozuvi qo'shildi",
-      targetEmployeeId: employeeId,
-      departmentName: briefing.employee?.currentDepartment?.name,
-      metadata: { title },
+      action:   `Xavfsizlik yo'riqnomasi paketli (${createdRecords.length} ta xodim) qo'shildi`,
+      metadata: { title, count: createdRecords.length, idsToProcess },
     });
 
-    return NextResponse.json({ success: true, briefing: { ...briefing, effectiveStatus: computeBriefingStatus(briefing) } });
+    return NextResponse.json({
+      success: true,
+      count: createdRecords.length,
+      briefing: createdRecords[0] ? { ...createdRecords[0], effectiveStatus: computeBriefingStatus(createdRecords[0]) } : null,
+    });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
