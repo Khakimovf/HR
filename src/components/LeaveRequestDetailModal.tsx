@@ -23,10 +23,10 @@ import { APPROVAL_STEPS_CONFIG } from '@/lib/leaveConfig';
 import { formatDate } from '@/lib/utils';
 
 const TYPE_META: Record<string, { label: string; short: string; bgClass: string; textClass: string; borderClass: string }> = {
-  BS_UNPAID:     { label: "Harajatsiz Ta'til (B/S - O'z Hisobidan)", short: 'B/S', bgClass: 'bg-amber-500/20', textClass: 'text-amber-300', borderClass: 'border-amber-500/30' },
-  MEHNAT_TATILI: { label: "Mehnat Ta'tili (M/T - Yillik)", short: 'M/T', bgClass: 'bg-blue-500/20', textClass: 'text-blue-300', borderClass: 'border-blue-500/30' },
-  SICK_LEAVE_BL: { label: "Kasallik Varag'i (B/L - Qobiliyatsizlik)", short: 'B/L', bgClass: 'bg-rose-500/20', textClass: 'text-rose-300', borderClass: 'border-rose-500/30' },
-  HOURLY_PERMIT: { label: "Soatbay Ruxsatnoma (Kechikish / Erta Ketish)", short: 'RUX', bgClass: 'bg-emerald-500/20', textClass: 'text-emerald-300', borderClass: 'border-emerald-500/30' },
+  BS_UNPAID:     { label: "O'z hisobidan ta'til", short: 'B/S', bgClass: 'bg-amber-500/20', textClass: 'text-amber-300', borderClass: 'border-amber-500/30' },
+  MEHNAT_TATILI: { label: "Mehnat ta'tili", short: 'M/T', bgClass: 'bg-blue-500/20', textClass: 'text-blue-300', borderClass: 'border-blue-500/30' },
+  SICK_LEAVE_BL: { label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L', bgClass: 'bg-rose-500/20', textClass: 'text-rose-300', borderClass: 'border-rose-500/30' },
+  HOURLY_PERMIT: { label: "Kechikish / soatli ruxsatnoma", short: 'RUX', bgClass: 'bg-emerald-500/20', textClass: 'text-emerald-300', borderClass: 'border-emerald-500/30' },
 };
 
 interface LeaveRequestDetailModalProps {

@@ -17,7 +17,21 @@ export async function GET(req: Request) {
     const where: any = {};
 
     if (employeeId) where.employeeId = employeeId;
-    if (type && type !== 'ALL') where.type = type;
+    if (type && type !== 'ALL') {
+      if (['HOURLY_PERMIT', 'KECHIKISH_RUXSATNOMA', 'KECH', 'OTGUL', 'LATE_ARRIVAL', 'HOURLY_PERMISSION', 'LATE'].includes(type)) {
+        where.type = { in: ['HOURLY_PERMIT', 'KECHIKISH_RUXSATNOMA', 'KECH', 'OTGUL', 'HOURLY_PERMISSION', 'LATE', 'LATE_ARRIVAL'] };
+      } else if (['MEHNAT_TATILI', 'MT'].includes(type)) {
+        where.type = { in: ['MEHNAT_TATILI', 'MT'] };
+      } else if (['SICK_LEAVE_BL', 'BL'].includes(type)) {
+        where.type = { in: ['SICK_LEAVE_BL', 'BL'] };
+      } else if (['BS_UNPAID', 'BS'].includes(type)) {
+        where.type = { in: ['BS_UNPAID', 'BS'] };
+      } else if (['ADMIN_TATIL', 'ADMIN'].includes(type)) {
+        where.type = { in: ['ADMIN_TATIL', 'ADMIN'] };
+      } else {
+        where.type = type;
+      }
+    }
     if (status && status !== 'ALL') where.status = status;
     if (currentStep) where.currentStep = parseInt(currentStep, 10);
 

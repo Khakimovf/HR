@@ -309,7 +309,10 @@ function HRDashboardInner() {
 
           {/* View 9: Tizim Auditi va Loglar */}
           {activeTab === 'audit' && (
-            <AuditLogView departments={departments} />
+            <AuditLogView
+              departments={departments}
+              onOpenAddEmployee={() => setIsSingleModalOpen(true)}
+            />
           )}
         </main>
       </div>

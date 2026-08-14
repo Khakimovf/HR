@@ -51,8 +51,8 @@ type PeriodKey = typeof PERIODS[number]['key'];
 
 /* ─── KPI Rate constants (must match lib/kpi.ts) ─── */
 const RATES = [
-  { label: "B/S (O'z hisobidan)", rate: '-2.5% / kun', color: 'amber',  detail: 'Har bir ishlanmagan kun uchun chegirma' },
-  { label: 'B/L (Kasallik Varaqasi)', rate: '-1.5% / kun', color: 'rose',  detail: '3 kundan ortiq kasallik kunlari uchun' },
+  { label: "O'z hisobidan ta'til", rate: '-2.5% / kun', color: 'amber',  detail: 'Har bir ishlanmagan kun uchun chegirma' },
+  { label: 'Vaqtincha mehnatka layoqatsizlik', rate: '-1.5% / kun', color: 'rose',  detail: '3 kundan ortiq kasallik kunlari uchun' },
   { label: 'Smenaga Kechikish',   rate: '-0.8% / soat', color: 'purple', detail: 'Turnikentdan kechikib o\'tilgan har soat uchun' },
   { label: 'Intizomiy Jazo',      rate: 'KPI = 0%',    color: 'red',    detail: 'Faol intizomiy chora → BUTUN mukofot yo\'qoladi' },
 ];
@@ -286,7 +286,7 @@ export const KpiEngineDashboard: React.FC = () => {
               KPI & Samaradorlik Baholash Dvigateli
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              B/S, B/L, Kechikish va Intizomiy chora asosida KPI foiz ko'rsatkichini avtomatik hisoblash
+              O'z hisobidan ta'til, Vaqtincha mehnatka layoqatsizlik, Kechikish / soatli ruxsatnoma va Intizomiy chora asosida KPI foiz ko'rsatkichini avtomatik hisoblash
               {dateRange && (
                 <span className="ml-2 font-mono text-indigo-400">
                   [{new Date(dateRange.start).toLocaleDateString('uz-UZ')} — {new Date(dateRange.end).toLocaleDateString('uz-UZ')}]

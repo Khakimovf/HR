@@ -234,7 +234,7 @@ export const LeaveDocumentPrintModal: React.FC<LeaveDocumentPrintModalProps> = (
           {/* DOCUMENT TITLE (Centered & Bold) */}
           <div className="text-center my-4">
             <h2 className="text-base font-black uppercase tracking-wider text-slate-900">
-              O'Z HISOBIDAN VAQTINCHA TA'TIL BERISH HAQIDA ARIZA
+              O'Z HISOBIDAN TA'TIL BERISH HAQIDA ARIZA
             </h2>
           </div>
 
@@ -279,12 +279,12 @@ export const LeaveDocumentPrintModal: React.FC<LeaveDocumentPrintModalProps> = (
               moddiy javobgarlik va ish vazifalarimni saqlagan holda{' '}
               <strong className="underline text-slate-900 font-bold">
                 {request.type === 'BS_UNPAID'
-                  ? "Harajatsiz ta'til (O'z hisobimdan B/S)"
+                  ? "O'z hisobidan ta'til"
                   : request.type === 'MEHNAT_TATILI'
-                  ? "Navbatdagi yillik mehnat ta'tili (M/T)"
+                  ? "Mehnat ta'tili"
                   : request.type === 'SICK_LEAVE_BL'
-                  ? "Kasallik varaqasi bo'yicha ta'til (B/L)"
-                  : "Soatbay xizmat ruxsatnomasi"}
+                  ? "Vaqtincha mehnatka layoqatsizlik"
+                  : "Kechikish / soatli ruxsatnoma"}
               </strong>{' '}
               berishingizni so'rayman.
             </p>

@@ -41,14 +41,14 @@ interface EmployeeProfileModalProps {
 // ─── Demo Data Sources ─────────────────────────────────────────────────────────
 
 const MOCK_LEAVES = [
-  { id: 'l1', type: 'MT', startDate: '2026-06-01', endDate: '2026-06-28', totalDays: 28, reason: 'Yillik asosiy mehnat ta\'tili', hoursLate: null },
-  { id: 'l2', type: 'BL', startDate: '2026-02-05', endDate: '2026-02-12', totalDays: 7, reason: 'Vaqtinchalik mehnatga layoqatsizlik varag\'i (B/L)', hoursLate: null },
-  { id: 'l3', type: 'BS', startDate: '2026-04-10', endDate: '2026-04-11', totalDays: 2, reason: 'Oilaviy sabab — O\'z hisobidan ta\'til (B/S)', hoursLate: null },
-  { id: 'l4', type: 'ADMIN', startDate: '2026-01-15', endDate: '2026-01-17', totalDays: 3, reason: 'Kadrlar buyrug\'i bo\'yicha administrativ ta\'til', hoursLate: null },
-  { id: 'l5', type: 'KECH', startDate: '2026-05-14', endDate: '2026-05-14', totalDays: 1, reason: 'Ishga kechikish (Transport muammosi)', hoursLate: 2.5 },
-  { id: 'l6', type: 'KECH', startDate: '2026-03-22', endDate: '2026-03-22', totalDays: 1, reason: 'Shaxsiy sabab bilan kechikish', hoursLate: 1.5 },
-  { id: 'l7', type: 'MT', startDate: '2025-07-01', endDate: '2025-07-26', totalDays: 26, reason: 'Yillik asosiy ta\'til', hoursLate: null },
-  { id: 'l8', type: 'BL', startDate: '2025-11-10', endDate: '2025-11-15', totalDays: 5, reason: 'Vaqtinchalik layoqatsizlik varag\'i', hoursLate: null },
+  { id: 'l1', type: 'MT', startDate: '2026-06-01', endDate: '2026-06-28', totalDays: 28, reason: 'Mehnat ta\'tili', hoursLate: null },
+  { id: 'l2', type: 'BL', startDate: '2026-02-05', endDate: '2026-02-12', totalDays: 7, reason: 'Vaqtincha mehnatka layoqatsizlik varaqasi', hoursLate: null },
+  { id: 'l3', type: 'BS', startDate: '2026-04-10', endDate: '2026-04-11', totalDays: 2, reason: 'Oilaviy sabab — O\'z hisobidan ta\'til', hoursLate: null },
+  { id: 'l4', type: 'ADMIN', startDate: '2026-01-15', endDate: '2026-01-17', totalDays: 3, reason: 'Administrativ ta\'til', hoursLate: null },
+  { id: 'l5', type: 'KECH', startDate: '2026-05-14', endDate: '2026-05-14', totalDays: 1, reason: 'Kechikish / soatli ruxsatnoma (Transport muammosi)', hoursLate: 2.5 },
+  { id: 'l6', type: 'KECH', startDate: '2026-03-22', endDate: '2026-03-22', totalDays: 1, reason: 'Kechikish / soatli ruxsatnoma', hoursLate: 1.5 },
+  { id: 'l7', type: 'MT', startDate: '2025-07-01', endDate: '2025-07-26', totalDays: 26, reason: 'Mehnat ta\'tili', hoursLate: null },
+  { id: 'l8', type: 'BL', startDate: '2025-11-10', endDate: '2025-11-15', totalDays: 5, reason: 'Vaqtincha mehnatka layoqatsizlik varaqasi', hoursLate: null },
 ];
 
 const MOCK_REWARDS = [
@@ -488,12 +488,27 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   const [editingRewardId, setEditingRewardId] = useState<string | null>(null);
   const [editRewardData, setEditRewardData] = useState({ type: '', reason: '', orderNumber: '', amount: 0, orderDate: '' });
 
-  // Section 5 (Sertifikatlar va Guvohnomalar Data-Only) Handlers
-  const [certificateList, setCertificateList] = useState<any[]>(DEMO_CERTIFICATES);
-  const [showNewCertForm, setShowNewCertForm] = useState(false);
-  const [newCertData, setNewCertData] = useState({ title: '', certificateNo: '', issueDate: '', expiryDate: '', issuedBy: '' });
-  const [editingCertId, setEditingCertId] = useState<string | null>(null);
-  const [editCertData, setEditCertData] = useState({ title: '', certificateNo: '', issueDate: '', expiryDate: '', issuedBy: '' });
+  // Section 5 (Sertifikatlar, Guvohnomalar va Ruxsatnomalar) Dynamic States
+  const [sertifikatList, setSertifikatList] = useState<any[]>([
+    { id: 's1', title: 'ISO 9001:2015 Sifat Menejmenti Auditori', certificateNo: 'ISO-AUD-8831', issueDate: '2023-10-10', expiryDate: '' },
+    { id: 's2', title: 'Sanoat Xavfsizligi Sertifikati', certificateNo: 'SX-2024-9901', issueDate: '2024-01-15', expiryDate: '2027-01-14' },
+  ]);
+  const [editingSertId, setEditingSertId] = useState<string | null>(null);
+  const [editSertData, setEditSertData] = useState({ title: '', certificateNo: '', issueDate: '', expiryDate: '' });
+
+  const [guvohnomaList, setGuvohnomaList] = useState<any[]>([
+    { id: 'g1', title: 'Haydovchilik Guvohnomasi (B, C Kategoriya)', documentNo: 'UZ-2341-DL-BC', issueDate: '2019-06-15', issuedBy: 'Toshkent Sh. YHXBB' },
+    { id: 'g2', title: 'Harbiy Guvohnoma (Zahira)', documentNo: 'HG-99214', issueDate: '2018-05-20', issuedBy: 'Toshkent Mudofaa Bo\'limi' },
+  ]);
+  const [editingGuvId, setEditingGuvId] = useState<string | null>(null);
+  const [editGuvData, setEditGuvData] = useState({ title: '', documentNo: '', issueDate: '', issuedBy: '' });
+
+  const [ruxsatnomaList, setRuxsatnomaList] = useState<any[]>([
+    { id: 'r1', title: 'Korxonada Smartfon / Telefon Ishlatish Ruxsatnomasi', permitNo: 'RUX-2026-004', issueDate: '2026-01-10', status: 'Faol' },
+    { id: 'r2', title: 'Maxsus Texnika (Avtokara) Boshqarish Ruxsatnomasi', permitNo: 'KARA-OP-4412', issueDate: '2022-03-01', status: 'Faol' },
+  ]);
+  const [editingRuxId, setEditingRuxId] = useState<string | null>(null);
+  const [editRuxData, setEditRuxData] = useState({ title: '', permitNo: '', issueDate: '', status: 'Faol' });
 
   useEffect(() => {
     if (!employeeId) return;
@@ -510,7 +525,13 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
             setRewardsList(data.employee.rewards);
           }
           if (data.employee.certificates && data.employee.certificates.length > 0) {
-            setCertificateList(data.employee.certificates);
+            setSertifikatList(data.employee.certificates);
+          }
+          if (data.employee.guvohnomas && data.employee.guvohnomas.length > 0) {
+            setGuvohnomaList(data.employee.guvohnomas);
+          }
+          if (data.employee.ruxsatnomas && data.employee.ruxsatnomas.length > 0) {
+            setRuxsatnomaList(data.employee.ruxsatnomas);
           }
         }
       })
@@ -801,75 +822,105 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
     showToast("✅ Mukofot yozuvi o'chirildi!");
   };
 
-  // Section 5 (Sertifikatlar va Guvohnomalar Data-Only) Handlers
-  const handleSaveNewCert = async () => {
-    if (!newCertData.title.trim()) {
-      showToast("Sertifikat / Guvohnoma nomini kiriting");
-      return;
-    }
-    const updatedList = [
-      {
-        id: `c_${Date.now()}`,
-        title: newCertData.title.trim(),
-        certificateNo: newCertData.certificateNo.trim(),
-        issueDate: newCertData.issueDate || new Date().toISOString().split('T')[0],
-        expiryDate: newCertData.expiryDate || '',
-        issuedBy: newCertData.issuedBy.trim(),
-      },
-      ...certificateList,
-    ];
-
-    setSavingField('cert_new');
+  // Section 5 (Sertifikatlar, Guvohnomalar va Ruxsatnomalar) Handlers
+  const saveSection5Data = async (updatedSerts = sertifikatList, updatedGuvs = guvohnomaList, updatedRuxs = ruxsatnomaList) => {
     try {
       await fetch(`/api/employees/${employeeId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ certificates: updatedList, tabSection: "Sertifikatlar va Guvohnomalar" }),
+        body: JSON.stringify({
+          certificates: updatedSerts,
+          guvohnomas: updatedGuvs,
+          ruxsatnomas: updatedRuxs,
+          tabSection: "Sertifikatlar, Guvohnomalar va Ruxsatnomalar",
+        }),
       });
-      setCertificateList(updatedList);
-      setShowNewCertForm(false);
-      setNewCertData({ title: '', certificateNo: '', issueDate: '', expiryDate: '', issuedBy: '' });
-      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
+      showToast("✅ Ma'lumot muvaffaqiyatli saqlandi!");
       if (onRefreshData) onRefreshData();
     } catch {
-      setCertificateList(updatedList);
-      setShowNewCertForm(false);
-      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
-    } finally {
-      setSavingField(null);
+      showToast("✅ Ma'lumot muvaffaqiyatli saqlandi!");
     }
   };
 
-  const handleSaveEditCert = async (certId: string) => {
-    const updatedList = certificateList.map((c) =>
-      c.id === certId ? { ...c, ...editCertData } : c
+  // 1. Sertifikatlar Handlers
+  const handleAddSertifikat = () => {
+    const newId = `s_${Date.now()}`;
+    const newObj = { id: newId, title: '', certificateNo: '', issueDate: new Date().toISOString().split('T')[0], expiryDate: '' };
+    const newList = [...sertifikatList, newObj];
+    setSertifikatList(newList);
+    setEditingSertId(newId);
+    setEditSertData({ title: '', certificateNo: '', issueDate: newObj.issueDate, expiryDate: '' });
+  };
+
+  const handleSaveSertifikat = (id: string) => {
+    const updatedList = sertifikatList.map((item) =>
+      item.id === id ? { ...item, ...editSertData } : item
     );
-
-    setSavingField(`cert_${certId}`);
-    try {
-      await fetch(`/api/employees/${employeeId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ certificates: updatedList, tabSection: "Sertifikatlar va Guvohnomalar" }),
-      });
-      setCertificateList(updatedList);
-      setEditingCertId(null);
-      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
-      if (onRefreshData) onRefreshData();
-    } catch {
-      setCertificateList(updatedList);
-      setEditingCertId(null);
-      showToast("✅ Sertifikat / Guvohnoma ma'lumoti saqlandi!");
-    } finally {
-      setSavingField(null);
-    }
+    setSertifikatList(updatedList);
+    setEditingSertId(null);
+    saveSection5Data(updatedList, guvohnomaList, ruxsatnomaList);
   };
 
-  const handleDeleteCert = (certId: string) => {
-    if (!confirm("Sertifikat / Guvohnoma yozuvini o'chirishni tasdiqlaysizmi?")) return;
-    const updatedList = certificateList.filter((c) => c.id !== certId);
-    setCertificateList(updatedList);
-    showToast("✅ Sertifikat / Guvohnoma o'chirildi!");
+  const handleDeleteSertifikat = (id: string) => {
+    if (!confirm("Ushbu sertifikat yozuvini o'chirishni tasdiqlaysizmi?")) return;
+    const updatedList = sertifikatList.filter((item) => item.id !== id);
+    setSertifikatList(updatedList);
+    if (editingSertId === id) setEditingSertId(null);
+    saveSection5Data(updatedList, guvohnomaList, ruxsatnomaList);
+  };
+
+  // 2. Guvohnomalar Handlers
+  const handleAddGuvohnoma = () => {
+    const newId = `g_${Date.now()}`;
+    const newObj = { id: newId, title: '', documentNo: '', issueDate: new Date().toISOString().split('T')[0], issuedBy: '' };
+    const newList = [...guvohnomaList, newObj];
+    setGuvohnomaList(newList);
+    setEditingGuvId(newId);
+    setEditGuvData({ title: '', documentNo: '', issueDate: newObj.issueDate, issuedBy: '' });
+  };
+
+  const handleSaveGuvohnoma = (id: string) => {
+    const updatedList = guvohnomaList.map((item) =>
+      item.id === id ? { ...item, ...editGuvData } : item
+    );
+    setGuvohnomaList(updatedList);
+    setEditingGuvId(null);
+    saveSection5Data(sertifikatList, updatedList, ruxsatnomaList);
+  };
+
+  const handleDeleteGuvohnoma = (id: string) => {
+    if (!confirm("Ushbu guvohnoma yozuvini o'chirishni tasdiqlaysizmi?")) return;
+    const updatedList = guvohnomaList.filter((item) => item.id !== id);
+    setGuvohnomaList(updatedList);
+    if (editingGuvId === id) setEditingGuvId(null);
+    saveSection5Data(sertifikatList, guvohnomaList, ruxsatnomaList);
+  };
+
+  // 3. Ruxsatnomalar Handlers
+  const handleAddRuxsatnoma = () => {
+    const newId = `r_${Date.now()}`;
+    const newObj = { id: newId, title: '', permitNo: '', issueDate: new Date().toISOString().split('T')[0], status: 'Faol' };
+    const newList = [...ruxsatnomaList, newObj];
+    setRuxsatnomaList(newList);
+    setEditingRuxId(newId);
+    setEditRuxData({ title: '', permitNo: '', issueDate: newObj.issueDate, status: 'Faol' });
+  };
+
+  const handleSaveRuxsatnoma = (id: string) => {
+    const updatedList = ruxsatnomaList.map((item) =>
+      item.id === id ? { ...item, ...editRuxData } : item
+    );
+    setRuxsatnomaList(updatedList);
+    setEditingRuxId(null);
+    saveSection5Data(sertifikatList, guvohnomaList, updatedList);
+  };
+
+  const handleDeleteRuxsatnoma = (id: string) => {
+    if (!confirm("Ushbu ruxsatnoma yozuvini o'chirishni tasdiqlaysizmi?")) return;
+    const updatedList = ruxsatnomaList.filter((item) => item.id !== id);
+    setRuxsatnomaList(updatedList);
+    if (editingRuxId === id) setEditingRuxId(null);
+    saveSection5Data(sertifikatList, guvohnomaList, updatedList);
   };
 
   const handleOffboard = async () => {
@@ -897,8 +948,19 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   // Filter Leaves & Attendance History
   const filteredLeaves = leavesData.filter((lv: any) => {
     if (leaveCategoryFilter !== 'ALL') {
-      if (leaveCategoryFilter === 'ADMIN' && lv.type !== 'ADMIN' && lv.type !== 'OTGUL') return false;
-      if (leaveCategoryFilter !== 'ADMIN' && lv.type !== leaveCategoryFilter) return false;
+      if (leaveCategoryFilter === 'MT') {
+        if (lv.type !== 'MT' && lv.type !== 'MEHNAT_TATILI') return false;
+      } else if (leaveCategoryFilter === 'BL') {
+        if (lv.type !== 'BL' && lv.type !== 'SICK_LEAVE_BL') return false;
+      } else if (leaveCategoryFilter === 'BS') {
+        if (lv.type !== 'BS' && lv.type !== 'BS_UNPAID') return false;
+      } else if (leaveCategoryFilter === 'ADMIN') {
+        if (lv.type !== 'ADMIN' && lv.type !== 'ADMIN_TATIL') return false;
+      } else if (leaveCategoryFilter === 'KECH') {
+        if (!['KECH', 'OTGUL', 'HOURLY_PERMIT', 'HOURLY_PERMISSION', 'LATE', 'LATE_ARRIVAL', 'KECHIKISH_RUXSATNOMA'].includes(lv.type)) return false;
+      } else if (lv.type !== leaveCategoryFilter) {
+        return false;
+      }
     }
     if (leaveDateFrom && lv.startDate) {
       if (new Date(lv.startDate) < new Date(leaveDateFrom)) return false;
@@ -920,11 +982,11 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
   const leaveTypeFull: Record<string, string> = {
     MT: 'Mehnat ta\'tili',
-    BL: 'Vaqtinchalik mehnatga layoqatsizlik davri (B/L)',
-    BS: 'O\'z hisobidan ta\'til (B/S)',
+    BL: 'Vaqtincha mehnatka layoqatsizlik',
+    BS: 'O\'z hisobidan ta\'til',
     ADMIN: 'Administrativ ta\'til',
-    OTGUL: 'Administrativ ta\'til (Otgul)',
-    KECH: 'Kechikish (Tardiness)',
+    OTGUL: 'Kechikish / soatli ruxsatnoma',
+    KECH: 'Kechikish / soatli ruxsatnoma',
   };
 
   // 5 Official Legal Metric Calculations
@@ -933,6 +995,225 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   const bsTotal = leavesData.filter((l: any) => l.type === 'BS').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
   const adminTotal = leavesData.filter((l: any) => l.type === 'ADMIN' || l.type === 'OTGUL').reduce((s: number, l: any) => s + (l.totalDays || 0), 0);
   const lateTotalHours = leavesData.filter((l: any) => l.hoursLate && Number(l.hoursLate) > 0).reduce((s: number, l: any) => s + Number(l.hoursLate), 0);
+
+  const handleDownloadAttendancePDF = () => {
+    if (!employee) return;
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWindow) {
+      alert('Pop-up bloklangan. Brauzerdagi cheklovni olib tashlang.');
+      return;
+    }
+
+    const fullName = `${employee.lastName} ${employee.firstName} ${employee.middleName || ''}`.trim();
+    const printDate = new Date().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+    const hashKey = `SHA256:${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`.toUpperCase();
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Ta'til_va_Davomat_Tarixi_${employee.tabelNumber || '000'}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 10mm 12mm;
+            }
+            * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body {
+              font-family: 'Segoe UI', Arial, sans-serif;
+              font-size: 9.5pt;
+              color: #0f172a;
+              background: #ffffff;
+              margin: 0;
+              padding: 0;
+              line-height: 1.35;
+            }
+            .page {
+              width: 210mm;
+              min-height: 297mm;
+              padding: 8mm;
+              box-sizing: border-box;
+              position: relative;
+            }
+            .header-box {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              border-bottom: 3.5px solid #1e3a8a;
+              padding-bottom: 10px;
+              margin-bottom: 14px;
+            }
+            .employee-summary {
+              background: #f8fafc;
+              border: 1.5px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 10px 14px;
+              margin-bottom: 14px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+            .kpi-grid {
+              display: grid;
+              grid-template-columns: repeat(5, 1fr);
+              gap: 8px;
+              margin-bottom: 16px;
+            }
+            .kpi-card {
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 8px;
+              text-align: center;
+              background: #f1f5f9;
+            }
+            .kpi-value {
+              font-size: 13pt;
+              font-weight: 800;
+              color: #1e3a8a;
+            }
+            .kpi-label {
+              font-size: 7.5pt;
+              font-weight: 700;
+              color: #334155;
+              margin-top: 2px;
+            }
+            .section-title {
+              font-size: 11pt;
+              font-weight: 700;
+              color: #1e3a8a;
+              border-bottom: 2px solid #cbd5e1;
+              padding-bottom: 4px;
+              margin-top: 12px;
+              margin-bottom: 8px;
+              text-transform: uppercase;
+            }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; font-size: 9pt; text-align: left; }
+            th { background-color: #f1f5f9; color: #1e293b; font-weight: 600; }
+            .footer {
+              margin-top: 24px;
+              border-top: 2px solid #cbd5e1;
+              padding-top: 8px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <!-- Header -->
+            <div class="header-box">
+              <div>
+                <div style="font-size: 9pt; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px; text-transform: uppercase;">ENTERPRISE HR SYSTEM MCHJ</div>
+                <div style="font-size: 14pt; font-weight: 800; color: #0f172a; margin-top: 2px;">TA'TIL VA DAVOMAT TARIXI HISOBOTI</div>
+                <div style="font-size: 8.5pt; font-weight: 600; color: #475569;">Xodimning Ta'tillar va Vaqtinchalik Mehnatga Layoqatsizlik Logi</div>
+              </div>
+              <div style="text-align: right; font-size: 8.5pt;">
+                <span style="display: inline-block; background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-bottom: 4px;">ATTENDANCE REPORT</span>
+                <div style="color: #64748b; font-family: monospace;">DOC-ATT-${employee.tabelNumber || '000'}</div>
+                <div style="color: #64748b;">Sana: ${printDate}</div>
+              </div>
+            </div>
+
+            <!-- Employee Summary -->
+            <div class="employee-summary">
+              <div>
+                <div style="font-size: 12pt; font-weight: 800; color: #0f172a;">${fullName}</div>
+                <div style="font-size: 8.5pt; color: #475569; margin-top: 2px;">
+                  Bo'lim: <b>${employee.currentDepartment?.name || '—'}</b> | Lavozim: <b>${employee.position || '—'}</b>
+                </div>
+              </div>
+              <div style="text-align: right; font-size: 9pt;">
+                <div>Tabel №: <span style="font-family: monospace; font-weight: 700; background: #e2e8f0; padding: 2px 6px; border-radius: 3px;">${employee.tabelNumber || '—'}</span></div>
+              </div>
+            </div>
+
+            <!-- 5 KPI Summary Cards -->
+            <div class="section-title">Xulosa Ko'rsatkichlari (KPI Metrics)</div>
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-value">${mtTotal} kun</div>
+                <div class="kpi-label">Mehnat ta'tili</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-value">${blTotal} kun</div>
+                <div class="kpi-label">Vaqtincha mehnatka layoqatsizlik</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-value">${bsTotal} kun</div>
+                <div class="kpi-label">O'z hisobidan ta'til</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-value">${adminTotal} kun</div>
+                <div class="kpi-label">Administrativ ta'til</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-value">${lateTotalHours} soat</div>
+                <div class="kpi-label">Kechikish / soatli ruxsatnoma</div>
+              </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="section-title">Ta'til va Davomat Tarixi Ro'yxati</div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 12%;">Turi</th>
+                  <th style="width: 25%;">Kategoriya / Nomi</th>
+                  <th style="width: 15%;">Boshlanish Sana</th>
+                  <th style="width: 15%;">Tugash Sana</th>
+                  <th style="width: 13%;">Davomiyligi</th>
+                  <th style="width: 20%;">Sababi / Buyruq №</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredLeaves.length > 0
+                  ? filteredLeaves.map((lv: any) => `
+                      <tr>
+                        <td style="font-family: monospace; font-weight: 700;">${lv.type}</td>
+                        <td><b>${leaveTypeFull[lv.type] || lv.type}</b></td>
+                        <td style="font-family: monospace;">${formatDate(lv.startDate)}</td>
+                        <td style="font-family: monospace;">${formatDate(lv.endDate)}</td>
+                        <td><b>${lv.totalDays || 1} kun ${lv.hoursLate ? `(+${lv.hoursLate}h)` : ''}</b></td>
+                        <td>${lv.reason || '—'}</td>
+                      </tr>
+                    `).join('')
+                  : `<tr><td colspan="6" style="text-align: center; color: #64748b;">Ta'til yoki davomat ma'lumotlari kiritilmagan</td></tr>`
+                }
+              </tbody>
+            </table>
+
+            <!-- Footer -->
+            <div class="footer">
+              <div style="font-size: 8pt; color: #64748b; display: flex; align-items: center; gap: 10px;">
+                <div style="border: 1.5px solid #0f172a; padding: 4px 8px; font-family: monospace; font-weight: 700; color: #0f172a; text-align: center; border-radius: 4px;">
+                  [ QR VERIFIED ]
+                </div>
+                <div>
+                  <div>Hujjat avtomatik ravishda HR tizimidan eksport qilindi</div>
+                  <div style="font-family: monospace; font-size: 7.5pt; color: #94a3b8;">${hashKey}</div>
+                </div>
+              </div>
+
+              <div style="text-align: right; font-size: 8.5pt; color: #334155;">
+                <div style="border-top: 1px dashed #475569; padding-top: 3px; width: 180px; text-align: center; margin-left: auto;">
+                  Kadrlar Bo'limi Boshlig'i Imzosi
+                </div>
+                <div style="font-size: 7.5pt; color: #94a3b8; margin-top: 2px;">Sana: ${printDate}</div>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 300);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
@@ -985,7 +1266,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
             {/* ONE SINGLE UNIFIED PDF BUTTON */}
             {employee && (
               <button
-                onClick={() => handleDownloadEmployeePDF(employee, tenure, disciplinaryList, rewardsList, certificateList)}
+                onClick={() => handleDownloadEmployeePDF(employee, tenure, disciplinaryList, rewardsList, [...sertifikatList, ...guvohnomaList, ...ruxsatnomaList])}
                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                 title="Xodimning to'liq 5-bo'lim PDF varakasini yuklab olish"
               >
@@ -1034,7 +1315,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 { id: 'transfers', label: "Bo'limlar Rotatsiyasi", icon: ArrowLeftRight },
                 { id: 'leaves', label: "Ta'til va Davomat", icon: Calendar },
                 { id: 'discipline_rewards', label: "Jazo & Mukofotlar", icon: ShieldAlert },
-                { id: 'permits', label: "Sertifikatlar va Guvohnomalar", icon: Award },
+                { id: 'permits', label: "Sertifikatlar, Guvohnomalar va Ruxsatnomalar", icon: Award },
               ].map((tab, idx) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1617,12 +1898,21 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               {/* ── Tab 3: Leaves & Attendance (Ta'til va Davomat Tarixi) ── */}
               {activeTab === 'leaves' && (
                 <div className="space-y-5 text-xs">
-                  <div className="border-b border-slate-800 pb-3">
-                    <h4 className="font-bold text-slate-200 text-sm flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-indigo-400" />
-                      Ta'til va Davomat Tarixi Logi
-                    </h4>
-                    <p className="text-[11px] text-slate-400">Rasmiy O'zbekiston HR qonunchiligi bo'yicha hisobot va davomat filtri</p>
+                  <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-200 text-sm flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-indigo-400" />
+                        Ta'til va Davomat Tarixi Logi
+                      </h4>
+                      <p className="text-[11px] text-slate-400">Rasmiy O'zbekiston HR qonunchiligi bo'yicha hisobot va davomat filtri</p>
+                    </div>
+                    <button 
+                      onClick={handleDownloadAttendancePDF} 
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      PDF Yuklab Olish
+                    </button>
                   </div>
 
                   {/* Filter Bar */}
@@ -1635,12 +1925,12 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                         onChange={(e) => setLeaveCategoryFilter(e.target.value)}
                         className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg focus:outline-none focus:border-indigo-500"
                       >
-                        <option value="ALL">Barchasi (Barchasi)</option>
-                        <option value="MT">Mehnat ta'tili (MT)</option>
-                        <option value="BL">Vaqtinchalik layoqatsizlik (B/L)</option>
-                        <option value="BS">O'z hisobidan ta'til (B/S)</option>
+                        <option value="ALL">Barchasi</option>
+                        <option value="MT">Mehnat ta'tili</option>
+                        <option value="BL">Vaqtincha mehnatka layoqatsizlik</option>
+                        <option value="BS">O'z hisobidan ta'til</option>
                         <option value="ADMIN">Administrativ ta'til</option>
-                        <option value="KECH">Kechikishlar (Tardiness)</option>
+                        <option value="KECH">Kechikish / soatli ruxsatnoma</option>
                       </select>
                     </div>
 
@@ -1673,11 +1963,11 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   {/* 5 Metric Cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                     {[
-                      { label: 'Mehnat ta\'tili', value: `${mtTotal} kun`, sub: 'Yillik mehnat ta\'tili', color: 'from-blue-600/20 to-blue-900/10 border-blue-500/30 text-blue-300' },
-                      { label: 'Vaqtinchalik layoqatsizlik (B/L)', value: `${blTotal} kun`, sub: 'Vrachlik varag\'i davri', color: 'from-rose-600/20 to-rose-900/10 border-rose-500/30 text-rose-300' },
-                      { label: 'O\'z hisobidan ta\'til (B/S)', value: `${bsTotal} kun`, sub: 'Ish haqisiz ta\'til', color: 'from-amber-600/20 to-amber-900/10 border-amber-500/30 text-amber-300' },
-                      { label: 'Administrativ ta\'til', value: `${adminTotal} kun`, sub: 'Rasmiy kadrlar buyrug\'i', color: 'from-purple-600/20 to-purple-900/10 border-purple-500/30 text-purple-300' },
-                      { label: 'Umumiy kechikkan soatlari', value: `${lateTotalHours} soat`, sub: 'Ishga kechikishlar', color: 'from-red-600/20 to-red-900/10 border-red-500/30 text-red-400' },
+                      { label: 'Mehnat ta\'tili', value: `${mtTotal} kun`, sub: 'Mehnat ta\'tili', color: 'from-blue-600/20 to-blue-900/10 border-blue-500/30 text-blue-300' },
+                      { label: 'Vaqtincha mehnatka layoqatsizlik', value: `${blTotal} kun`, sub: 'Vaqtincha mehnatka layoqatsizlik', color: 'from-rose-600/20 to-rose-900/10 border-rose-500/30 text-rose-300' },
+                      { label: 'O\'z hisobidan ta\'til', value: `${bsTotal} kun`, sub: 'O\'z hisobidan ta\'til', color: 'from-amber-600/20 to-amber-900/10 border-amber-500/30 text-amber-300' },
+                      { label: 'Administrativ ta\'til', value: `${adminTotal} kun`, sub: 'Administrativ ta\'til', color: 'from-purple-600/20 to-purple-900/10 border-purple-500/30 text-purple-300' },
+                      { label: 'Kechikish / soatli ruxsatnoma', value: `${lateTotalHours} soat`, sub: 'Kechikish / soatli ruxsatnoma', color: 'from-red-600/20 to-red-900/10 border-red-500/30 text-red-400' },
                     ].map(({ label, value, sub, color }) => (
                       <div key={label} className={`rounded-xl bg-gradient-to-br ${color} border p-3 text-center space-y-1`}>
                         <div className="text-lg font-extrabold text-white">{value}</div>
@@ -2157,237 +2447,424 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 </div>
               )}
 
-              {/* ── Tab 5: Sertifikatlar va Guvohnomalar (Data-Only, No Files, Optional Expiry Date) ── */}
+              {/* ── Section 5: Sertifikatlar, Guvohnomalar va Ruxsatnomalar ── */}
               {activeTab === 'permits' && (
                 <div className="space-y-6 text-xs">
-                  {/* Section Header with (+) Button */}
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div>
-                      <h4 className="font-bold text-slate-200 flex items-center gap-2 text-sm">
-                        <Award className="h-4 w-4 text-amber-400" />
-                        Sertifikatlar va Guvohnomalar
-                      </h4>
-                      <p className="text-[11px] text-slate-400">Kasbiy sertifikatlar, guvohnomalar va malaka tasdiqlovchi hujjatlar ro'yxati</p>
-                    </div>
-                    <button
-                      onClick={() => setShowNewCertForm((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-3 py-1.5 text-xs font-bold hover:bg-indigo-500/20 transition cursor-pointer"
-                      title="Yangi sertifikat qo'shish"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>+ Yangi Sertifikat Qo'shish</span>
-                    </button>
+                  {/* Container Main Header */}
+                  <div className="border-b border-slate-800 pb-3">
+                    <h4 className="font-bold text-slate-200 flex items-center gap-2 text-sm">
+                      <Award className="h-4 w-4 text-amber-400" />
+                      Sertifikatlar, Guvohnomalar va Ruxsatnomalar
+                    </h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Xodimmizning kasbiy sertifikatlari, shaxsiy va xizmat guvohnomalari hamda korxona ichki ruxsatnomalari</p>
                   </div>
 
-                  {/* New Certificate Inline Form */}
-                  {showNewCertForm && (
-                    <div className="glass-card rounded-xl p-4 border border-indigo-500/40 bg-indigo-950/20 space-y-3 animate-fadeIn">
-                      <div className="flex justify-between items-center border-b border-indigo-500/20 pb-2">
-                        <span className="font-bold text-indigo-300 text-xs">Yangi Sertifikat / Guvohnoma Ma'lumotlarini Kiritish</span>
-                        <button onClick={() => setShowNewCertForm(false)} className="text-slate-400 hover:text-white">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="md:col-span-2">
-                          <label className="text-[10px] text-slate-400 block mb-1">Sertifikat / Guvohnoma Nomi <span className="text-rose-400">*</span></label>
-                          <input
-                            type="text"
-                            value={newCertData.title}
-                            onChange={(e) => setNewCertData({ ...newCertData, title: e.target.value })}
-                            placeholder="Masalan: ISO 9001 Auditori, Haydovchilik..."
-                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-slate-400 block mb-1">Hujjat Seriya / Raqami (Ixtiyoriy)</label>
-                          <input
-                            type="text"
-                            value={newCertData.certificateNo}
-                            onChange={(e) => setNewCertData({ ...newCertData, certificateNo: e.target.value })}
-                            placeholder="UZ-2341-DL-BC / CERT-8831"
-                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500 font-mono"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-slate-400 block mb-1">Bergan Tashkilot (Ixtiyoriy)</label>
-                          <input
-                            type="text"
-                            value={newCertData.issuedBy}
-                            onChange={(e) => setNewCertData({ ...newCertData, issuedBy: e.target.value })}
-                            placeholder="Masalan: Tashkent YHXBB, CERT Int..."
-                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-slate-400 block mb-1">Berilgan Sana <span className="text-rose-400">*</span></label>
-                          <input
-                            type="date"
-                            value={newCertData.issueDate}
-                            onChange={(e) => setNewCertData({ ...newCertData, issueDate: e.target.value })}
-                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] text-slate-400 block mb-1">Amal Qilish Muddati (Ixtiyoriy / Bo'sh bo'lsa Muddatsiz)</label>
-                          <input
-                            type="date"
-                            value={newCertData.expiryDate}
-                            onChange={(e) => setNewCertData({ ...newCertData, expiryDate: e.target.value })}
-                            className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2 pt-2 border-t border-indigo-500/20">
-                        <button onClick={() => setShowNewCertForm(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs">
-                          Bekor qilish
-                        </button>
+                  {/* ──────────────── 1-SUBSECTION: SERTIFIKATLAR ──────────────── */}
+                  <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <h5 className="font-bold text-blue-400 flex items-center gap-2 text-xs">
+                        <span>Sertifikatlar</span>
                         <button
-                          onClick={handleSaveNewCert}
-                          disabled={savingField === 'cert_new'}
-                          className="inline-flex items-center gap-1 px-4 py-1.5 rounded bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition disabled:opacity-50"
+                          type="button"
+                          onClick={handleAddSertifikat}
+                          className="p-1 text-blue-400 hover:bg-blue-500/20 rounded transition cursor-pointer"
+                          title="Yangi Sertifikat qo'shish"
                         >
-                          {savingField === 'cert_new' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                          <span>Saqlash</span>
+                          <Plus className="w-4 h-4 text-blue-500 hover:bg-blue-50/10 rounded p-0.5 cursor-pointer" />
                         </button>
-                      </div>
+                      </h5>
+                      <span className="text-[10px] text-slate-500 font-mono">{sertifikatList.length} ta yozuv</span>
                     </div>
-                  )}
 
-                  {/* Certificate Cards List with Pencil Row Editing */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {certificateList.map((cert: any) => {
-                      const isExpired = cert.expiryDate && new Date(cert.expiryDate) < new Date();
-                      return (
-                        <div key={cert.id} className="glass-card rounded-xl p-4 border border-slate-800 hover:border-slate-700 transition space-y-2">
-                          {editingCertId === cert.id ? (
-                            <div className="space-y-3">
-                              <div className="space-y-2">
+                    <div className="space-y-2">
+                      {sertifikatList.map((item) => (
+                        <div key={item.id} className="glass-card rounded-xl p-3 border border-slate-800 bg-slate-950/40">
+                          {editingSertId === item.id ? (
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Sertifikat / Guvohnoma Nomi</label>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Sertifikat Nomi</label>
                                   <input
                                     type="text"
-                                    value={editCertData.title}
-                                    onChange={(e) => setEditCertData({ ...editCertData, title: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                    value={editSertData.title}
+                                    onChange={(e) => setEditSertData({ ...editSertData, title: e.target.value })}
+                                    placeholder="Masalan: ISO 9001 Auditor..."
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div>
-                                    <label className="text-[10px] text-slate-400 block mb-0.5">Seriya / Raqami</label>
-                                    <input
-                                      type="text"
-                                      value={editCertData.certificateNo}
-                                      onChange={(e) => setEditCertData({ ...editCertData, certificateNo: e.target.value })}
-                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="text-[10px] text-slate-400 block mb-0.5">Bergan Tashkilot</label>
-                                    <input
-                                      type="text"
-                                      value={editCertData.issuedBy}
-                                      onChange={(e) => setEditCertData({ ...editCertData, issuedBy: e.target.value })}
-                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
-                                    />
-                                  </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Seriya / Raqami</label>
+                                  <input
+                                    type="text"
+                                    value={editSertData.certificateNo}
+                                    onChange={(e) => setEditSertData({ ...editSertData, certificateNo: e.target.value })}
+                                    placeholder="ISO-AUD-8831"
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
+                                  />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div>
-                                    <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
-                                    <input
-                                      type="date"
-                                      value={editCertData.issueDate}
-                                      onChange={(e) => setEditCertData({ ...editCertData, issueDate: e.target.value })}
-                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="text-[10px] text-slate-400 block mb-0.5">Amal Qilish Muddati</label>
-                                    <input
-                                      type="date"
-                                      value={editCertData.expiryDate}
-                                      onChange={(e) => setEditCertData({ ...editCertData, expiryDate: e.target.value })}
-                                      className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
-                                    />
-                                  </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                  <input
+                                    type="date"
+                                    value={editSertData.issueDate}
+                                    onChange={(e) => setEditSertData({ ...editSertData, issueDate: e.target.value })}
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Amal Qilish Muddati (Ixtiyoriy)</label>
+                                  <input
+                                    type="date"
+                                    value={editSertData.expiryDate}
+                                    onChange={(e) => setEditSertData({ ...editSertData, expiryDate: e.target.value })}
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
+                                  />
                                 </div>
                               </div>
-                              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                                <button onClick={() => setEditingCertId(null)} className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-xs">
-                                  Bekor qilish
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingSertId(null)}
+                                  className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[11px]"
+                                >
+                                  Bekor
                                 </button>
                                 <button
-                                  onClick={() => handleSaveEditCert(cert.id)}
-                                  disabled={savingField === `cert_${cert.id}`}
-                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 text-white rounded text-xs font-bold"
+                                  type="button"
+                                  onClick={() => handleSaveSertifikat(item.id)}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold cursor-pointer transition"
                                 >
-                                  {savingField === `cert_${cert.id}` ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                  <Check className="w-3.5 h-3.5" />
                                   <span>Saqlash</span>
                                 </button>
                               </div>
                             </div>
                           ) : (
-                            <>
-                              <div className="flex justify-between items-start">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 flex-1">
                                 <div>
-                                  <span className="font-bold text-amber-300 text-xs leading-tight pr-2">{cert.title}</span>
-                                  {cert.issuedBy && <div className="text-slate-400 text-[10px] mt-0.5">Tashkilot: <span className="text-slate-300">{cert.issuedBy}</span></div>}
+                                  <span className="text-[10px] text-slate-500 block">Sertifikat Nomi</span>
+                                  <span className="font-semibold text-slate-200">{item.title || '—'}</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  {!cert.expiryDate ? (
-                                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold border bg-blue-500/10 text-blue-400 border-blue-500/20">
-                                      Muddatsiz
-                                    </span>
-                                  ) : isExpired ? (
-                                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold border bg-rose-500/10 text-rose-400 border-rose-500/20">
-                                      Muddati o'tgan
-                                    </span>
-                                  ) : (
-                                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                                      Amalda
-                                    </span>
-                                  )}
-                                  <button
-                                    onClick={() => {
-                                      setEditingCertId(cert.id);
-                                      setEditCertData({
-                                        title: cert.title || '',
-                                        certificateNo: cert.certificateNo || '',
-                                        issueDate: cert.issueDate || '',
-                                        expiryDate: cert.expiryDate || '',
-                                        issuedBy: cert.issuedBy || '',
-                                      });
-                                    }}
-                                    className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
-                                    title="Tahrirlash"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteCert(cert.id)}
-                                    className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
-                                    title="O'chirish"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Seriya / Raqami</span>
+                                  <span className="font-mono text-indigo-300">{item.certificateNo || '—'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Berilgan Sana</span>
+                                  <span className="font-mono text-slate-300">{formatDate(item.issueDate)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Amal Qilish Muddati</span>
+                                  <span className="font-mono text-slate-300">{item.expiryDate ? formatDate(item.expiryDate) : 'Muddatsiz'}</span>
                                 </div>
                               </div>
-
-                              <div className="text-slate-400 font-mono text-[11px]">
-                                Seriya / Raqam: <span className="font-bold text-slate-200">{cert.certificateNo || '—'}</span>
+                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-800 pl-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingSertId(item.id);
+                                    setEditSertData({
+                                      title: item.title || '',
+                                      certificateNo: item.certificateNo || '',
+                                      issueDate: item.issueDate || '',
+                                      expiryDate: item.expiryDate || '',
+                                    });
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer"
+                                  title="Tahrirlash"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteSertifikat(item.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                                  title="O'chirish"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
-
-                              <div className="flex justify-between text-slate-500 text-[10px] pt-2 border-t border-slate-800">
-                                <span>Berilgan: <span className="text-slate-400">{formatDate(cert.issueDate)}</span></span>
-                                <span>Tugaydi: <span className={!cert.expiryDate ? 'text-blue-400 font-semibold' : isExpired ? 'text-rose-400 font-semibold' : 'text-slate-400'}>{cert.expiryDate ? formatDate(cert.expiryDate) : 'Muddatsiz'}</span></span>
-                              </div>
-                            </>
+                            </div>
                           )}
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
+
+                  {/* ──────────────── 2-SUBSECTION: GUVOHNOMALAR ──────────────── */}
+                  <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <h5 className="font-bold text-indigo-400 flex items-center gap-2 text-xs">
+                        <span>Guvohnomalar</span>
+                        <button
+                          type="button"
+                          onClick={handleAddGuvohnoma}
+                          className="p-1 text-indigo-400 hover:bg-indigo-500/20 rounded transition cursor-pointer"
+                          title="Yangi Guvohnoma qo'shish"
+                        >
+                          <Plus className="w-4 h-4 text-blue-500 hover:bg-blue-50/10 rounded p-0.5 cursor-pointer" />
+                        </button>
+                      </h5>
+                      <span className="text-[10px] text-slate-500 font-mono">{guvohnomaList.length} ta yozuv</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {guvohnomaList.map((item) => (
+                        <div key={item.id} className="glass-card rounded-xl p-3 border border-slate-800 bg-slate-950/40">
+                          {editingGuvId === item.id ? (
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Guvohnoma Turi / Nomi</label>
+                                  <input
+                                    type="text"
+                                    value={editGuvData.title}
+                                    onChange={(e) => setEditGuvData({ ...editGuvData, title: e.target.value })}
+                                    placeholder="Haydovchilik / Harbiy..."
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Guvohnoma №</label>
+                                  <input
+                                    type="text"
+                                    value={editGuvData.documentNo}
+                                    onChange={(e) => setEditGuvData({ ...editGuvData, documentNo: e.target.value })}
+                                    placeholder="UZ-2341-DL-BC"
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500 font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                  <input
+                                    type="date"
+                                    value={editGuvData.issueDate}
+                                    onChange={(e) => setEditGuvData({ ...editGuvData, issueDate: e.target.value })}
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Bergan Tashkilot</label>
+                                  <input
+                                    type="text"
+                                    value={editGuvData.issuedBy}
+                                    onChange={(e) => setEditGuvData({ ...editGuvData, issuedBy: e.target.value })}
+                                    placeholder="Toshkent Sh. YHXBB..."
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingGuvId(null)}
+                                  className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[11px]"
+                                >
+                                  Bekor
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveGuvohnoma(item.id)}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold cursor-pointer transition"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Saqlash</span>
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 flex-1">
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Guvohnoma Turi / Nomi</span>
+                                  <span className="font-semibold text-slate-200">{item.title || '—'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Guvohnoma №</span>
+                                  <span className="font-mono text-indigo-300">{item.documentNo || '—'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Berilgan Sana</span>
+                                  <span className="font-mono text-slate-300">{formatDate(item.issueDate)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Bergan Tashkilot</span>
+                                  <span className="text-slate-300">{item.issuedBy || '—'}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-800 pl-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingGuvId(item.id);
+                                    setEditGuvData({
+                                      title: item.title || '',
+                                      documentNo: item.documentNo || '',
+                                      issueDate: item.issueDate || '',
+                                      issuedBy: item.issuedBy || '',
+                                    });
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer"
+                                  title="Tahrirlash"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteGuvohnoma(item.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                                  title="O'chirish"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ──────────────── 3-SUBSECTION: RUXSATNOMALAR ──────────────── */}
+                  <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <h5 className="font-bold text-amber-400 flex items-center gap-2 text-xs">
+                        <span>Ruxsatnomalar</span>
+                        <button
+                          type="button"
+                          onClick={handleAddRuxsatnoma}
+                          className="p-1 text-amber-400 hover:bg-amber-500/20 rounded transition cursor-pointer"
+                          title="Yangi Ruxsatnoma qo'shish"
+                        >
+                          <Plus className="w-4 h-4 text-blue-500 hover:bg-blue-50/10 rounded p-0.5 cursor-pointer" />
+                        </button>
+                      </h5>
+                      <span className="text-[10px] text-slate-500 font-mono">{ruxsatnomaList.length} ta yozuv</span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {ruxsatnomaList.map((item) => (
+                        <div key={item.id} className="glass-card rounded-xl p-3 border border-slate-800 bg-slate-950/40">
+                          {editingRuxId === item.id ? (
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Ruxsatnoma Turi</label>
+                                  <input
+                                    type="text"
+                                    value={editRuxData.title}
+                                    onChange={(e) => setEditRuxData({ ...editRuxData, title: e.target.value })}
+                                    placeholder="Telefon ishlatish ruxsatnomasi..."
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Buyruq / Ruxsatnoma №</label>
+                                  <input
+                                    type="text"
+                                    value={editRuxData.permitNo}
+                                    onChange={(e) => setEditRuxData({ ...editRuxData, permitNo: e.target.value })}
+                                    placeholder="RUX-2026-004"
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500 font-mono"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                  <input
+                                    type="date"
+                                    value={editRuxData.issueDate}
+                                    onChange={(e) => setEditRuxData({ ...editRuxData, issueDate: e.target.value })}
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-slate-400 block mb-0.5">Status</label>
+                                  <select
+                                    value={editRuxData.status}
+                                    onChange={(e) => setEditRuxData({ ...editRuxData, status: e.target.value })}
+                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                                  >
+                                    <option value="Faol">Faol</option>
+                                    <option value="Muddati O'tgan">Muddati O'tgan</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingRuxId(null)}
+                                  className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[11px]"
+                                >
+                                  Bekor
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveRuxsatnoma(item.id)}
+                                  className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold cursor-pointer transition"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Saqlash</span>
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 flex-1">
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Ruxsatnoma Turi</span>
+                                  <span className="font-semibold text-slate-200">{item.title || '—'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Buyruq / Ruxsatnoma №</span>
+                                  <span className="font-mono text-amber-300">{item.permitNo || '—'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Berilgan Sana</span>
+                                  <span className="font-mono text-slate-300">{formatDate(item.issueDate)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-slate-500 block">Status</span>
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                    item.status === 'Faol' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                  }`}>
+                                    {item.status || 'Faol'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-800 pl-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingRuxId(item.id);
+                                    setEditRuxData({
+                                      title: item.title || '',
+                                      permitNo: item.permitNo || '',
+                                      issueDate: item.issueDate || '',
+                                      status: item.status || 'Faol',
+                                    });
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer"
+                                  title="Tahrirlash"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRuxsatnoma(item.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                                  title="O'chirish"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               )}
 

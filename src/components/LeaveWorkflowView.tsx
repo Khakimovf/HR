@@ -33,10 +33,10 @@ import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 const TYPE_META: Record<string, { label: string; short: string; bgClass: string; textClass: string; borderClass: string }> = {
-  BS_UNPAID:     { label: "Harajatsiz Ta'til", short: 'B/S', bgClass: 'bg-amber-500/15', textClass: 'text-amber-300', borderClass: 'border-amber-500/30' },
-  MEHNAT_TATILI: { label: "Mehnat Ta'tili", short: 'M/T', bgClass: 'bg-blue-500/15', textClass: 'text-blue-300', borderClass: 'border-blue-500/30' },
-  SICK_LEAVE_BL: { label: "Kasallik Varag'i", short: 'B/L', bgClass: 'bg-rose-500/15', textClass: 'text-rose-300', borderClass: 'border-rose-500/30' },
-  HOURLY_PERMIT: { label: "Soatbay Ruxsat", short: 'RUX', bgClass: 'bg-emerald-500/15', textClass: 'text-emerald-300', borderClass: 'border-emerald-500/30' },
+  BS_UNPAID:     { label: "O'z hisobidan ta'til", short: 'B/S', bgClass: 'bg-amber-500/15', textClass: 'text-amber-300', borderClass: 'border-amber-500/30' },
+  MEHNAT_TATILI: { label: "Mehnat ta'tili", short: 'M/T', bgClass: 'bg-blue-500/15', textClass: 'text-blue-300', borderClass: 'border-blue-500/30' },
+  SICK_LEAVE_BL: { label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L', bgClass: 'bg-rose-500/15', textClass: 'text-rose-300', borderClass: 'border-rose-500/30' },
+  HOURLY_PERMIT: { label: "Kechikish / soatli ruxsatnoma", short: 'RUX', bgClass: 'bg-emerald-500/15', textClass: 'text-emerald-300', borderClass: 'border-emerald-500/30' },
 };
 
 interface LeaveWorkflowViewProps {
@@ -121,7 +121,7 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-indigo-500 active:scale-95 transition-all"
         >
           <Plus className="h-4 w-4" />
-          + Yangi BS / Ta'til Ariza Yozish
+          + Yangi Ta'til Ariza Yozish
         </button>
       </div>
 
@@ -207,10 +207,10 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
             className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-300 focus:border-cyan-500 focus:outline-none"
           >
             <option value="ALL">Barcha ariza turlari</option>
-            <option value="BS_UNPAID">Harajatsiz Ta'til (B/S)</option>
-            <option value="MEHNAT_TATILI">Mehnat Ta'tili (M/T)</option>
-            <option value="SICK_LEAVE_BL">Kasallik Varag'i (B/L)</option>
-            <option value="HOURLY_PERMIT">Soatbay Ruxsatnoma</option>
+            <option value="BS_UNPAID">O'z hisobidan ta'til</option>
+            <option value="MEHNAT_TATILI">Mehnat ta'tili</option>
+            <option value="SICK_LEAVE_BL">Vaqtincha mehnatka layoqatsizlik</option>
+            <option value="HOURLY_PERMIT">Kechikish / soatli ruxsatnoma</option>
           </select>
 
           {/* Status filter */}

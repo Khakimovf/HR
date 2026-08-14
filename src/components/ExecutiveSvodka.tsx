@@ -9,87 +9,108 @@ import {
   Download,
   FileCheck,
   Stethoscope,
-  CheckCircle2,
-  AlertTriangle,
+  Clock,
+  GraduationCap,
+  Building2,
+  Timer,
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
 
-// ─── Demo Fallback Employee Data for 4 Metrics ────────────────────────────────
+// ─── Demo Fallback Employee Data for 8 Metrics ────────────────────────────────
 
 const MOCK_ALL_EMPLOYEES = [
-  { id: '1', tabelNumber: 'TB-1001', fullName: "Ergashev Diyorbek Alisherovich", position: "Bosh Texnolog-Muhandis", departmentName: "Ishlab Chiqarish Sehi #1", status: 'ACTIVE', hasWarning: false, leaveType: null },
-  { id: '2', tabelNumber: 'TB-1002', fullName: "Karimov Sherzod Umidovich", position: "KARA Operator-Haydovchi", departmentName: "Logistika va Omborxona", status: 'ON_LEAVE', hasWarning: false, leaveType: 'MT' },
-  { id: '3', tabelNumber: 'TB-1003', fullName: "Qodirova Malika Jasurbek qizi", position: "Yetakchi HR Nazoratchi", departmentName: "Kadrlar Boshqarmasi", status: 'ACTIVE', hasWarning: true, leaveType: null },
-  { id: '4', tabelNumber: 'TB-1004', fullName: "Sultonov Rustam Xamroevich", position: "Mexanik-Sozlovchi Usta", departmentName: "Ta'mirlash Sehi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'BL' },
-  { id: '5', tabelNumber: 'TB-1005', fullName: "Xoliqov Bobur Mirzo", position: "Sifat Nazorati Inspektori", departmentName: "Laboratoriya va OTK", status: 'ACTIVE', hasWarning: false, leaveType: null },
-  { id: '6', tabelNumber: 'TB-1006', fullName: "Narzullaeva Gulnoza Sanjarovna", position: "Buxgalter-Hisobchi", departmentName: "Moliya Bo'limi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'BS' },
-  { id: '7', tabelNumber: 'TB-1007', fullName: "Sobirov Otabek Anvarovich", position: "Elektr-Montajchi", departmentName: "Energetika Xizmati", status: 'ON_LEAVE', hasWarning: false, leaveType: 'BL' },
-  { id: '8', tabelNumber: 'TB-1008', fullName: "Toshpulatov Sardor Baxtiyorovich", position: "Kran Mashinisti", departmentName: "Og'ir Yuk Sehi", status: 'ACTIVE', hasWarning: true, leaveType: null },
+  { id: '1', tabelNumber: 'TB-1001', fullName: "Ergashev Diyorbek Alisherovich", position: "Bosh Texnolog-Muhandis", departmentName: "Ishlab Chiqarish Sehi #1", status: 'ACTIVE', hasWarning: false, leaveType: null, isLate: false },
+  { id: '2', tabelNumber: 'TB-1002', fullName: "Karimov Sherzod Umidovich", position: "KARA Operator-Haydovchi", departmentName: "Logistika va Omborxona", status: 'ON_LEAVE', hasWarning: false, leaveType: 'MEHNAT_TATILI', isLate: false },
+  { id: '3', tabelNumber: 'TB-1003', fullName: "Qodirova Malika Jasurbek qizi", position: "Yetakchi HR Nazoratchi", departmentName: "Kadrlar Boshqarmasi", status: 'ACTIVE', hasWarning: true, leaveType: null, isLate: false },
+  { id: '4', tabelNumber: 'TB-1004', fullName: "Sultonov Rustam Xamroevich", position: "Mexanik-Sozlovchi Usta", departmentName: "Ta'mirlash Sehi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'LAYOQATSIZLIK', isLate: false },
+  { id: '5', tabelNumber: 'TB-1005', fullName: "Xoliqov Bobur Mirzo", position: "Sifat Nazorati Inspektori", departmentName: "Laboratoriya va OTK", status: 'ACTIVE', hasWarning: false, leaveType: null, isLate: true },
+  { id: '6', tabelNumber: 'TB-1006', fullName: "Narzullaeva Gulnoza Sanjarovna", position: "Buxgalter-Hisobchi", departmentName: "Moliya Bo'limi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'OZ_HISOBIDAN', isLate: false },
+  { id: '7', tabelNumber: 'TB-1007', fullName: "Sobirov Otabek Anvarovich", position: "Elektr-Montajchi", departmentName: "Energetika Xizmati", status: 'ON_LEAVE', hasWarning: false, leaveType: 'ADMINISTRATIV', isLate: false },
+  { id: '8', tabelNumber: 'TB-1008', fullName: "Toshpulatov Sardor Baxtiyorovich", position: "Kran Mashinisti", departmentName: "Og'ir Yuk Sehi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'OQISH_TATILI', isLate: false },
+  { id: '9', tabelNumber: 'TB-1009', fullName: "Mirzaev Akmal Jaxongirovich", position: "Payvandchi Master", departmentName: "Payvandlash Sehi", status: 'ACTIVE', hasWarning: true, leaveType: null, isLate: false },
+  { id: '10', tabelNumber: 'TB-1010', fullName: "Yusupova Feruza Ilxomovna", position: "Tabelchi Operatori", departmentName: "Kadrlar Boshqarmasi", status: 'ACTIVE', hasWarning: false, leaveType: 'KECHIKISH_RUXSATNOMA', isLate: true },
 ];
 
 export const ExecutiveSvodka: React.FC = () => {
   const [svodkaData, setSvodkaData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Active Metric Filter Key: 'ALL_EMPLOYEES' | 'ON_LEAVE' | 'ACTIVE_WARNINGS' | 'SICK_LEAVE'
-  const [activeFilterKey, setActiveFilterKey] = useState<string>('ALL_EMPLOYEES');
+  // 8 Active Metric Filter Keys: 'ALL' | 'MEHNAT_TATILI' | 'LAYOQATSIZLIK' | 'OZ_HISOBIDAN' | 'OQISH_TATILI' | 'ADMINISTRATIV' | 'KECHIKISH_RUXSATNOMA' | 'INTIZOMIY_HAYFSAN'
+  const [activeFilterKey, setActiveFilterKey] = useState<string>('ALL');
   const [employeeList, setEmployeeList] = useState<any[]>(MOCK_ALL_EMPLOYEES);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
       fetch('/api/svodka').then((r) => r.json()).catch(() => null),
-      fetch('/api/employees?limit=200').then((r) => r.json()).catch(() => null),
+      fetch('/api/employees?limit=300').then((r) => r.json()).catch(() => null),
     ]).then(([svodkaRes, empRes]) => {
       if (svodkaRes && svodkaRes.success) {
         setSvodkaData(svodkaRes);
       }
       if (empRes && empRes.success && empRes.employees && empRes.employees.length > 0) {
-        const mapped = empRes.employees.map((e: any) => ({
-          id: e.id,
-          tabelNumber: e.tabelNumber,
-          fullName: `${e.lastName} ${e.firstName} ${e.middleName || ''}`.trim(),
-          position: e.position,
-          departmentName: e.currentDepartment?.name || '—',
-          status: e.status,
-          hasWarning: e.disciplinaryActions && e.disciplinaryActions.length > 0,
-          leaveType: e.leaves && e.leaves.length > 0 ? e.leaves[0].type : (e.status === 'ON_LEAVE' ? 'MT' : null),
-        }));
+        const mapped = empRes.employees.map((e: any) => {
+          const firstLeave = e.leaves && e.leaves.length > 0 ? e.leaves[0].type : null;
+          const hasWarning = (e.disciplinaryActions && e.disciplinaryActions.length > 0) || e.status === 'ACTIVE_WARNING' || e.status === 'WARNING';
+          const isLate = (e.leaves && e.leaves.some((l: any) => ['KECH', 'OTGUL', 'HOURLY_PERMIT', 'KECHIKISH_RUXSATNOMA', 'LATE', 'LATE_ARRIVAL'].includes(l.type) || (l.hoursLate && Number(l.hoursLate) > 0)));
+
+          return {
+            id: e.id,
+            tabelNumber: e.tabelNumber,
+            fullName: `${e.lastName} ${e.firstName} ${e.middleName || ''}`.trim(),
+            position: e.position,
+            departmentName: e.currentDepartment?.name || '—',
+            status: e.status,
+            hasWarning,
+            leaveType: firstLeave,
+            isLate,
+          };
+        });
         setEmployeeList(mapped);
       }
     }).finally(() => setLoading(false));
   }, []);
 
-  const metrics = svodkaData?.metrics || {};
-
-  // Filtered employee lists per metric key
-  const allEmployees = employeeList;
-  const onLeaveEmployees = employeeList.filter((e) => e.status === 'ON_LEAVE' || e.status === 'VACATION' || e.leaveType === 'MT' || e.leaveType === 'BS');
-  const activeWarningsEmployees = employeeList.filter((e) => e.hasWarning || e.status === 'ACTIVE_WARNING');
-  const sickLeaveEmployees = employeeList.filter((e) => e.leaveType === 'BL' || (e.status === 'ON_LEAVE' && e.leaveType === 'BL'));
-
+  // Filtered employee lists per 8 metric keys
   const getDisplayedList = (key: string) => {
     switch (key) {
-      case 'ON_LEAVE':
-        return onLeaveEmployees.length > 0 ? onLeaveEmployees : MOCK_ALL_EMPLOYEES.filter((e) => e.status === 'ON_LEAVE');
-      case 'ACTIVE_WARNINGS':
-        return activeWarningsEmployees.length > 0 ? activeWarningsEmployees : MOCK_ALL_EMPLOYEES.filter((e) => e.hasWarning);
-      case 'SICK_LEAVE':
-        return sickLeaveEmployees.length > 0 ? sickLeaveEmployees : MOCK_ALL_EMPLOYEES.filter((e) => e.leaveType === 'BL');
+      case 'MEHNAT_TATILI':
+        return employeeList.filter((e) => ['MEHNAT_TATILI', 'MT', 'VACATION'].includes(e.leaveType) || (e.status === 'ON_LEAVE' && (!e.leaveType || ['MEHNAT_TATILI', 'MT'].includes(e.leaveType))));
+      case 'LAYOQATSIZLIK':
+        return employeeList.filter((e) => ['LAYOQATSIZLIK', 'SICK_LEAVE_BL', 'BL'].includes(e.leaveType));
+      case 'OZ_HISOBIDAN':
+        return employeeList.filter((e) => ['OZ_HISOBIDAN', 'BS_UNPAID', 'BS'].includes(e.leaveType));
+      case 'OQISH_TATILI':
+        return employeeList.filter((e) => ['OQISH_TATILI', 'STUDY', 'STUDY_LEAVE'].includes(e.leaveType));
+      case 'ADMINISTRATIV':
+        return employeeList.filter((e) => ['ADMINISTRATIV', 'ADMIN_TATIL', 'ADMIN'].includes(e.leaveType));
+      case 'KECHIKISH_RUXSATNOMA':
+        return employeeList.filter((e) => e.isLate || ['KECHIKISH_RUXSATNOMA', 'KECH', 'OTGUL', 'HOURLY_PERMIT', 'LATE_ARRIVAL', 'LATE'].includes(e.leaveType));
+      case 'INTIZOMIY_HAYFSAN':
+        return employeeList.filter((e) => e.hasWarning || e.status === 'ACTIVE_WARNING');
+      case 'ALL':
       case 'ALL_EMPLOYEES':
       default:
-        return allEmployees.length > 0 ? allEmployees : MOCK_ALL_EMPLOYEES;
+        return employeeList;
     }
   };
 
   const getCategoryTitle = (key: string) => {
     switch (key) {
-      case 'ON_LEAVE':
-        return "TA'TILDAGI XODIMLAR RO'YXATI (M/T, B/S)";
-      case 'ACTIVE_WARNINGS':
-        return "FAOL INTIZOMIY HAYFSANLAR SHAKLLANTIRILGAN XODIMLAR RO'YXATI";
-      case 'SICK_LEAVE':
-        return "VAQTINCHALIK MEHNATGA LAYOQATSIZ HOLATDAGI XODIMLAR RO'YXATI (B/L)";
+      case 'MEHNAT_TATILI':
+        return "MEHNAT TA'TILIDAGI XODIMLAR RO'YXATI";
+      case 'LAYOQATSIZLIK':
+        return "VAQTINCHA MEHNATKA LAYOQATSIZLIK DAVRIDAGI XODIMLAR RO'YXATI";
+      case 'OZ_HISOBIDAN':
+        return "O'Z HISOBIDAN TA'TILDAGI XODIMLAR RO'YXATI";
+      case 'OQISH_TATILI':
+        return "O'QISH DAVRI UCHUN QO'SHIMCHA TA'TILDAGI XODIMLAR RO'YXATI";
+      case 'ADMINISTRATIV':
+        return "ADMINISTRATIV TA'TILDAGI XODIMLAR RO'YXATI";
+      case 'KECHIKISH_RUXSATNOMA':
+        return "KECHIKISH VA SOATLI RUXSATNOMA BERILGAN XODIMLAR RO'YXATI";
+      case 'INTIZOMIY_HAYFSAN':
+        return "FAOL INTIZOMIY HAYFSAN SHAKLLANTIRILGAN XODIMLAR RO'YXATI";
+      case 'ALL':
       case 'ALL_EMPLOYEES':
       default:
         return "UMUMIY FAOL XODIMLAR RO'YXATI";
@@ -97,6 +118,98 @@ export const ExecutiveSvodka: React.FC = () => {
   };
 
   const displayedList = getDisplayedList(activeFilterKey);
+
+  // 8 Cards Configuration Definition
+  const cardsConfig = [
+    {
+      key: 'ALL',
+      label: 'Umumiy Xodimlar',
+      count: employeeList.length,
+      sub: 'Barcha faol ro\'yxatdagi xodimlar',
+      icon: Users,
+      activeBorder: 'border-indigo-500 bg-indigo-500/15 ring-2 ring-indigo-500/50 shadow-lg shadow-indigo-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+      textClass: 'text-indigo-300',
+    },
+    {
+      key: 'MEHNAT_TATILI',
+      label: "Mehnat ta'tili",
+      count: getDisplayedList('MEHNAT_TATILI').length,
+      sub: 'Yillik mehnat ta\'tili',
+      icon: Calendar,
+      activeBorder: 'border-blue-500 bg-blue-500/15 ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      textClass: 'text-blue-300',
+    },
+    {
+      key: 'LAYOQATSIZLIK',
+      label: 'Vaqtincha mehnatka layoqatsizlik',
+      count: getDisplayedList('LAYOQATSIZLIK').length,
+      sub: 'Kasallik varaqasi (B/L)',
+      icon: Stethoscope,
+      activeBorder: 'border-rose-500 bg-rose-500/15 ring-2 ring-rose-500/50 shadow-lg shadow-rose-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+      textClass: 'text-rose-300',
+    },
+    {
+      key: 'OZ_HISOBIDAN',
+      label: "O'z hisobidan ta'til",
+      count: getDisplayedList('OZ_HISOBIDAN').length,
+      sub: "O'z hisobidan ta'til (B/S)",
+      icon: Clock,
+      activeBorder: 'border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/50 shadow-lg shadow-amber-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+      textClass: 'text-amber-300',
+    },
+    {
+      key: 'OQISH_TATILI',
+      label: "O'qish davri uchun qo'shimcha ta'til",
+      count: getDisplayedList('OQISH_TATILI').length,
+      sub: "O'quv muassasasi ta'tili",
+      icon: GraduationCap,
+      activeBorder: 'border-purple-500 bg-purple-500/15 ring-2 ring-purple-500/50 shadow-lg shadow-purple-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      textClass: 'text-purple-300',
+    },
+    {
+      key: 'ADMINISTRATIV',
+      label: "Administrativ ta'til",
+      count: getDisplayedList('ADMINISTRATIV').length,
+      sub: 'Ma\'muriy ta\'til',
+      icon: Building2,
+      activeBorder: 'border-cyan-500 bg-cyan-500/15 ring-2 ring-cyan-500/50 shadow-lg shadow-cyan-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      textClass: 'text-cyan-300',
+    },
+    {
+      key: 'KECHIKISH_RUXSATNOMA',
+      label: 'Kechikish / soatli ruxsatnoma',
+      count: getDisplayedList('KECHIKISH_RUXSATNOMA').length,
+      sub: 'Kechikishlar va ruxsatnoma',
+      icon: Timer,
+      activeBorder: 'border-orange-500 bg-orange-500/15 ring-2 ring-orange-500/50 shadow-lg shadow-orange-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+      textClass: 'text-orange-300',
+    },
+    {
+      key: 'INTIZOMIY_HAYFSAN',
+      label: 'Faol Intizomiy Hayfsanlar',
+      count: getDisplayedList('INTIZOMIY_HAYFSAN').length,
+      sub: 'Faol intizomiy jazolar',
+      icon: ShieldAlert,
+      activeBorder: 'border-red-500 bg-red-500/15 ring-2 ring-red-500/50 shadow-lg shadow-red-500/20',
+      inactiveBorder: 'border-slate-800 bg-slate-900/60 hover:border-blue-500/50',
+      badgeClass: 'bg-red-500/20 text-red-300 border-red-500/30',
+      textClass: 'text-red-300',
+    },
+  ];
 
   // Excel Export Handler
   const handleExportExcel = () => {
@@ -219,11 +332,6 @@ export const ExecutiveSvodka: React.FC = () => {
     setTimeout(() => { win.print(); }, 300);
   };
 
-  const totalAllCount = metrics.activeEmployees || allEmployees.length || 0;
-  const totalOnLeaveCount = metrics.onLeaveEmployees || onLeaveEmployees.length || 0;
-  const totalWarningsCount = metrics.activeDisciplinaryActions || activeWarningsEmployees.length || 0;
-  const totalSickLeaveCount = metrics.leavesByType?.BL || sickLeaveEmployees.length || 0;
-
   return (
     <div className="space-y-6">
       {/* Header & Main Export Actions */}
@@ -234,7 +342,7 @@ export const ExecutiveSvodka: React.FC = () => {
             <span>Executive Dashboard & Analitik Svodka</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Bosh direktor va HR Boshqarmasi uchun tezkor 4 metric ko'rsatkichi va 4-ustunli sodda jadval
+            Bosh direktor va HR Boshqarmasi uchun 8 ta to'liq ko'rsatkichli boshqaruv paneli va 5-ustunli minimal jadval
           </p>
         </div>
 
@@ -249,86 +357,40 @@ export const ExecutiveSvodka: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 4 Top Metric Selector Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* CARD 1: Umumiy Xodimlar */}
-        <div
-          onClick={() => setActiveFilterKey('ALL_EMPLOYEES')}
-          className={`glass-card rounded-2xl p-5 border cursor-pointer transition-all ${
-            activeFilterKey === 'ALL_EMPLOYEES'
-              ? 'border-indigo-500 bg-indigo-500/15 ring-2 ring-indigo-500/50 shadow-lg shadow-indigo-500/20'
-              : 'border-indigo-500/30 bg-indigo-500/5 hover:border-indigo-500/60'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs text-indigo-300 font-semibold">
-            <span>Umumiy Xodimlar</span>
-            <Users className="h-4.5 w-4.5" />
-          </div>
-          <div className="text-3xl font-extrabold text-white mt-1">
-            {totalAllCount} <span className="text-xs font-normal text-slate-400">kishi</span>
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Barcha faol ro'yxatdagi xodimlar</div>
-        </div>
-
-        {/* CARD 2: Ta'tildagi Xodimlar */}
-        <div
-          onClick={() => setActiveFilterKey('ON_LEAVE')}
-          className={`glass-card rounded-2xl p-5 border cursor-pointer transition-all ${
-            activeFilterKey === 'ON_LEAVE'
-              ? 'border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/50 shadow-lg shadow-amber-500/20'
-              : 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs text-amber-300 font-semibold">
-            <span>Ta'tildagi Xodimlar</span>
-            <Calendar className="h-4.5 w-4.5" />
-          </div>
-          <div className="text-3xl font-extrabold text-amber-400 mt-1">
-            {totalOnLeaveCount} <span className="text-xs font-normal text-slate-400">kishi</span>
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Mehnat ta'tili (M/T) & O'z hisobidan (B/S)</div>
-        </div>
-
-        {/* CARD 3: Faol Intizomiy Hayfsanlar */}
-        <div
-          onClick={() => setActiveFilterKey('ACTIVE_WARNINGS')}
-          className={`glass-card rounded-2xl p-5 border cursor-pointer transition-all ${
-            activeFilterKey === 'ACTIVE_WARNINGS'
-              ? 'border-rose-500 bg-rose-500/15 ring-2 ring-rose-500/50 shadow-lg shadow-rose-500/20'
-              : 'border-rose-500/30 bg-rose-500/5 hover:border-rose-500/60'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs text-rose-300 font-semibold">
-            <span>Faol Intizomiy Hayfsanlar</span>
-            <ShieldAlert className="h-4.5 w-4.5" />
-          </div>
-          <div className="text-3xl font-extrabold text-rose-400 mt-1">
-            {totalWarningsCount} <span className="text-xs font-normal text-slate-400">xodim</span>
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1">Intizomiy hayfsan berilgan xodimlar</div>
-        </div>
-
-        {/* CARD 4: Vaqtinchalik mehnatga layoqatsiz holatdagi xodimlar */}
-        <div
-          onClick={() => setActiveFilterKey('SICK_LEAVE')}
-          className={`glass-card rounded-2xl p-5 border cursor-pointer transition-all ${
-            activeFilterKey === 'SICK_LEAVE'
-              ? 'border-purple-500 bg-purple-500/15 ring-2 ring-purple-500/50 shadow-lg shadow-purple-500/20'
-              : 'border-purple-500/30 bg-purple-500/5 hover:border-purple-500/60'
-          }`}
-        >
-          <div className="flex items-center justify-between text-xs text-purple-300 font-semibold">
-            <span className="truncate pr-1">Vaqtinchalik layoqatsiz (B/L)</span>
-            <Stethoscope className="h-4.5 w-4.5 shrink-0" />
-          </div>
-          <div className="text-3xl font-extrabold text-purple-400 mt-1">
-            {totalSickLeaveCount} <span className="text-xs font-normal text-slate-400">kishi</span>
-          </div>
-          <div className="text-[11px] text-slate-400 mt-1 truncate">Kasallik varag'idagi xodimlar (B/L)</div>
-        </div>
+      {/* ── COMPLETE 8-CARD METRIC SET ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {cardsConfig.map((card) => {
+          const Icon = card.icon;
+          const isActive = activeFilterKey === card.key || (activeFilterKey === 'ALL_EMPLOYEES' && card.key === 'ALL');
+          return (
+            <div
+              key={card.key}
+              onClick={() => setActiveFilterKey(card.key)}
+              className={`glass-card rounded-2xl p-4 border cursor-pointer transition-all ${
+                isActive
+                  ? card.activeBorder
+                  : card.inactiveBorder
+              }`}
+            >
+              <div className={`flex items-center justify-between text-xs font-semibold ${card.textClass}`}>
+                <span className="truncate pr-1">{card.label}</span>
+                <Icon className="h-4.5 w-4.5 shrink-0" />
+              </div>
+              <div className="flex items-baseline justify-between mt-2">
+                <div className="text-2xl font-extrabold text-white">
+                  {card.count} <span className="text-xs font-normal text-slate-400">kishi</span>
+                </div>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${card.badgeClass}`}>
+                  {card.count}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1 truncate">{card.sub}</div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* ── Strict Minimalist 4-Column Table View ── */}
+      {/* ── Dynamic Table Filtering & Minimal Columns (5 columns) ── */}
       <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
@@ -339,7 +401,7 @@ export const ExecutiveSvodka: React.FC = () => {
               </span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Tanlangan ko'rsatkich bo'yicha 4-ustunli minimal jadval
+              Tanlangan ko'rsatkich bo'yicha 5-ustunli minimal jadval
             </p>
           </div>
 
@@ -349,7 +411,7 @@ export const ExecutiveSvodka: React.FC = () => {
             title="Ushbu toifa xodimlari ro'yxatini PDF formatida yuklab olish"
           >
             <Download className="w-4 h-4" />
-            <span>PDF Yuklab Olish</span>
+            <span>📄 PDF Yuklab Olish</span>
           </button>
         </div>
 

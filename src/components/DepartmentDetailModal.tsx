@@ -309,9 +309,9 @@ export const DepartmentDetailModal: React.FC<DepartmentDetailModalProps> = ({
               <div className="grid grid-cols-6 gap-2 mt-4">
                 <StatPill label="Faol Ishchilar" value={stats.activeCount} color="emerald" />
                 <StatPill label="Ta'tilda" value={stats.onLeaveCount} color="amber" />
-                <StatPill label="M/T (Mehnat)" value={stats.leaveByType.MT} color="purple" />
-                <StatPill label="B/S (Bola)" value={stats.leaveByType.BS} color="blue" />
-                <StatPill label="B/L (Betob)" value={stats.leaveByType.BL} color="rose" />
+                <StatPill label="Mehnat ta'tili" value={stats.leaveByType.MT} color="purple" />
+                <StatPill label="O'z hisobidan ta'til" value={stats.leaveByType.BS} color="blue" />
+                <StatPill label="Vaqtincha mehnatka layoqatsizlik" value={stats.leaveByType.BL} color="rose" />
                 <StatPill label="Faol Jazolar" value={stats.activePenalties} color={stats.activePenalties > 0 ? 'rose' : 'slate'} />
               </div>
             )}

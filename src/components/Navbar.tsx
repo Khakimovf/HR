@@ -5,7 +5,7 @@ import { Search, Building2, ShieldCheck, Clock, UserPlus } from 'lucide-react';
 
 interface NavbarProps {
   onSearchChange: (query: string) => void;
-  onOpenSingleModal: () => void;
+  onOpenSingleModal?: () => void;
   activeTab: string;
   totalEmployeesCount?: number;
 }
@@ -81,16 +81,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls & Live Clock */}
         <div className="flex items-center gap-3">
-          {/* + Yangi Xodim button */}
-          <button
-            id="btn-new-employee"
-            onClick={onOpenSingleModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-600/30 transition hover:from-indigo-500 hover:to-indigo-400 active:scale-95 border border-indigo-400/20 cursor-pointer"
-          >
-            <UserPlus className="h-4 w-4" />
-            <span>+ Yangi Xodim</span>
-          </button>
-
           <div className="hidden lg:flex items-center gap-2 rounded-xl bg-slate-900/80 border border-slate-800 px-3 py-1.5 text-xs text-slate-300">
             <Clock className="h-3.5 w-3.5 text-indigo-400" />
             <span className="font-mono text-slate-200">{currentTime || 'Yuklanmoqda...'}</span>

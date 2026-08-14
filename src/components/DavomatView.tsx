@@ -29,20 +29,20 @@ import { useAuth } from '@/contexts/AuthContext';
 // ─── Type Metadata ────────────────────────────────────────────────────────────
 
 const TYPE_META: Record<string, { label: string; short: string; bgClass: string; textClass: string; borderClass: string }> = {
-  MEHNAT_TATILI:        { label: "Mehnat Ta'tili",   short: 'M/T',  bgClass: 'bg-blue-500/15',   textClass: 'text-blue-300',   borderClass: 'border-blue-500/30' },
-  MT:                   { label: "Mehnat Ta'tili",   short: 'M/T',  bgClass: 'bg-blue-500/15',   textClass: 'text-blue-300',   borderClass: 'border-blue-500/30' },
-  SICK_LEAVE_BL:        { label: "Kasallik Varag'i", short: 'B/L',  bgClass: 'bg-rose-500/15',   textClass: 'text-rose-300',   borderClass: 'border-rose-500/30' },
-  BL:                   { label: "Kasallik Varag'i", short: 'B/L',  bgClass: 'bg-rose-500/15',   textClass: 'text-rose-300',   borderClass: 'border-rose-500/30' },
-  BS_UNPAID:            { label: "Harajatsiz Ta'til", short: 'B/S', bgClass: 'bg-amber-500/15',  textClass: 'text-amber-300',  borderClass: 'border-amber-500/30' },
-  BS:                   { label: "Harajatsiz Ta'til", short: 'B/S', bgClass: 'bg-amber-500/15',  textClass: 'text-amber-300',  borderClass: 'border-amber-500/30' },
-  OQISH_TATILI:         { label: "O'qish Ta'tili",   short: "O'Q",  bgClass: 'bg-purple-500/15', textClass: 'text-purple-300', borderClass: 'border-purple-500/30' },
-  OTGUL:                { label: 'Otgul',             short: 'OTG',  bgClass: 'bg-teal-500/15',   textClass: 'text-teal-300',   borderClass: 'border-teal-500/30' },
-  ADMIN_TATIL:          { label: "Admin Ta'til",      short: 'ADM',  bgClass: 'bg-indigo-500/15', textClass: 'text-indigo-300', borderClass: 'border-indigo-500/30' },
-  KECHIKISH_RUXSATNOMA: { label: 'Kechikish/Ruxs.',  short: 'KECH', bgClass: 'bg-orange-500/15', textClass: 'text-orange-300', borderClass: 'border-orange-500/30' },
-  LATE_ARRIVAL:         { label: 'Kechikish',         short: 'KECH', bgClass: 'bg-orange-500/15', textClass: 'text-orange-300', borderClass: 'border-orange-500/30' },
-  PROGUL:               { label: 'Devonsizlik',       short: 'PRG',  bgClass: 'bg-red-600/15',    textClass: 'text-red-400',    borderClass: 'border-red-500/30' },
-  STUDY_LEAVE:          { label: "O'qish Ta'tili",   short: "O'Q",  bgClass: 'bg-purple-500/15', textClass: 'text-purple-300', borderClass: 'border-purple-500/30' },
-  MILITARY_DUTY:        { label: 'Harbiy',            short: 'HRB',  bgClass: 'bg-slate-500/15',  textClass: 'text-slate-300',  borderClass: 'border-slate-500/30' },
+  MEHNAT_TATILI:        { label: "Mehnat ta'tili",   short: 'M/T',  bgClass: 'bg-blue-500/15',   textClass: 'text-blue-300',   borderClass: 'border-blue-500/30' },
+  MT:                   { label: "Mehnat ta'tili",   short: 'M/T',  bgClass: 'bg-blue-500/15',   textClass: 'text-blue-300',   borderClass: 'border-blue-500/30' },
+  SICK_LEAVE_BL:        { label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L',  bgClass: 'bg-rose-500/15',   textClass: 'text-rose-300',   borderClass: 'border-rose-500/30' },
+  BL:                   { label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L',  bgClass: 'bg-rose-500/15',   textClass: 'text-rose-300',   borderClass: 'border-rose-500/30' },
+  BS_UNPAID:            { label: "O'z hisobidan ta'til", short: 'B/S', bgClass: 'bg-amber-500/15',  textClass: 'text-amber-300',  borderClass: 'border-amber-500/30' },
+  BS:                   { label: "O'z hisobidan ta'til", short: 'B/S', bgClass: 'bg-amber-500/15',  textClass: 'text-amber-300',  borderClass: 'border-amber-500/30' },
+  OQISH_TATILI:         { label: "O'qish davri uchun qo'shimcha ta'til", short: "O'Q", bgClass: 'bg-purple-500/15', textClass: 'text-purple-300', borderClass: 'border-purple-500/30' },
+  OTGUL:                { label: 'Kechikish / soatli ruxsatnoma', short: 'OTG',  bgClass: 'bg-teal-500/15',   textClass: 'text-teal-300',   borderClass: 'border-teal-500/30' },
+  ADMIN_TATIL:          { label: "Administrativ ta'til", short: 'ADM',  bgClass: 'bg-indigo-500/15', textClass: 'text-indigo-300', borderClass: 'border-indigo-500/30' },
+  KECHIKISH_RUXSATNOMA: { label: 'Kechikish / soatli ruxsatnoma', short: 'KECH', bgClass: 'bg-orange-500/15', textClass: 'text-orange-300', borderClass: 'border-orange-500/30' },
+  LATE_ARRIVAL:         { label: 'Kechikish / soatli ruxsatnoma', short: 'KECH', bgClass: 'bg-orange-500/15', textClass: 'text-orange-300', borderClass: 'border-orange-500/30' },
+  PROGUL:               { label: 'Devonsizlik', short: 'PRG',  bgClass: 'bg-red-600/15',    textClass: 'text-red-400',    borderClass: 'border-red-500/30' },
+  STUDY_LEAVE:          { label: "O'qish davri uchun qo'shimcha ta'til", short: "O'Q", bgClass: 'bg-purple-500/15', textClass: 'text-purple-300', borderClass: 'border-purple-500/30' },
+  MILITARY_DUTY:        { label: 'Harbiy', short: 'HRB',  bgClass: 'bg-slate-500/15',  textClass: 'text-slate-300',  borderClass: 'border-slate-500/30' },
 };
 
 const STATUS_META: Record<string, { label: string; bgClass: string; textClass: string; borderClass: string }> = {
@@ -233,8 +233,8 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Jami Yozuvlar"          value={stats.total || 0}      icon={LayoutList}    colorClass="border-indigo-500/30" />
         <StatCard label="Faol Ta'tildagilar"      value={stats.active || 0}     icon={Calendar}      colorClass="border-emerald-500/30" />
-        <StatCard label="Kasallik Varaqlari (B/L)" value={stats.sickLeave || 0} icon={AlertTriangle}  colorClass="border-rose-500/30" />
-        <StatCard label="Harajatsiz Ta'til (B/S)"  value={stats.bsUnpaid || 0}  icon={Clock}         colorClass="border-amber-500/30" />
+        <StatCard label="Vaqtincha mehnatka layoqatsizlik" value={stats.sickLeave || 0} icon={AlertTriangle}  colorClass="border-rose-500/30" />
+        <StatCard label="O'z hisobidan ta'til"  value={stats.bsUnpaid || 0}  icon={Clock}         colorClass="border-amber-500/30" />
       </div>
 
       {/* ── Toolbar ── */}
@@ -287,7 +287,7 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
             className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none transition"
           >
             <option value="ALL">Barcha turlar</option>
-            {LEAVE_TYPES.map((lt) => (
+            {Array.from(new Map(LEAVE_TYPES.map((lt) => [lt.label, lt])).values()).map((lt) => (
               <option key={lt.id} value={lt.id}>{lt.label}</option>
             ))}
           </select>
@@ -527,8 +527,8 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
 
           {/* Legend */}
           <div className="flex flex-wrap gap-3">
-            {Object.entries(TYPE_META).slice(0, 7).map(([key, meta]) => (
-              <div key={key} className="flex items-center gap-1.5 text-[10px]">
+            {Array.from(new Map(Object.entries(TYPE_META).map(([_, meta]) => [meta.label, meta])).values()).map((meta) => (
+              <div key={meta.label} className="flex items-center gap-1.5 text-[10px]">
                 <div className={`h-3 w-5 rounded-sm ${meta.bgClass} border ${meta.borderClass}`} />
                 <span className={meta.textClass}>{meta.short}</span>
               </div>
@@ -626,7 +626,7 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
         <div>
           <div className="font-semibold text-indigo-300 text-sm">KPI Dvigateli bilan avtomatik bog'liq</div>
           <p className="text-slate-400 text-xs mt-1">
-            Bu modulda kiritilgan <strong className="text-amber-300">B/S (Harajatsiz ta'til)</strong>, <strong className="text-rose-300">B/L (Kasallik)</strong> va <strong className="text-orange-300">Kechikish</strong> yozuvlari
+            Bu modulda kiritilgan <strong className="text-amber-300">O'z hisobidan ta'til</strong>, <strong className="text-rose-300">Vaqtincha mehnatka layoqatsizlik</strong> va <strong className="text-orange-300">Kechikish / soatli ruxsatnoma</strong> yozuvlari
             KPI Dvigateli tomonidan avtomatik o'qiladi va mos ushlab qolish foizi hisoblashda ishlatiladi.
           </p>
         </div>

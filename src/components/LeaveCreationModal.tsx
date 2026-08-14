@@ -20,13 +20,13 @@ import {
 // ─── Leave Type Definitions ──────────────────────────────────────────────────
 
 export const LEAVE_TYPES = [
-  { id: 'MEHNAT_TATILI',       label: "M/T — Mehnat Ta'tili",         short: 'M/T',  color: 'blue',   desc: 'Yillik asosiy mehnat ta\'tili',           isHourly: false },
-  { id: 'SICK_LEAVE_BL',       label: 'B/L — Kasallik Varag\'i',       short: 'B/L',  color: 'rose',   desc: 'Vrachlik varag\'i asosidagi ta\'til',      isHourly: false },
-  { id: 'BS_UNPAID',           label: "B/S — Harajatsiz Ta'til",       short: 'B/S',  color: 'amber',  desc: 'Ish haqi saqlanmagan ta\'til',             isHourly: false },
-  { id: 'OQISH_TATILI',        label: "O'qish Ta'tili",                short: "O'Q",  color: 'purple', desc: 'O\'quv muassasasi tasdig\'i bilan',         isHourly: false },
-  { id: 'OTGUL',               label: 'Otgul (Qo\'shimcha Dam Olish)', short: 'OTG',  color: 'teal',   desc: 'Qo\'shimcha ish kunlari uchun otgul',      isHourly: false },
-  { id: 'ADMIN_TATIL',         label: "Admin Ta'til",                  short: 'ADM',  color: 'indigo', desc: 'Ma\'muriy ko\'rsatma asosida ta\'til',      isHourly: false },
-  { id: 'KECHIKISH_RUXSATNOMA', label: 'Kechikish / Soatli Ruxsatnoma', short: 'KECH', color: 'orange', desc: 'Soatbay ruxsatnoma yoki kechikish',       isHourly: true  },
+  { id: 'MEHNAT_TATILI',       label: "Mehnat ta'tili", short: 'M/T', color: 'blue', desc: 'Yillik mehnat ta\'tili', isHourly: false },
+  { id: 'SICK_LEAVE_BL',       label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L', color: 'rose', desc: 'Vaqtincha mehnatka layoqatsizlik', isHourly: false },
+  { id: 'BS_UNPAID',           label: "O'z hisobidan ta'til", short: 'B/S', color: 'amber', desc: 'O\'z hisobidan ta\'til', isHourly: false },
+  { id: 'OQISH_TATILI',        label: "O'qish davri uchun qo'shimcha ta'til", short: "O'Q", color: 'purple', desc: "O'qish davri uchun qo'shimcha ta'til", isHourly: false },
+  { id: 'OTGUL',               label: "Kechikish / soatli ruxsatnoma", short: 'OTG', color: 'teal', desc: 'Kechikish / soatli ruxsatnoma', isHourly: false },
+  { id: 'ADMIN_TATIL',         label: "Administrativ ta'til", short: 'ADM', color: 'indigo', desc: 'Administrativ ta\'til', isHourly: false },
+  { id: 'KECHIKISH_RUXSATNOMA', label: 'Kechikish / soatli ruxsatnoma', short: 'KECH', color: 'orange', desc: 'Kechikish / soatli ruxsatnoma', isHourly: true },
 ];
 
 const TYPE_COLOR_MAP: Record<string, string> = {

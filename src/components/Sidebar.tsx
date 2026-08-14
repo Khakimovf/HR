@@ -186,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="font-semibold text-emerald-400">1,520 kishi</span>
             </div>
             <div className="flex justify-between">
-              <span>Ta'tildagilar (M/T, B/S):</span>
+              <span>Ta'tildagilar:</span>
               <span className="font-semibold text-amber-400">{activeLeaveCount || 42} kishi</span>
             </div>
             <div className="flex justify-between">

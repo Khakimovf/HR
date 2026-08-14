@@ -27,28 +27,28 @@ interface LeaveRequestWizardModalProps {
 export const LEAVE_REQUEST_TYPES = [
   {
     id: 'BS_UNPAID',
-    label: "Harajatsiz Ta'til (B/S - O'z Hisobidan)",
+    label: "O'z hisobidan ta'til",
     short: 'B/S',
     badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
     desc: "Ish haqi saqlanmagan holda oilaviy sharoitlarga ko'ra ta'til",
   },
   {
     id: 'MEHNAT_TATILI',
-    label: "Mehnat Ta'tili (M/T - Yillik)",
+    label: "Mehnat ta'tili",
     short: 'M/T',
     badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
     desc: "Yillik haq to'lanadigan mehnat ta'tili jadval bo'yicha",
   },
   {
     id: 'SICK_LEAVE_BL',
-    label: "Kasallik Varag'i (B/L - Mehnat Qobiliyatsizligi)",
+    label: "Vaqtincha mehnatka layoqatsizlik",
     short: 'B/L',
     badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
     desc: "Tibbiy ma'lumotnoma va kasallik varaqasi asosidagi ta'til",
   },
   {
     id: 'HOURLY_PERMIT',
-    label: "Soatbay Ruxsatnoma (Kechikish / Erta Ketish)",
+    label: "Kechikish / soatli ruxsatnoma",
     short: 'RUX',
     badgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
     desc: "Smena davomidagi 1-4 soatlik xizmat yoki shaxsiy ruxsatnoma",
@@ -166,7 +166,7 @@ export const LeaveRequestWizardModal: React.FC<LeaveRequestWizardModalProps> = (
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                Yangi BS / Ta'til Arizasini Shakllantirish
+                Yangi Ta'til Arizasini Shakllantirish
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                   6-Bosqichli Ish Oqimi
                 </span>

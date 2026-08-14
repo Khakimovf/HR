@@ -22,6 +22,7 @@ import {
   Plus,
   Activity,
   UserCheck,
+  UserPlus,
   UserX,
   Building,
   Briefcase,
@@ -695,7 +696,7 @@ const UserRegisterModal: React.FC<{
 
 // ─── HR User Management Panel ─────────────────────────────────────────────────
 
-const HrUserPanel: React.FC<{ departments: any[] }> = ({ departments }) => {
+const HrUserPanel: React.FC<{ departments: any[]; onOpenAddEmployee?: () => void }> = ({ departments, onOpenAddEmployee }) => {
   const [users, setUsers]             = useState<any[]>([]);
   const [loading, setLoading]         = useState(true);
   const [showRegModal, setShowRegModal] = useState(false);
@@ -713,19 +714,32 @@ const HrUserPanel: React.FC<{ departments: any[] }> = ({ departments }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
             <UserIcon className="h-4 w-4 text-indigo-400" /> Tizim Foydalanuvchilari va 2D Ruxsatlar Matrix (RBAC)
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">Ro'yxatga olingan foydalanuvchilar, menyu modullari va sexlar ruxsatlari ({users.length} ta)</p>
         </div>
-        <button
-          onClick={() => setShowRegModal(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-xs font-bold text-white shadow-lg hover:from-indigo-500 hover:to-purple-500 active:scale-95 transition"
-        >
-          <Plus className="h-4 w-4" /> + Yangi Foydalanuvchi Qo'shish
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowRegModal(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Yangi Foydalanuvchi Qo'shish</span>
+          </button>
+
+          {onOpenAddEmployee && (
+            <button
+              onClick={onOpenAddEmployee}
+              className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Yangi Xodim Qo'shish</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Users Table */}
@@ -859,9 +873,10 @@ const HrUserPanel: React.FC<{ departments: any[] }> = ({ departments }) => {
 
 interface AuditLogViewProps {
   departments?: any[];
+  onOpenAddEmployee?: () => void;
 }
 
-export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [] }) => {
+export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], onOpenAddEmployee }) => {
   const [activeSection, setActiveSection] = useState<'logs' | 'users'>('logs');
   const [logs, setLogs]         = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -1054,7 +1069,7 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [] }) 
       )}
 
       {/* ── HR Users & RBAC Section ── */}
-      {activeSection === 'users' && <HrUserPanel departments={departments} />}
+      {activeSection === 'users' && <HrUserPanel departments={departments} onOpenAddEmployee={onOpenAddEmployee} />}
 
       {activeSection === 'users' && (
         <div className="rounded-2xl bg-gradient-to-r from-indigo-900/30 to-purple-900/20 border border-indigo-500/20 p-4 flex items-start gap-3">

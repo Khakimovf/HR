@@ -191,20 +191,20 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
       `"Kategoriya","Soni"`,
       `"Jami Xodimlar",${employees.length}`,
       `"Faol Ishlayotganlar",${activeEmps.length}`,
-      `"Mehnat Ta'tilidagilar (M/T)",${mtEmps.length}`,
-      `"Kasallik Varag'idagilar (B/L)",${blEmps.length}`,
-      `"O'z Hisobidan Ta'tildagilar (B/S)",${bsEmps.length}`,
-      `"Administrativ Ta'tildagilar",${adminEmps.length}`,
+      `"Mehnat ta'tilidagilar",${mtEmps.length}`,
+      `"Vaqtincha mehnatka layoqatsizlar",${blEmps.length}`,
+      `"O'z hisobidan ta'tildagilar",${bsEmps.length}`,
+      `"Administrativ ta'tildagilar",${adminEmps.length}`,
       ``,
-      `"2.1 MEHNAT TA'TILIDAGI XODIMLAR (M/T) (${mtEmps.length} ta)"`,
+      `"2.1 MEHNAT TA'TILIDAGI XODIMLAR (${mtEmps.length} ta)"`,
       `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
       ...formatEmpRows(mtEmps),
       ``,
-      `"2.2 VAQTINCHALIK MEHNATGA LAYOQATSIZLIK (B/L) DAVRIDAGI XODIMLAR (${blEmps.length} ta)"`,
+      `"2.2 VAQTINCHA MEHNATKA LAYOQATSIZLIK DAVRIDAGI XODIMLAR (${blEmps.length} ta)"`,
       `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
       ...formatEmpRows(blEmps),
       ``,
-      `"2.3 O'Z HISOBIDAN TA'TILDAGILAR (B/S) (${bsEmps.length} ta)"`,
+      `"2.3 O'Z HISOBIDAN TA'TILDAGILAR (${bsEmps.length} ta)"`,
       `"№","Tabel №","F.I.O","Bo'lim","Lavozim","Telefon","Ishga Kirgan","Status"`,
       ...formatEmpRows(bsEmps),
       ``,
@@ -324,19 +324,19 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   </div>
   <div class="kpi-card">
     <div class="kpi-value" style="color: #2563eb;">${mtEmps.length}</div>
-    <div class="kpi-label">Mehnat Ta'tilida (M/T)</div>
+    <div class="kpi-label">Mehnat ta'tilida</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-value" style="color: #dc2626;">${blEmps.length}</div>
-    <div class="kpi-label">Kasallik Varag'i (B/L)</div>
+    <div class="kpi-label">Vaqtincha mehnatka layoqatsiz</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-value" style="color: #d97706;">${bsEmps.length}</div>
-    <div class="kpi-label">O'z Hisobidan Ta'til (B/S)</div>
+    <div class="kpi-label">O'z hisobidan ta'til</div>
   </div>
   <div class="kpi-card">
     <div class="kpi-value" style="color: #9333ea;">${adminEmps.length}</div>
-    <div class="kpi-label">Administrativ Ta'til</div>
+    <div class="kpi-label">Administrativ ta'til</div>
   </div>
 </div>
 
@@ -344,7 +344,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
 <div class="category-title">2. CATEGORIZED DETAILED EMPLOYEE LISTS (KATEGORIYALAR BO'YICHA TARKIB)</div>
 
 <!-- Table 2.1: Mehnat ta'tilidagi xodimlar -->
-<div style="font-weight: bold; color: #1e40af; font-size: 9pt; margin-top: 10px; margin-bottom: 4px;">2.1. MEHNAT TA'TILIDAGI XODIMLAR (M/T) — ${mtEmps.length} ta</div>
+<div style="font-weight: bold; color: #1e40af; font-size: 9pt; margin-top: 10px; margin-bottom: 4px;">2.1. MEHNAT TA'TILIDAGI XODIMLAR — ${mtEmps.length} ta</div>
 <table>
   <thead>
     <tr>
@@ -363,8 +363,8 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   </tbody>
 </table>
 
-<!-- Table 2.2: Vaqtinchalik mehnatga layoqatsizlik (B/L) -->
-<div style="font-weight: bold; color: #991b1b; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.2. VAQTINCHALIK MEHNATGA LAYOQATSIZLIK (B/L) DAVRIDAGI XODIMLAR — ${blEmps.length} ta</div>
+<!-- Table 2.2: Vaqtincha mehnatka layoqatsizlik -->
+<div style="font-weight: bold; color: #991b1b; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.2. VAQTINCHA MEHNATKA LAYOQATSIZLIK DAVRIDAGI XODIMLAR — ${blEmps.length} ta</div>
 <table>
   <thead>
     <tr>
@@ -383,8 +383,8 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   </tbody>
 </table>
 
-<!-- Table 2.3: O'z hisobidan ta'tildagilar (B/S) -->
-<div style="font-weight: bold; color: #92400e; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.3. O'Z HISOBIDAN TA'TILDAGILAR (B/S) — ${bsEmps.length} ta</div>
+<!-- Table 2.3: O'z hisobidan ta'tildagilar -->
+<div style="font-weight: bold; color: #92400e; font-size: 9pt; margin-top: 14px; margin-bottom: 4px;">2.3. O'Z HISOBIDAN TA'TILDAGILAR — ${bsEmps.length} ta</div>
 <table>
   <thead>
     <tr>
@@ -657,7 +657,7 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
             >
               <option value="ALL">Barcha Holatlar</option>
               <option value="ACTIVE">Faol Ishchilar</option>
-              <option value="ON_LEAVE">Ta'tildagilar (M/T, B/S, B/L)</option>
+              <option value="ON_LEAVE">Ta'tildagilar</option>
               <option value="OFFBOARDED">Shartnoma Bekor Qilingan</option>
             </select>
           </div>
