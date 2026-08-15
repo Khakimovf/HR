@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Sparkles,
+  UserCheck,
 } from 'lucide-react';
 import { APPROVAL_STEPS_CONFIG } from '@/lib/leaveConfig';
 
@@ -64,6 +65,7 @@ export const LeaveRequestWizardModal: React.FC<LeaveRequestWizardModalProps> = (
   const [searchEmp, setSearchEmp] = useState('');
   const [selectedEmp, setSelectedEmp] = useState<any | null>(null);
   const [type, setType] = useState('BS_UNPAID');
+  const [step3ApproverType, setStep3ApproverType] = useState<'TEXNIK_DIREKTOR' | 'BOSHQARMA_BOSHLIGI'>('TEXNIK_DIREKTOR');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
@@ -138,6 +140,7 @@ export const LeaveRequestWizardModal: React.FC<LeaveRequestWizardModalProps> = (
           endDate,
           totalDays: computedDays,
           reason,
+          step3ApproverType,
         }),
       });
 
@@ -332,22 +335,85 @@ export const LeaveRequestWizardModal: React.FC<LeaveRequestWizardModalProps> = (
             />
           </div>
 
-          {/* Step 5: Visual Approval Workflow Preview */}
+          {/* Step 5: Dynamic Step 3 Approver Selection (Texnik Direktor vs Boshqarma Boshlig'i) */}
+          <div className="space-y-2 rounded-xl border border-indigo-500/30 bg-slate-950/60 p-4">
+            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+              <UserCheck className="h-3.5 w-3.5 text-indigo-400" />
+              5. 3-Bosqich Tasdiqlovchi Rahbarni Tanlang:
+            </label>
+            <p className="text-[11px] text-slate-400">
+              Imzolash marshrutining 3-bosqichida arizani kim tasdiqlashini belgilang:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <label
+                onClick={() => setStep3ApproverType('TEXNIK_DIREKTOR')}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                  step3ApproverType === 'TEXNIK_DIREKTOR'
+                    ? 'border-indigo-500 bg-indigo-500/15 text-white font-bold shadow-md shadow-indigo-500/10'
+                    : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="step3Approver"
+                  checked={step3ApproverType === 'TEXNIK_DIREKTOR'}
+                  onChange={() => setStep3ApproverType('TEXNIK_DIREKTOR')}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                />
+                <div>
+                  <div className="text-xs font-bold">🔘 Texnik Direktor</div>
+                  <div className="text-[10px] text-slate-400 font-normal">Sanoat va texnik yo'nalish rahbarligi</div>
+                </div>
+              </label>
+
+              <label
+                onClick={() => setStep3ApproverType('BOSHQARMA_BOSHLIGI')}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                  step3ApproverType === 'BOSHQARMA_BOSHLIGI'
+                    ? 'border-cyan-500 bg-cyan-500/15 text-white font-bold shadow-md shadow-cyan-500/10'
+                    : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="step3Approver"
+                  checked={step3ApproverType === 'BOSHQARMA_BOSHLIGI'}
+                  onChange={() => setStep3ApproverType('BOSHQARMA_BOSHLIGI')}
+                  className="h-4 w-4 text-cyan-600 focus:ring-cyan-500"
+                />
+                <div>
+                  <div className="text-xs font-bold">🔘 Boshqarma Boshlig'i</div>
+                  <div className="text-[10px] text-slate-400 font-normal">Tarkibiy boshqarma va sexlar boshlig'i</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Step 6: Visual Approval Workflow Preview */}
           <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4 space-y-2">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              6-Bosqichli Avtomatik Imzolash Marshruti:
+              6-Bosqichli Avtomatik Imzolash Marshruti (Preview):
             </div>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-              {APPROVAL_STEPS_CONFIG.map((st) => (
-                <div
-                  key={st.stepNumber}
-                  className="rounded-lg border border-slate-800 bg-slate-900/80 p-2 text-center text-[10px]"
-                >
-                  <div className="font-mono font-bold text-indigo-400">#{st.stepNumber}</div>
-                  <div className="font-semibold text-slate-300 truncate mt-0.5">{st.label}</div>
-                  <div className="text-[9px] text-amber-400/80 mt-1">Kutilmoqda</div>
-                </div>
-              ))}
+              {APPROVAL_STEPS_CONFIG.map((st) => {
+                let stepLabel = st.label;
+                if (st.stepNumber === 3) {
+                  stepLabel = step3ApproverType === 'BOSHQARMA_BOSHLIGI' ? "Boshqarma Boshlig'i" : "Texnik Direktor";
+                }
+                return (
+                  <div
+                    key={st.stepNumber}
+                    className={`rounded-lg border p-2 text-center text-[10px] transition ${
+                      st.stepNumber === 3 ? 'border-indigo-500/40 bg-indigo-500/10' : 'border-slate-800 bg-slate-900/80'
+                    }`}
+                  >
+                    <div className="font-mono font-bold text-indigo-400">#{st.stepNumber}</div>
+                    <div className="font-semibold text-slate-300 truncate mt-0.5">{stepLabel}</div>
+                    <div className="text-[9px] text-amber-400/80 mt-1">Kutilmoqda</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

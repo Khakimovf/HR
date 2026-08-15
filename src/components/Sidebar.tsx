@@ -17,6 +17,7 @@ import {
   Crown,
   Lock,
   FileCheck,
+  TrendingUp,
   UploadCloud,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -73,6 +74,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: FileBarChart,
       badge: 'PDF/Excel',
       badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    },
+    {
+      id: 'analytics',
+      label: 'Rahbariyat Analitikasi',
+      icon: TrendingUp,
+      badge: '2K+ Cache',
+      badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
     },
     {
       id: 'transfers',

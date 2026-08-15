@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateKpiScore } from '@/lib/kpi';
+import { statsCache } from '@/lib/cache';
 
 // Map LeaveRequest types to LeaveAttendance types
 const TYPE_MAPPING: Record<string, string> = {
@@ -14,7 +15,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   try {
     const requestId = params.id;
     const body = await req.json();
-    const { approverName, comment, approverRole } = body;
+    const { approverName, comment } = body;
 
     if (!requestId) {
       return NextResponse.json({ success: false, error: "Ariza ID ko'rsatilmadi" }, { status: 400 });
@@ -49,75 +50,40 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const now = new Date();
     const finalApproverName = approverName || 'Rahbar (Elektron Imzo)';
 
-    // Update current approval step to APPROVED
-    await prisma.leaveApprovalStep.update({
-      where: { id: currentStepObj.id },
-      data: {
-        status: 'APPROVED',
-        approverName: finalApproverName,
-        comment: comment || 'Tasdiqlandi',
-        actionDate: now,
-      },
-    });
-
     let updatedRequest;
 
     if (currentStepNum < 6) {
-      // Advance to next step
-      updatedRequest = await prisma.leaveRequest.update({
-        where: { id: requestId },
-        data: {
-          currentStep: currentStepNum + 1,
-        },
-        include: {
-          employee: { include: { currentDepartment: true } },
-          approvalSteps: { orderBy: { stepNumber: 'asc' } },
-        },
-      });
-    } else {
-      // ── STEP 6 FINAL APPROVAL: AUTOMATIC SYSTEM INTEGRATION ────────────────
-      updatedRequest = await prisma.leaveRequest.update({
-        where: { id: requestId },
-        data: {
-          status: 'APPROVED',
-          currentStep: 6,
-        },
-        include: {
-          employee: { include: { currentDepartment: true } },
-          approvalSteps: { orderBy: { stepNumber: 'asc' } },
-        },
-      });
+      // Intermediate Step Approval Transaction
+      const [stepRes, reqRes] = await prisma.$transaction([
+        prisma.leaveApprovalStep.update({
+          where: { id: currentStepObj.id },
+          data: {
+            status: 'APPROVED',
+            approverName: finalApproverName,
+            comment: comment || 'Tasdiqlandi',
+            actionDate: now,
+          },
+        }),
+        prisma.leaveRequest.update({
+          where: { id: requestId },
+          data: { currentStep: currentStepNum + 1 },
+          include: {
+            employee: { include: { currentDepartment: true } },
+            approvalSteps: { orderBy: { stepNumber: 'asc' } },
+          },
+        }),
+      ]);
 
-      // 1. Insert into LeaveAttendance (Davomat & Ta'tillar module)
+      updatedRequest = reqRes;
+    } else {
+      // ── STEP 6 FINAL APPROVAL: ATOMIC PRISMA TRANSACTION CHAIN ─────────────
       const davomatType = TYPE_MAPPING[request.type] || request.type;
       const orderNo = `ARIZ-${request.id.slice(0, 8).toUpperCase()}`;
 
-      await prisma.leaveAttendance.create({
-        data: {
-          employeeId: request.employeeId,
-          type: davomatType,
-          startDate: request.startDate,
-          endDate: request.endDate,
-          totalDays: request.totalDays,
-          orderNumber: orderNo,
-          reason: `[Elektron Ariza #${orderNo}] ${request.reason}`,
-          status: 'APPROVED',
-        },
-      });
-
-      // 2. Update Employee Status if Long Leave
-      if (['BS_UNPAID', 'MEHNAT_TATILI', 'SICK_LEAVE_BL'].includes(request.type)) {
-        await prisma.employee.update({
-          where: { id: request.employeeId },
-          data: { status: 'ON_LEAVE' },
-        });
-      }
-
-      // 3. Trigger auto-update for KPI Dvigateli
       const startD = new Date(request.startDate);
       const monthStr = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}`;
 
-      // Recalculate KPI for this employee & month
+      // Calculate KPI metrics
       const empLeaves = await prisma.leaveAttendance.findMany({
         where: {
           employeeId: request.employeeId,
@@ -132,8 +98,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         where: { employeeId: request.employeeId, status: 'ACTIVE' },
       });
 
-      const bsDays   = empLeaves.filter((l) => l.type === 'BS' || l.type === 'BS_UNPAID').reduce((s, l) => s + l.totalDays, 0);
-      const blDays   = empLeaves.filter((l) => l.type === 'BL' || l.type === 'SICK_LEAVE_BL').reduce((s, l) => s + l.totalDays, 0);
+      const bsDays = empLeaves.filter((l) => l.type === 'BS' || l.type === 'BS_UNPAID').reduce((s, l) => s + l.totalDays, 0);
+      const blDays = empLeaves.filter((l) => l.type === 'BL' || l.type === 'SICK_LEAVE_BL').reduce((s, l) => s + l.totalDays, 0);
       const lateHours = empLeaves.filter((l) => l.type === 'KECHIKISH_RUXSATNOMA' || l.type === 'LATE_ARRIVAL').reduce((s, l) => s + (l.hoursLate || 0), 0);
       const progulDays = empLeaves.filter((l) => l.type === 'PROGUL').reduce((s, l) => s + l.totalDays, 0);
       const hasActivePenalty = empDiscipline.length > 0;
@@ -149,49 +115,68 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       const baseBonus = 3500000;
       const finalBonus = kpiResult.disciplinaryLock ? 0 : Math.max(0, Math.round(baseBonus * (kpiResult.finalKpiPct / 100)));
 
-      const existingKpi = await prisma.kpiRecord.findFirst({
-        where: { employeeId: request.employeeId, month: monthStr },
-      });
-
-      if (existingKpi) {
-        await prisma.kpiRecord.update({
-          where: { id: existingKpi.id },
+      // Perform all final approval mutations atomically
+      const transactionOps: any[] = [
+        // 1. Approve Step 6
+        prisma.leaveApprovalStep.update({
+          where: { id: currentStepObj.id },
           data: {
-            unworkedDays: bsDays,
-            sickDays: blDays,
-            lateHours,
-            deductionPercentage: kpiResult.totalDeductionPct,
-            finalBonus,
-            attendanceRate: kpiResult.attendanceRate,
+            status: 'APPROVED',
+            approverName: finalApproverName,
+            comment: comment || 'Tasdiqlandi',
+            actionDate: now,
           },
-        });
-      } else {
-        await prisma.kpiRecord.create({
+        }),
+        // 2. Mark Request Approved
+        prisma.leaveRequest.update({
+          where: { id: requestId },
+          data: { status: 'APPROVED', currentStep: 6 },
+          include: {
+            employee: { include: { currentDepartment: true } },
+            approvalSteps: { orderBy: { stepNumber: 'asc' } },
+          },
+        }),
+        // 3. Create LeaveAttendance record
+        prisma.leaveAttendance.create({
           data: {
             employeeId: request.employeeId,
-            month: monthStr,
-            baseBonus,
-            unworkedDays: bsDays,
-            sickDays: blDays,
-            lateHours,
-            deductionPercentage: kpiResult.totalDeductionPct,
-            finalBonus,
-            attendanceRate: kpiResult.attendanceRate,
+            type: davomatType,
+            startDate: request.startDate,
+            endDate: request.endDate,
+            totalDays: request.totalDays,
+            orderNumber: orderNo,
+            reason: `[Elektron Ariza #${orderNo}] ${request.reason}`,
+            status: 'APPROVED',
           },
-        });
+        }),
+        // 4. Create Audit Log
+        prisma.auditLog.create({
+          data: {
+            hrName: finalApproverName,
+            action: `Ta'til arizasi yakuniy tasdiqlandi (Bosqich 6 - Bosh Direktor). ID: #${request.id.slice(0, 8)}`,
+            targetEmployeeId: request.employeeId,
+            departmentName: request.employee?.currentDepartmentId || 'Direksiya',
+            metadata: JSON.stringify({ requestId: request.id, totalDays: request.totalDays }),
+          },
+        }),
+      ];
+
+      // 5. Employee status update
+      if (['BS_UNPAID', 'MEHNAT_TATILI', 'SICK_LEAVE_BL'].includes(request.type)) {
+        transactionOps.push(
+          prisma.employee.update({
+            where: { id: request.employeeId },
+            data: { status: 'ON_LEAVE' },
+          })
+        );
       }
 
-      // Audit Log for final approval
-      await prisma.auditLog.create({
-        data: {
-          hrName: finalApproverName,
-          action: `Ta'til arizasi yakuniy tasdiqlandi (Bosqich 6 - Bosh Direktor). ID: #${request.id.slice(0, 8)}`,
-          targetEmployeeId: request.employeeId,
-          departmentName: request.employee?.currentDepartmentId || 'Direksiya',
-          metadata: JSON.stringify({ requestId: request.id, totalDays: request.totalDays }),
-        },
-      });
+      const txResults = await prisma.$transaction(transactionOps);
+      updatedRequest = txResults[1];
     }
+
+    // Invalidate analytics caches reactively
+    statsCache.invalidate();
 
     return NextResponse.json({
       success: true,
@@ -199,6 +184,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       request: updatedRequest,
     });
   } catch (error: any) {
+    console.error('Leave Request Approval Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

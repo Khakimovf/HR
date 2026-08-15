@@ -12,7 +12,9 @@ import { SingleEmployeeModal } from '@/components/SingleEmployeeModal';
 import { DepartmentDetailModal } from '@/components/DepartmentDetailModal';
 import { TransferModal } from '@/components/TransferModal';
 import { KpiEngineDashboard } from '@/components/KpiEngineDashboard';
+import { KpiManagementView } from '@/components/KpiManagementView';
 import { ExecutiveSvodka } from '@/components/ExecutiveSvodka';
+import { ExecutiveAnalyticsView } from '@/components/ExecutiveAnalyticsView';
 import { InternalMobilityView } from '@/components/InternalMobilityView';
 import { LeaveWorkflowView } from '@/components/LeaveWorkflowView';
 import { DavomatView } from '@/components/DavomatView';
@@ -191,11 +193,14 @@ function HRDashboardInner() {
             <LeaveWorkflowView departments={departments} />
           )}
 
-          {/* View 3: Automated KPI Engine */}
-          {activeTab === 'kpi' && <KpiEngineDashboard />}
+          {/* View 3: Enterprise KPI & Performance Evaluation Engine */}
+          {activeTab === 'kpi' && <KpiManagementView departments={departments} />}
 
           {/* View 4: Executive Svodka & Reports */}
           {activeTab === 'svodka' && <ExecutiveSvodka />}
+
+          {/* View 4.5: Executive Analytics Dashboard */}
+          {activeTab === 'analytics' && <ExecutiveAnalyticsView />}
 
           {/* View 5: Internal Mobility & Transfer Logs */}
           {activeTab === 'transfers' && <InternalMobilityView />}

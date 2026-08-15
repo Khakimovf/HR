@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { statsCache } from '@/lib/cache';
 
 export async function GET(req: Request) {
   try {
@@ -7,73 +8,192 @@ export async function GET(req: Request) {
     const search = searchParams.get('search')?.trim() || '';
     const departmentId = searchParams.get('departmentId') || '';
     const permitFilter = searchParams.get('permitFilter') || '';
-    const status = searchParams.get('status') || '';
+    const status = searchParams.get('status') || searchParams.get('statusKey') || '';
     const disciplineStatus = searchParams.get('disciplineStatus') || '';
+    const educationFilter = searchParams.get('educationFilter') || '';
+    const rewardFilter = searchParams.get('rewardFilter') || '';
+    const medicalFilter = searchParams.get('medicalFilter') || '';
+    const tenureFilter = searchParams.get('tenureFilter') || '';
+    const demographicFilter = searchParams.get('demographicFilter') || '';
+
+    const limitParam = searchParams.get('limit') || '20';
+    const isAll = limitParam === 'all' || limitParam === '1000' || limitParam === '9999' || limitParam === '10000';
     
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '20', 10)));
-    const skip = (page - 1) * limit;
+    const limit = isAll ? 10000 : Math.max(1, Math.min(100, parseInt(limitParam, 10)));
+    const skip = isAll ? 0 : (page - 1) * limit;
 
-    const where: any = {};
+    const AND: any[] = [];
+    const now = new Date();
 
     // 1. Department filter
     if (departmentId) {
-      where.currentDepartmentId = departmentId;
+      AND.push({ currentDepartmentId: departmentId });
     }
 
     // 2. Status filter
     if (status && status !== 'ALL') {
-      where.status = status;
+      AND.push({ status });
     }
 
     // 3. Permit & Certificate filter
     if (permitFilter && permitFilter !== 'ALL') {
       if (permitFilter === 'MILITARY') {
-        where.militaryCertificate = { not: null };
+        AND.push({ militaryCertificate: { not: null } });
       } else {
-        where.permits = {
-          some: {
-            licenseType: permitFilter,
+        AND.push({
+          permits: {
+            some: {
+              licenseType: permitFilter,
+            },
           },
-        };
+        });
       }
     }
 
     // 4. Discipline Status filter
     if (disciplineStatus && disciplineStatus !== 'ALL') {
       if (disciplineStatus === 'ACTIVE_PENALTY') {
-        where.disciplinaryActions = {
-          some: { status: 'ACTIVE' },
-        };
+        AND.push({
+          disciplinaryActions: {
+            some: { status: 'ACTIVE' },
+          },
+        });
       } else if (disciplineStatus === 'CLEAN') {
-        where.disciplinaryActions = {
-          none: { status: 'ACTIVE' },
-        };
+        AND.push({
+          disciplinaryActions: {
+            none: { status: 'ACTIVE' },
+          },
+        });
       }
     }
 
-    // 5. Global live text search
+    // 5. Education filter ("Ma'lumoti bo'yicha")
+    if (educationFilter && educationFilter !== 'ALL') {
+      if (educationFilter === 'HIGHER') {
+        AND.push({
+          OR: [
+            { educationLevel: 'HIGHER' },
+            { educations: { some: { level: { in: ['HIGHER', 'OLIY'] } } } },
+          ],
+        });
+      } else if (educationFilter === 'SPECIAL_SECONDARY') {
+        AND.push({
+          OR: [
+            { educationLevel: { in: ['SPECIAL_SECONDARY', 'SECONDARY_SPECIAL'] } },
+            { educations: { some: { level: { in: ['SPECIAL_SECONDARY', 'SECONDARY_SPECIAL', 'O\'RTA_MAXSUS', 'VOCATIONAL'] } } } },
+          ],
+        });
+      } else if (educationFilter === 'SECONDARY') {
+        AND.push({
+          OR: [
+            { educationLevel: 'SECONDARY' },
+            { educations: { some: { level: { in: ['SECONDARY', 'O\'RTA'] } } } },
+          ],
+        });
+      } else if (educationFilter === 'INCOMPLETE_HIGHER') {
+        AND.push({
+          OR: [
+            { educationLevel: 'INCOMPLETE_HIGHER' },
+            { educations: { some: { level: { in: ['INCOMPLETE_HIGHER', 'TUGALLANMAGAN_OLIY'] } } } },
+          ],
+        });
+      }
+    }
+
+    // 6. Rewards & Financial Aid filter ("Mukofot va Rag'batlantirish")
+    if (rewardFilter && rewardFilter !== 'ALL') {
+      if (rewardFilter === 'REWARDED') {
+        AND.push({ rewards: { some: { type: { in: ['REWARD', 'BONUS'] } } } });
+      } else if (rewardFilter === 'FINANCIAL_AID') {
+        AND.push({ rewards: { some: { type: 'FINANCIAL_AID' } } });
+      } else if (rewardFilter === 'NO_REWARDS') {
+        AND.push({ rewards: { none: {} } });
+      }
+    }
+
+    // 7. Medical Checkup Status filter ("Tibbiy Ko'rik Holati")
+    if (medicalFilter && medicalFilter !== 'ALL') {
+      const in15Days = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      if (medicalFilter === 'VALID') {
+        AND.push({ medicalCheckups: { some: { expiryDate: { gte: in15Days } } } });
+      } else if (medicalFilter === 'EXPIRING_SOON') {
+        AND.push({ medicalCheckups: { some: { expiryDate: { gte: now, lte: in15Days } } } });
+      } else if (medicalFilter === 'EXPIRED') {
+        AND.push({
+          OR: [
+            { medicalCheckups: { some: { expiryDate: { lt: now } } } },
+            { medicalCheckups: { some: { status: 'MUDDATI_TUGAGAN' } } },
+            { medicalCheckups: { none: {} } },
+          ],
+        });
+      }
+    }
+
+    // 8. Work Tenure filter ("Korxonadagi Ish Staji")
+    if (tenureFilter && tenureFilter !== 'ALL') {
+      const yr1Ago = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      const yr3Ago = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+      const yr5Ago = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
+      const yr10Ago = new Date(now.getFullYear() - 10, now.getMonth(), now.getDate());
+
+      if (tenureFilter === 'UNDER_1_YEAR') {
+        AND.push({ hireDate: { gte: yr1Ago } });
+      } else if (tenureFilter === '1_TO_3_YEARS') {
+        AND.push({ hireDate: { gte: yr3Ago, lt: yr1Ago } });
+      } else if (tenureFilter === '3_TO_5_YEARS') {
+        AND.push({ hireDate: { gte: yr5Ago, lt: yr3Ago } });
+      } else if (tenureFilter === '5_TO_10_YEARS') {
+        AND.push({ hireDate: { gte: yr10Ago, lt: yr5Ago } });
+      } else if (tenureFilter === 'OVER_10_YEARS') {
+        AND.push({ hireDate: { lt: yr10Ago } });
+      }
+    }
+
+    // 9. Demographics & Pension filter ("Yoshi / Demografiya")
+    if (demographicFilter && demographicFilter !== 'ALL') {
+      const yr30Ago = new Date(now.getFullYear() - 30, now.getMonth(), now.getDate());
+      const yr55Ago = new Date(now.getFullYear() - 55, now.getMonth(), now.getDate());
+      const yr60Ago = new Date(now.getFullYear() - 60, now.getMonth(), now.getDate());
+
+      if (demographicFilter === 'YOUTH_UNDER_30') {
+        AND.push({ dateOfBirth: { gte: yr30Ago } });
+      } else if (demographicFilter === 'PENSION_AGE') {
+        AND.push({
+          OR: [
+            { gender: 'MALE', dateOfBirth: { lte: yr60Ago } },
+            { gender: 'FEMALE', dateOfBirth: { lte: yr55Ago } },
+          ],
+        });
+      }
+    }
+
+    // 10. Global live text search
     if (search) {
-      where.OR = [
-        { tabelNumber: { contains: search } },
-        { firstName: { contains: search } },
-        { lastName: { contains: search } },
-        { middleName: { contains: search } },
-        { position: { contains: search } },
-        { phone: { contains: search } },
-        { currentDepartment: { name: { contains: search } } },
-        {
-          permits: {
-            some: {
-              OR: [
-                { category: { contains: search } },
-                { certificateNo: { contains: search } },
-              ],
+      AND.push({
+        OR: [
+          { tabelNumber: { contains: search } },
+          { firstName: { contains: search } },
+          { lastName: { contains: search } },
+          { middleName: { contains: search } },
+          { position: { contains: search } },
+          { phone: { contains: search } },
+          { currentDepartment: { name: { contains: search } } },
+          {
+            permits: {
+              some: {
+                OR: [
+                  { category: { contains: search } },
+                  { certificateNo: { contains: search } },
+                ],
+              },
             },
           },
-        },
-      ];
+        ],
+      });
     }
+
+    const where: any = AND.length > 0 ? { AND } : {};
 
     const [total, employees] = await Promise.all([
       prisma.employee.count({ where }),
@@ -86,6 +206,11 @@ export async function GET(req: Request) {
           disciplinaryActions: {
             where: { status: 'ACTIVE' },
           },
+          rewards: true,
+          medicalCheckups: {
+            orderBy: { expiryDate: 'desc' },
+            take: 1,
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -93,11 +218,15 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limit) || 1;
 
     return NextResponse.json({
       success: true,
+      data: employees,
       employees,
+      totalCount: total,
+      totalPages,
+      currentPage: page,
       pagination: {
         total,
         page,
@@ -173,6 +302,7 @@ export async function POST(req: Request) {
         createdList.push(created);
       }
 
+      statsCache.invalidate();
       return NextResponse.json({
         success: true,
         count: createdList.length,
@@ -226,6 +356,7 @@ export async function POST(req: Request) {
       },
     });
 
+    statsCache.invalidate();
     return NextResponse.json({ success: true, employee });
   } catch (error: any) {
     return NextResponse.json(

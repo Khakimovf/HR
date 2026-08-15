@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { statsCache } from '@/lib/cache';
 
 export async function GET(req: Request) {
   try {
@@ -43,32 +44,60 @@ export async function POST(req: Request) {
     if (category === 'DISCIPLINE') {
       const { employeeId, orderNumber, type, startDate, expiryDate, notes } = body;
 
-      const record = await prisma.disciplinaryAction.create({
-        data: {
-          employeeId,
-          orderNumber,
-          type: type || 'WARNING',
-          startDate: new Date(startDate),
-          expiryDate: new Date(expiryDate),
-          status: 'ACTIVE',
-          notes,
-        },
-      });
+      const [record, auditLog] = await prisma.$transaction([
+        prisma.disciplinaryAction.create({
+          data: {
+            employeeId,
+            orderNumber,
+            type: type || 'WARNING',
+            startDate: new Date(startDate),
+            expiryDate: new Date(expiryDate),
+            status: 'ACTIVE',
+            notes,
+          },
+        }),
+        prisma.auditLog.create({
+          data: {
+            hrName: 'Intizomiy Boshqaruv System',
+            action: `Intizomiy chora qo'llanildi (Hayfsan #${orderNumber || '—'})`,
+            targetEmployeeId: employeeId,
+            departmentName: 'HR / Intizom',
+            metadata: JSON.stringify({ type, startDate, expiryDate }),
+          },
+        }),
+      ]);
+
+      // Invalidate analytics caches reactively
+      statsCache.invalidate();
 
       return NextResponse.json({ success: true, record });
     } else if (category === 'REWARD') {
       const { employeeId, orderNumber, type, amount, reason, orderDate } = body;
 
-      const record = await prisma.rewardFinancialAid.create({
-        data: {
-          employeeId,
-          orderNumber,
-          type: type || 'REWARD',
-          amount: parseFloat(amount),
-          reason,
-          orderDate: orderDate ? new Date(orderDate) : new Date(),
-        },
-      });
+      const [record] = await prisma.$transaction([
+        prisma.rewardFinancialAid.create({
+          data: {
+            employeeId,
+            orderNumber,
+            type: type || 'REWARD',
+            amount: parseFloat(amount),
+            reason,
+            orderDate: orderDate ? new Date(orderDate) : new Date(),
+          },
+        }),
+        prisma.auditLog.create({
+          data: {
+            hrName: 'Mukofotlash System',
+            action: `Rag'batlantirish / Mukofot rasmiylashtirildi (Buyruq #${orderNumber || '—'}): ${amount} UZS`,
+            targetEmployeeId: employeeId,
+            departmentName: 'HR / Mukofot',
+            metadata: JSON.stringify({ type, amount, reason }),
+          },
+        }),
+      ]);
+
+      // Invalidate analytics caches reactively
+      statsCache.invalidate();
 
       return NextResponse.json({ success: true, record });
     }

@@ -221,26 +221,33 @@ export const LeaveRequestDetailModal: React.FC<LeaveRequestDetailModalProps> = (
                 const isStepRejected = stepData?.status === 'REJECTED';
                 const isCurrentStep = request.currentStep === cfg.stepNumber && isPending;
 
-                return (
-                  <div
-                    key={cfg.stepNumber}
-                    className={`rounded-xl border p-3.5 transition-all text-xs space-y-1.5 ${
-                      isStepDone
-                        ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200'
-                        : isStepRejected
-                        ? 'border-rose-500/40 bg-rose-950/20 text-rose-200'
-                        : isCurrentStep
-                        ? 'border-amber-500/50 bg-amber-950/30 text-amber-200 animate-pulse shadow-lg shadow-amber-500/10'
-                        : 'border-slate-800/80 bg-slate-900/40 text-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-[11px] text-indigo-400">
-                          #{cfg.stepNumber}
-                        </span>
-                        <span className="font-bold text-slate-200">{cfg.label}</span>
-                      </div>
+                        const stepLabel =
+                          cfg.stepNumber === 3
+                            ? request.step3ApproverType === 'BOSHQARMA_BOSHLIGI'
+                              ? "Boshqarma Boshlig'i"
+                              : "Texnik Direktor"
+                            : cfg.label;
+
+                        return (
+                          <div
+                            key={cfg.stepNumber}
+                            className={`rounded-xl border p-3.5 transition-all text-xs space-y-1.5 ${
+                              isStepDone
+                                ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200'
+                                : isStepRejected
+                                ? 'border-rose-500/40 bg-rose-950/20 text-rose-200'
+                                : isCurrentStep
+                                ? 'border-amber-500/50 bg-amber-950/30 text-amber-200 animate-pulse shadow-lg shadow-amber-500/10'
+                                : 'border-slate-800/80 bg-slate-900/40 text-slate-500'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-[11px] text-indigo-400">
+                                  #{cfg.stepNumber}
+                                </span>
+                                <span className="font-bold text-slate-200">{stepLabel}</span>
+                              </div>
 
                       {isStepDone ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">

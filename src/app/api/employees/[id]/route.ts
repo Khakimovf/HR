@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { resolveHrUser, writeAuditLog } from '@/lib/rbac';
+import { statsCache } from '@/lib/cache';
 
 function parseSafeDate(val: any): Date | null {
   if (!val || typeof val !== 'string' || !val.trim()) return null;
@@ -284,19 +285,46 @@ export async function PUT(
       },
     });
 
-    // Audit Log Entry
+    // Audit Log Entries (Field-Level)
     const sectionName = tabSection || "Profil ma'lumotlari";
     const empName = `${updatedEmployee.lastName} ${updatedEmployee.firstName}`.trim();
     const username = session?.username || 'HR Operator';
 
-    await writeAuditLog({
-      hrUserId: session?.id,
-      hrName: session?.fullName || username,
-      action: `User ${username} updated ${sectionName} for Employee ${empName} (Tabel #${updatedEmployee.tabelNumber})`,
-      targetEmployeeId: updatedEmployee.id,
-      departmentName: updatedEmployee.currentDepartment?.name,
-      metadata: { sectionName, updatedFields: Object.keys(dataToUpdate) },
-    });
+    const changedKeys = Object.keys(dataToUpdate);
+    if (changedKeys.length === 0) {
+      await writeAuditLog({
+        hrUserId: session?.id,
+        hrName: session?.fullName || username,
+        action: `User ${username} updated ${sectionName} for Employee ${empName} (Tabel #${updatedEmployee.tabelNumber})`,
+        targetEmployeeId: updatedEmployee.id,
+        departmentName: updatedEmployee.currentDepartment?.name,
+        metadata: { sectionName },
+      });
+    } else {
+      for (const key of changedKeys) {
+        const oldVal = (existingEmployee as any)[key];
+        const newVal = dataToUpdate[key];
+        const oldStr = oldVal instanceof Date ? oldVal.toISOString().split('T')[0] : String(oldVal ?? '—');
+        const newStr = newVal instanceof Date ? newVal.toISOString().split('T')[0] : String(newVal ?? '—');
+
+        if (oldStr !== newStr) {
+          await writeAuditLog({
+            hrUserId: session?.id,
+            hrName: session?.fullName || username,
+            action: `Xodim [${updatedEmployee.tabelNumber}] ${empName} maydoni '${key}' tahrirlandi`,
+            targetEmployeeId: updatedEmployee.id,
+            fieldChanged: key,
+            oldValue: oldStr,
+            newValue: newStr,
+            departmentName: updatedEmployee.currentDepartment?.name,
+            ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1',
+            metadata: { sectionName, field: key, oldValue: oldStr, newValue: newStr },
+          });
+        }
+      }
+    }
+
+    statsCache.invalidate();
 
     return NextResponse.json(
       {
@@ -326,6 +354,7 @@ export async function DELETE(
     await prisma.employee.delete({
       where: { id: params.id },
     });
+    statsCache.invalidate();
     return NextResponse.json({ success: true, message: 'Xodim tizimdan o\'chirildi' });
   } catch (error: any) {
     console.error('Employee DELETE Error:', error);

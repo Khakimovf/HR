@@ -169,6 +169,9 @@ export async function writeAuditLog(opts: {
   hrName: string;
   action: string;
   targetEmployeeId?: string;
+  fieldChanged?: string;
+  oldValue?: string;
+  newValue?: string;
   departmentName?: string;
   ipAddress?: string;
   metadata?: Record<string, any>;
@@ -180,6 +183,9 @@ export async function writeAuditLog(opts: {
         hrName: opts.hrName,
         action: opts.action,
         targetEmployeeId: opts.targetEmployeeId || null,
+        fieldChanged: opts.fieldChanged || null,
+        oldValue: opts.oldValue || null,
+        newValue: opts.newValue || null,
         departmentName: opts.departmentName || null,
         ipAddress: opts.ipAddress || null,
         metadata: opts.metadata ? JSON.stringify(opts.metadata) : null,

@@ -334,7 +334,7 @@ export const LeaveDocumentPrintModal: React.FC<LeaveDocumentPrintModalProps> = (
                     {/* Header */}
                     <div className="flex justify-between items-start mb-1">
                       <span className="font-bold text-[9px] uppercase tracking-wider text-slate-800">
-                        #{cfg.stepNumber}. {cfg.label}
+                        #{cfg.stepNumber}. {cfg.stepNumber === 3 ? (request.step3ApproverType === 'BOSHQARMA_BOSHLIGI' ? "Boshqarma Boshlig'i" : "Texnik Direktor") : cfg.label}
                       </span>
                     </div>
 

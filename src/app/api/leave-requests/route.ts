@@ -36,10 +36,18 @@ export async function GET(req: Request) {
     if (currentStep) where.currentStep = parseInt(currentStep, 10);
 
     if (pendingForRole && pendingForRole !== 'ALL') {
-      const stepConfig = APPROVAL_STEPS_CONFIG.find((s) => s.approverRole === pendingForRole);
       where.status = 'PENDING';
-      if (stepConfig) {
-        where.currentStep = stepConfig.stepNumber;
+      if (pendingForRole === 'BOSHQARMA_BOSHLIGI') {
+        where.currentStep = 3;
+        where.step3ApproverType = 'BOSHQARMA_BOSHLIGI';
+      } else if (pendingForRole === 'TECHNICAL_DIRECTOR') {
+        where.currentStep = 3;
+        where.NOT = { step3ApproverType: 'BOSHQARMA_BOSHLIGI' };
+      } else {
+        const stepConfig = APPROVAL_STEPS_CONFIG.find((s) => s.approverRole === pendingForRole);
+        if (stepConfig) {
+          where.currentStep = stepConfig.stepNumber;
+        }
       }
     }
 
@@ -87,7 +95,9 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { employeeId, type, startDate, endDate, totalDays: daysInput, reason } = body;
+    const { employeeId, type, startDate, endDate, totalDays: daysInput, reason, step3ApproverType: step3Input } = body;
+
+    const step3ApproverType = step3Input === 'BOSHQARMA_BOSHLIGI' ? 'BOSHQARMA_BOSHLIGI' : 'TEXNIK_DIREKTOR';
 
     if (!employeeId || !type || !startDate || !endDate || !reason) {
       return NextResponse.json(
@@ -129,7 +139,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create LeaveRequest with 6 approval steps
+    // Create LeaveRequest with 6 approval steps and dynamic Step 3 approver
     const newRequest = await prisma.leaveRequest.create({
       data: {
         employeeId,
@@ -140,12 +150,19 @@ export async function POST(req: Request) {
         reason,
         status: 'PENDING',
         currentStep: 1,
+        step3ApproverType,
         approvalSteps: {
-          create: APPROVAL_STEPS_CONFIG.map((step) => ({
-            stepNumber: step.stepNumber,
-            approverRole: step.approverRole,
-            status: 'PENDING',
-          })),
+          create: APPROVAL_STEPS_CONFIG.map((step) => {
+            let approverRole = step.approverRole;
+            if (step.stepNumber === 3) {
+              approverRole = step3ApproverType === 'BOSHQARMA_BOSHLIGI' ? 'BOSHQARMA_BOSHLIGI' : 'TECHNICAL_DIRECTOR';
+            }
+            return {
+              stepNumber: step.stepNumber,
+              approverRole,
+              status: 'PENDING',
+            };
+          }),
         },
       },
       include: {

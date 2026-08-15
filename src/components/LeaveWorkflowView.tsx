@@ -233,11 +233,13 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
               className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300 font-bold focus:outline-none"
             >
               <option value="ALL">★ Barcha Rahbarlar Bosqichi Inbox</option>
-              {APPROVAL_STEPS_CONFIG.map((s) => (
-                <option key={s.approverRole} value={s.approverRole}>
-                  Bosqich #{s.stepNumber}: {s.label}
-                </option>
-              ))}
+              <option value="DEPARTMENT_HEAD">Bosqich #1: Bo'lim / Sex Boshlig'i</option>
+              <option value="HR_OFFICER">Bosqich #2: HR Bo'lim Xodimi</option>
+              <option value="TECHNICAL_DIRECTOR">Bosqich #3: Texnik Direktor</option>
+              <option value="BOSHQARMA_BOSHLIGI">Bosqich #3: Boshqarma Boshlig'i</option>
+              <option value="DEPUTY_DIRECTOR">Bosqich #4: Direktor O'rinbosari</option>
+              <option value="FINANCE_DIRECTOR">Bosqich #5: Moliya Direktori</option>
+              <option value="GENERAL_DIRECTOR">Bosqich #6: Bosh Direktor</option>
             </select>
           )}
         </div>
@@ -368,6 +370,13 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
                         const isStepRejected = stepData?.status === 'REJECTED';
                         const isCurrentStep = req.currentStep === cfg.stepNumber && req.status === 'PENDING';
 
+                        const stepLabel =
+                          cfg.stepNumber === 3
+                            ? req.step3ApproverType === 'BOSHQARMA_BOSHLIGI'
+                              ? "Boshqarma Boshlig'i"
+                              : "Texnik Direktor"
+                            : cfg.label;
+
                         return (
                           <div
                             key={cfg.stepNumber}
@@ -394,7 +403,7 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
                               )}
                             </div>
 
-                            <div className="font-bold truncate text-[11px]">{cfg.label}</div>
+                            <div className="font-bold truncate text-[11px]">{stepLabel}</div>
 
                             <div className="text-[9px] mt-1 truncate">
                               {isStepDone ? (

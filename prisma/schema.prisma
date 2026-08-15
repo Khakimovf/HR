@@ -22,6 +22,7 @@ model Department {
   toTransfers      DepartmentTransfer[] @relation("ToDept")
   userAccess       UserDepartmentAccess[]
   homeUsers        User[]               @relation("UserHomeDept")
+  kpiTemplates     KpiTemplate[]
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 }
@@ -65,6 +66,7 @@ model Employee {
   positionId          String?
   positionRef         Position?            @relation(fields: [positionId], references: [id], onDelete: SetNull)
   employmentType      String?              @default("FULL_TIME") // FULL_TIME, PART_TIME, CONTRACT
+  baseSalary          Float?               @default(4500000)
   orderNumber         String?
   workSchedule        String?
 
@@ -98,9 +100,14 @@ model Employee {
   kpiRecords          KpiRecord[]
   medicalCheckups     MedicalCheckup[]
   safetyBriefings     SafetyBriefing[]
+  kpiEvaluations      KpiEvaluation[]
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+
+  @@index([currentDepartmentId])
+  @@index([status])
+  @@index([hireDate])
 }
 
 model Education {
@@ -123,6 +130,8 @@ model PermitLicense {
   issueDate     DateTime
   expiryDate    DateTime?
   status        String    @default("ACTIVE") // ACTIVE, EXPIRED
+
+  @@index([employeeId, expiryDate])
 }
 
 model DepartmentTransfer {
@@ -157,6 +166,8 @@ model LeaveAttendance {
   // Status: ACTIVE (ongoing), COMPLETED, CANCELLED, APPROVED (legacy)
   status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
+
+  @@index([employeeId, status, startDate])
 }
 
 model DisciplinaryAction {
@@ -196,6 +207,55 @@ model KpiRecord {
   finalBonus          Float
   attendanceRate      Float
   createdAt           DateTime @default(now())
+}
+
+// ── Enterprise KPI Engine Models ───────────────────────────────────────────
+
+model KpiTemplate {
+  id           String         @id @default(uuid())
+  departmentId String
+  department   Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  position     String?
+  title        String
+  criteria     KpiCriterion[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model KpiCriterion {
+  id         String      @id @default(uuid())
+  templateId String
+  template   KpiTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name       String
+  weight     Float
+  target     String
+  createdAt  DateTime    @default(now())
+}
+
+model KpiEvaluation {
+  id           String              @id @default(uuid())
+  employeeId   String
+  employee     Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  period       String              // e.g. "2026-08"
+  departmentId String
+  totalScore   Float               // 0 to 100
+  status       String              // EXCELLENT, GOOD, AVERAGE, UNSATISFACTORY
+  notes        String?
+  scores       KpiCriterionScore[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([employeeId, period])
+  @@index([departmentId, period])
+}
+
+model KpiCriterionScore {
+  id            String        @id @default(uuid())
+  evaluationId  String
+  evaluation    KpiEvaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criterionName String
+  weight        Float
+  score         Float         // 0 to 100
 }
 
 // ── HR User (RBAC) ──────────────────────────────────────────────────────────
@@ -277,6 +337,8 @@ model MedicalCheckup {
   orderRef       String?
   notes          String?
   createdAt      DateTime @default(now())
+
+  @@index([employeeId, expiryDate])
 }
 
 // ── Safety Briefing (HSE) ───────────────────────────────────────────────────
@@ -305,10 +367,15 @@ model AuditLog {
   hrName           String   // Snapshot of name at time of action
   action           String   // e.g. "Xodim ma'lumotlari tahrirlandi"
   targetEmployeeId String?
+  fieldChanged     String?
+  oldValue         String?
+  newValue         String?
   departmentName   String?
   ipAddress        String?
   metadata         String?  // JSON string for extra context
   createdAt        DateTime @default(now())
+
+  @@index([targetEmployeeId, createdAt])
 }
 
 // ── Leave Request & 6-Step Approval Workflow ───────────────────────────────
@@ -327,10 +394,11 @@ model LeaveRequest {
   // Status: PENDING, APPROVED, REJECTED, CANCELLED
   status           String              @default("PENDING")
   currentStep      Int                 @default(1) // 1 to 6
-  rejectionComment String?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  approvalSteps    LeaveApprovalStep[]
+  rejectionComment  String?
+  step3ApproverType String?             @default("TEXNIK_DIREKTOR") // TEXNIK_DIREKTOR or BOSHQARMA_BOSHLIGI
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  approvalSteps     LeaveApprovalStep[]
 }
 
 model LeaveApprovalStep {
