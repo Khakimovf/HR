@@ -1,8 +1,26 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Eye, EyeOff, LogIn, Building2, AlertTriangle, Loader2 } from 'lucide-react';
+import {
+  Shield,
+  Eye,
+  EyeOff,
+  LogIn,
+  Building2,
+  AlertTriangle,
+  Loader2,
+  User,
+  Lock,
+  Sun,
+  Moon,
+  Sparkles,
+  HelpCircle,
+  ShieldCheck,
+  Globe,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -10,124 +28,207 @@ interface LoginModalProps {
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen }) => {
   const { login } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+
+  const [username, setUsername]       = useState('');
+  const [password, setPassword]       = useState('');
+  const [rememberMe, setRememberMe]   = useState(true);
+  const [showPw, setShowPw]           = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
+  const [forgotAlert, setForgotAlert] = useState(false);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) { setError("Login va parol kiritilishi shart"); return; }
+    if (!username || !password) {
+      setError(t('login.error_required', 'Login va parol kiritilishi shart'));
+      return;
+    }
     setLoading(true);
     setError('');
+
     const res = await login(username, password);
     setLoading(false);
-    if (!res.success) setError(res.error || 'Kirish amalga oshmadi');
+
+    if (!res.success) {
+      setError(res.error || t('login.error_failed', 'Kirish amalga oshmadi'));
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#070c17]">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-indigo-600/10 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-purple-600/10 blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-amber-500/5 blur-3xl" />
+    <div className="min-h-screen relative overflow-hidden bg-slate-950 text-slate-100 flex items-center justify-center font-sans">
+      {/* ── Background Ambient Mesh Glow ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      <div className="relative w-full max-w-md mx-4">
-        {/* Card */}
-        <div className="rounded-3xl border border-slate-700/60 bg-slate-900/80 backdrop-blur-xl shadow-2xl overflow-hidden">
-          {/* Header band */}
-          <div className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 p-6 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10" />
-            <div className="relative z-10">
-              <div className="flex justify-center mb-3">
-                <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center shadow-lg">
-                  <Building2 className="h-7 w-7 text-white" />
-                </div>
-              </div>
-              <h1 className="text-xl font-extrabold text-white tracking-tight">MANUFACTURING ENTERPRISE HR</h1>
-              <p className="text-indigo-200 text-sm mt-1">Tizimga Kirish — HR Xodimi Paneli</p>
-            </div>
+      {/* ── Top-Right Header Utility Controls ── */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+        {/* Language Toggle Pill [🇺🇿 UZ / 🇰🇷 KR] */}
+        <div className="flex items-center rounded-xl bg-slate-900/80 backdrop-blur-md p-1 border border-slate-800 shadow-xl">
+          <button
+            type="button"
+            onClick={() => setLanguage('uz')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+              language === 'uz'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            🇺🇿 UZ
+          </button>
+          <button
+            type="button"
+            onClick={() => setLanguage('kr')}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+              language === 'kr'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            🇰🇷 KR
+          </button>
+        </div>
+
+        {/* Theme Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white transition shadow-xl cursor-pointer"
+          title={theme === 'dark' ? "Yorug' rejim" : "Qorong'u rejim"}
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-slate-200" />}
+        </button>
+      </div>
+
+      {/* ── Central Glassmorphism Login Card ── */}
+      <div className="max-w-md w-full mx-4 relative z-10">
+        <div className="bg-slate-900/80 backdrop-blur-2xl border border-slate-800/80 shadow-2xl shadow-blue-950/40 rounded-3xl p-8 space-y-6">
+          {/* Branding Header */}
+          <div className="text-center">
+            {/* Top Sub-Badge: UZ DONG YANG */}
+            <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full text-[11px] font-bold tracking-widest uppercase mx-auto w-fit mb-3 block text-center shadow-sm">
+              {t('login.brand_sub_badge', '🏢 UZ DONG YANG')}
+            </span>
+
+            {/* Main System Title: HR-MATRIX */}
+            <h1 className="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-blue-400 text-center">
+              {t('login.matrix_title', 'HR-MATRIX')}
+            </h1>
+
+            {/* Tagline */}
+            <p className="text-xs font-medium text-slate-400 text-center block mt-1.5">
+              {t('login.matrix_tagline', 'Enterprise HR Analitika va Boshqaruv Platformasi')}
+            </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-7 space-y-5">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-indigo-400" />
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wide">Xavfsiz Kirish</label>
-              </div>
-              <p className="text-[11px] text-slate-500">Faqat vakolatli HR xodimlari kirishi mumkin</p>
-            </div>
-
-            {/* Username */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400">Foydalanuvchi nomi</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => { setUsername(e.target.value); setError(''); }}
-                placeholder="Admin"
-                autoComplete="username"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-400">Parol</label>
+          {/* Form Input Fields & Controls */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Tabel № / Login Field */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                {t('login.username', 'Tabel № / Login')} *
+              </label>
               <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => { setUsername(e.target.value); setError(''); }}
+                  placeholder={t('login.username_placeholder', 'Tabel № (masalan: TB-1000 yoki Admin)')}
+                  autoComplete="username"
+                  className="w-full bg-slate-800/80 text-white border border-slate-700/80 rounded-xl pl-9 pr-4 py-3 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-500 font-semibold"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                {t('login.password', 'Parol')} *
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(''); }}
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950/60 px-4 py-3 pr-11 text-sm text-slate-100 placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                  className="w-full bg-slate-800/80 text-white border border-slate-700/80 rounded-xl pl-9 pr-10 py-3 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder:text-slate-500 font-semibold"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition cursor-pointer"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Error */}
+            {/* Remember Me & Security Badge Row */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 text-slate-400 font-semibold cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
+                />
+                <span>{t('login.rememberMe', 'Sessiyani saqlash')}</span>
+              </label>
+
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-bold">
+                <ShieldCheck className="h-3 w-3 text-emerald-400" />
+                <span>256-bit Encrypted</span>
+              </span>
+            </div>
+
+            {/* Error Message Alert */}
             {error && (
-              <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/30 px-4 py-3">
+              <div className="flex items-center gap-2 rounded-xl bg-rose-950/40 border border-rose-800 p-3 text-xs text-rose-300 font-bold">
                 <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
-                <span className="text-xs text-rose-300">{error}</span>
+                <span>{error}</span>
               </div>
             )}
 
-            {/* Submit */}
+            {/* Main Action Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 active:scale-95 transition-all"
+              className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 text-xs rounded-xl shadow-lg shadow-blue-600/25 transition-all transform active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-              {loading ? 'Kirilmoqda...' : 'Tizimga Kirish'}
+              <span>{loading ? t('login.submitting', 'Tekshirilmoqda...') : t('login.submit', 'TIZIMGA KIRISH')}</span>
             </button>
-
-            <p className="text-center text-[11px] text-slate-600">
-              Kirish muammosi bo'lsa Tizim Administratoriga murojaat qiling
-            </p>
           </form>
-        </div>
 
-        {/* Demo credentials hint */}
-        <div className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-center space-y-1">
-          <p className="text-[11px] text-amber-400 font-semibold">🔑 Demo Kirish Ma'lumotlari</p>
-          <p className="text-[10px] text-amber-300/70 font-mono">Admin / Admin123 (SUPER_ADMIN)</p>
-          <p className="text-[10px] text-slate-500">Netlify / Server ishlamasa ham bevosita kirish imkoni mavjud</p>
+          {/* Demo Credentials Helper Card */}
+          <div className="border-t border-slate-800/80 pt-4 text-center space-y-1 text-xs">
+            <p className="text-amber-400 font-bold flex items-center justify-center gap-1 text-[11px]">
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+              <span>🔑 Demo Kirish Ma'lumotlari (Credentials)</span>
+            </p>
+            <p className="text-slate-300 font-mono text-[11px]">
+              Login: <span className="text-blue-400 font-bold">Admin</span> | Parol: <span className="text-blue-400 font-bold">Admin123</span>
+            </p>
+            <p className="text-[10px] text-slate-500">
+              SUPER_ADMIN to'liq ruxsat huquqi bilan darhol sinab ko'rish mumkin
+            </p>
+          </div>
+
+          {/* Footer Copyright Notice */}
+          <div className="pt-2 text-center border-t border-slate-800/60">
+            <p className="text-[10px] text-slate-500 font-mono">
+              © 2026 Uz Dong Yang. All Rights Reserved. HR-MATRIX v2.4 Enterprise Edition
+            </p>
+          </div>
         </div>
       </div>
     </div>

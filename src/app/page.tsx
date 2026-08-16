@@ -34,6 +34,8 @@ import { MaintenanceGuard } from '@/components/MaintenanceGuard';
 import { ArrowLeftRight, ShieldAlert, Award } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 
+import { MainLayout } from '@/components/MainLayout';
+
 // Inner component that uses AuthContext
 function HRDashboardInner() {
   const { currentUser, isLoading } = useAuth();
@@ -155,109 +157,100 @@ function HRDashboardInner() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0f19]">
-      <Navbar
+    <>
+      <MainLayout
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         onSearchChange={setSearchQuery}
         onOpenSingleModal={() => setIsSingleModalOpen(true)}
-        activeTab={activeTab}
-        totalEmployeesCount={1500}
-      />
+        employeeCount={1500}
+        activeDisciplineCount={disciplinaryList.length}
+        activeLeaveCount={activeLeaveCount}
+        hseAlertCount={hseAlertCount}
+      >
+        <MaintenanceGuard
+          moduleKey={activeTab}
+          onNavigateHome={() => setActiveTab('dashboard')}
+        >
+          {/* View 0: Primary Executive Dashboard */}
+          {activeTab === 'dashboard' && (
+            <DashboardOverviewView
+              onSelectEmployee={(id) => setActiveProfileId(id)}
+              onNavigateTab={(tabId) => setActiveTab(tabId)}
+            />
+          )}
 
-      <div className="flex flex-1">
-        <Sidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          employeeCount={1500}
-          activeDisciplineCount={disciplinaryList.length}
-          activeLeaveCount={activeLeaveCount}
-          hseAlertCount={hseAlertCount}
-        />
+          {/* View 1: Workforce Directory & Global Filters */}
+          {activeTab === 'workforce' && (
+            <EmployeeDirectory
+              departments={departments}
+              onSelectEmployee={(id) => setActiveProfileId(id)}
+              onTransferEmployee={(id) => setActiveTransferEmpId(id)}
+              onOpenBulkModal={() => setIsBulkModalOpen(true)}
+              selectedDepartmentId={selectedDeptId}
+              onSelectDepartmentId={(deptId) => setSelectedDeptId(deptId)}
+            />
+          )}
 
-        <main className="flex-1 p-4 sm:p-5 overflow-y-auto max-w-[1600px] mx-auto w-full bg-slate-50 dark:bg-slate-950 transition-colors">
-          <MaintenanceGuard
-            moduleKey={activeTab}
-            onNavigateHome={() => setActiveTab('dashboard')}
-          >
-            {/* View 0: Primary Executive Dashboard */}
-            {activeTab === 'dashboard' && (
-              <DashboardOverviewView
-                onSelectEmployee={(id) => setActiveProfileId(id)}
-                onNavigateTab={(tabId) => setActiveTab(tabId)}
-              />
-            )}
+          {/* View 2: Department Hierarchy Tree */}
+          {activeTab === 'departments' && (
+            <DepartmentTree
+              departments={deptTree}
+              onNodeClick={handleDeptNodeClick}
+              selectedDepartmentId={drawerDept?.id}
+              onOpenBulkModal={() => handleOpenExcelImport('DEPARTMENTS')}
+            />
+          )}
 
-            {/* View 1: Workforce Directory & Global Filters */}
-            {activeTab === 'workforce' && (
-              <EmployeeDirectory
-                departments={departments}
-                onSelectEmployee={(id) => setActiveProfileId(id)}
-                onTransferEmployee={(id) => setActiveTransferEmpId(id)}
-                onOpenBulkModal={() => setIsBulkModalOpen(true)}
-                selectedDepartmentId={selectedDeptId}
-                onSelectDepartmentId={(deptId) => setSelectedDeptId(deptId)}
-              />
-            )}
+          {/* View 2.5: Arizalar & Hujjat Aylanishi */}
+          {activeTab === 'arizalar' && (
+            <LeaveWorkflowView departments={departments} />
+          )}
 
-            {/* View 2: Department Hierarchy Tree */}
-            {activeTab === 'departments' && (
-              <DepartmentTree
-                departments={deptTree}
-                onNodeClick={handleDeptNodeClick}
-                selectedDepartmentId={drawerDept?.id}
-                onOpenBulkModal={() => handleOpenExcelImport('DEPARTMENTS')}
-              />
-            )}
+          {/* View 3: Enterprise KPI & Performance Evaluation Engine */}
+          {activeTab === 'kpi' && <KpiManagementView departments={departments} />}
 
-            {/* View 2.5: Arizalar & Hujjat Aylanishi */}
-            {activeTab === 'arizalar' && (
-              <LeaveWorkflowView departments={departments} />
-            )}
+          {/* View 4: Executive Svodka & Reports */}
+          {activeTab === 'svodka' && <ExecutiveSvodka />}
 
-            {/* View 3: Enterprise KPI & Performance Evaluation Engine */}
-            {activeTab === 'kpi' && <KpiManagementView departments={departments} />}
+          {/* View 4.5: Executive Analytics Dashboard */}
+          {activeTab === 'analytics' && <ExecutiveAnalyticsView />}
 
-            {/* View 4: Executive Svodka & Reports */}
-            {activeTab === 'svodka' && <ExecutiveSvodka />}
+          {/* View 5: Internal Mobility & Transfer Logs */}
+          {activeTab === 'transfers' && <InternalMobilityView />}
 
-            {/* View 4.5: Executive Analytics Dashboard */}
-            {activeTab === 'analytics' && <ExecutiveAnalyticsView />}
+          {/* View 6: Discipline & Rewards */}
+          {activeTab === 'discipline' && (
+            <DisciplineRewardsView departments={departments} />
+          )}
 
-            {/* View 5: Internal Mobility & Transfer Logs */}
-            {activeTab === 'transfers' && <InternalMobilityView />}
+          {/* View 7: Davomat & Ta'tillar Boshqaruvi */}
+          {activeTab === 'davomat' && (
+            <DavomatView departments={departments} />
+          )}
 
-            {/* View 6: Discipline & Rewards */}
-            {activeTab === 'discipline' && (
-              <DisciplineRewardsView departments={departments} />
-            )}
+          {/* View 8: HSE — Med-Ko'rik va Xavfsizlik */}
+          {activeTab === 'hse' && (
+            <HseView
+              departments={departments}
+              onOpenBulkModal={() => handleOpenExcelImport('HSE')}
+            />
+          )}
 
-            {/* View 7: Davomat & Ta'tillar Boshqaruvi */}
-            {activeTab === 'davomat' && (
-              <DavomatView departments={departments} />
-            )}
+          {/* View 8.5: Standalone Ommaviy Fayllarni Yuklash Hub */}
+          {activeTab === 'import' && (
+            <ImportHubView />
+          )}
 
-            {/* View 8: HSE — Med-Ko'rik va Xavfsizlik */}
-            {activeTab === 'hse' && (
-              <HseView
-                departments={departments}
-                onOpenBulkModal={() => handleOpenExcelImport('HSE')}
-              />
-            )}
-
-            {/* View 8.5: Standalone Ommaviy Fayllarni Yuklash Hub */}
-            {activeTab === 'import' && (
-              <ImportHubView />
-            )}
-
-            {/* View 9: Tizim Auditi va Loglar */}
-            {activeTab === 'audit' && (
-              <AuditLogView
-                departments={departments}
-                onOpenAddEmployee={() => setIsSingleModalOpen(true)}
-              />
-            )}
-          </MaintenanceGuard>
-        </main>
-      </div>
+          {/* View 9: Tizim Auditi va Loglar */}
+          {activeTab === 'audit' && (
+            <AuditLogView
+              departments={departments}
+              onOpenAddEmployee={() => setIsSingleModalOpen(true)}
+            />
+          )}
+        </MaintenanceGuard>
+      </MainLayout>
 
       {/* Global Modals */}
       <EmployeeProfileModal
@@ -312,7 +305,7 @@ function HRDashboardInner() {
         onViewProfile={(empId) => setActiveProfileId(empId)}
         onViewEmployees={handleViewDeptEmployees}
       />
-    </div>
+    </>
   );
 }
 
