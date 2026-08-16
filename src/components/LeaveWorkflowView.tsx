@@ -100,8 +100,56 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
     setApprovalMode(mode);
   };
 
+  // Workflow Filter Logic based on user role, department & tabel number
+  const visibleRequests = requests.filter((app) => {
+    // Super Admin & HR Director see ALL applications
+    if (currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'HR_DIRECTOR') return true;
+
+    // Stage 1: Department Head sees applications from THEIR department only
+    if (app.currentStep === 1 && (currentUser?.role === 'DEPT_HEAD' || currentUser?.role === 'HEAD_OF_DEPT')) {
+      const userDeptId = currentUser?.userDepartmentId || (currentUser as any)?.departmentId;
+      return (
+        (userDeptId && (app.employee?.departmentId === userDeptId || app.departmentId === userDeptId)) ||
+        app.employee?.tabelNumber === currentUser?.tabelNumber
+      );
+    }
+
+    // Stage 2: HR Officers see all applications at Stage 2
+    if (app.currentStep === 2 && (currentUser?.role === 'HR_OFFICER' || currentUser?.role === 'HR')) {
+      return true;
+    }
+
+    // Stage 3: Technical Director (CTO) or Division Head
+    if (app.currentStep === 3) {
+      if (currentUser?.role === 'CTO' && (app.approverChoice === 'CTO' || !app.approverChoice)) return true;
+      if (currentUser?.role === 'DIVISION_HEAD') return true;
+    }
+
+    // Stage 4: Finance Department
+    if (app.currentStep === 4 && currentUser?.role === 'FINANCE') {
+      return true;
+    }
+
+    // Stage 5: HR Director
+    if (app.currentStep === 5 && (currentUser?.role === 'HR_DIRECTOR' || currentUser?.role === 'SUPER_ADMIN')) {
+      return true;
+    }
+
+    // Stage 6: CEO / Deputy CEO
+    if (app.currentStep === 6 && (currentUser?.role === 'CEO' || currentUser?.role === 'DEPUTY_CEO' || currentUser?.role === 'EXECUTIVE_DIRECTOR')) {
+      return true;
+    }
+
+    // Applicants always see their own submitted applications
+    return (
+      app.employee?.tabelNumber === currentUser?.tabelNumber ||
+      app.tabelNumber === currentUser?.tabelNumber ||
+      app.applicantTabelNo === currentUser?.tabelNumber
+    );
+  });
+
   // Compute inbox requests pending approval
-  const inboxRequests = requests.filter((r) => r.status === 'PENDING');
+  const inboxRequests = visibleRequests.filter((r) => r.status === 'PENDING');
 
   return (
     <div className="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 space-y-6 text-xs p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -238,7 +286,7 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
               <Loader2 className="h-6 w-6 text-blue-600 dark:text-cyan-400 animate-spin" />
               <span className="text-slate-600 dark:text-slate-400 text-sm font-medium">{language === 'kr' ? '데이터를 불러오는 중...' : 'Arizalar yuklanmoqda...'}</span>
             </div>
-          ) : requests.length === 0 ? (
+          ) : visibleRequests.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3 shadow-sm">
               <FileCheck className="h-12 w-12 text-slate-400 mx-auto" />
               <p className="text-slate-900 dark:text-slate-100 font-bold text-sm">{language === 'kr' ? '신청된 문서가 없습니다.' : 'Hozircha arizalar kiritilmagan'}</p>
@@ -251,7 +299,7 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
               </button>
             </div>
           ) : (
-            requests.map((req) => {
+            visibleRequests.map((req) => {
               const meta = TYPE_META[req.type] || TYPE_META.BS_UNPAID;
               const isRejected = req.status === 'REJECTED';
               const isApproved = req.status === 'APPROVED';
@@ -539,7 +587,7 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
               <Archive className="h-5 w-5 text-blue-600 dark:text-purple-400" />
               <span>{language === 'kr' ? '전체 결재 문서 대장' : 'Barcha Arizalar Umumiy Jurnali & Svodkasi'}</span>
             </h3>
-            <span className="text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">{language === 'kr' ? '총 건수:' : 'Jami topilgan:'} {requests.length}</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">{language === 'kr' ? '총 건수:' : 'Jami topilgan:'} {visibleRequests.length}</span>
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
@@ -557,7 +605,7 @@ export const LeaveWorkflowView: React.FC<LeaveWorkflowViewProps> = ({ department
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
-                {requests.map((r) => {
+                {visibleRequests.map((r) => {
                   const meta = TYPE_META[r.type] || TYPE_META.BS_UNPAID;
                   return (
                     <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-b border-slate-200 dark:border-slate-800">

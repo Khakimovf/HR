@@ -301,17 +301,17 @@ export const HseView: React.FC<HseViewProps> = ({ departments = [], onOpenBulkMo
   };
 
   return (
-    <div className="space-y-5 bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
+    <div className="space-y-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-              <HeartPulse className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
+              <HeartPulse className="h-4 w-4 text-white" />
             </div>
             {t('hse.title', "Mehnat Muhofazasi va Tibbiy Ko'rik (HSE)")}
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
             {t('hse.subtitle', "Xodimlarning davriy tibbiy ko'riklari va maxsus ruxsatnomalar jurnali")}
           </p>
         </div>

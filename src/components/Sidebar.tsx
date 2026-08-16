@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useModuleAccess } from '@/contexts/ModuleAccessContext';
 
 interface SidebarProps {
   activeTab: string;
@@ -141,30 +142,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const Icon = item.icon;
     const isActive = activeTab === item.id;
     const isAllowed = hasModuleAccess(item.id);
+    const { getModuleConfig } = useModuleAccess();
+    const config = getModuleConfig(item.id);
+
+    const isMaintenance = config.status === 'MAINTENANCE';
+    const isComingSoon = config.status === 'COMING_SOON';
 
     return (
       <button
         key={item.id}
-        onClick={() => {
-          if (isAllowed) setActiveTab(item.id);
-        }}
+        onClick={() => isAllowed && setActiveTab(item.id)}
         disabled={!isAllowed}
-        title={!isAllowed ? "🔒 Ushbu menyu moduliga ruxsat berilmagan" : item.label}
-        className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
+        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer group ${
           !isAllowed
-            ? 'opacity-40 cursor-not-allowed text-slate-400 dark:text-slate-600 hover:bg-transparent'
-            : isActive
-            ? 'bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-md shadow-blue-600/20 font-semibold'
-            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ? 'opacity-40 cursor-not-allowed text-slate-400 dark:text-slate-600'
+            : isMaintenance || isComingSoon
+            ? 'opacity-85'
+            : ''
+        } ${
+          isActive
+            ? 'bg-blue-600 text-white shadow-sm'
+            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900/80 hover:text-slate-900 dark:hover:text-white'
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 truncate">
           <Icon
-            className={`h-4 w-4 ${
+            className={`h-4 w-4 shrink-0 ${
               !isAllowed
                 ? 'text-slate-400 dark:text-slate-600'
                 : isActive
                 ? 'text-white'
+                : isMaintenance
+                ? 'text-amber-500'
+                : isComingSoon
+                ? 'text-blue-500'
                 : 'text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
             }`}
           />
@@ -172,9 +183,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         {!isAllowed ? (
           <Lock className="h-3 w-3 text-slate-400 dark:text-slate-600 shrink-0" />
+        ) : isMaintenance ? (
+          <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-500/20 text-amber-500 border border-amber-500/30 shrink-0">
+            🔒 Texnik xizmat
+          </span>
+        ) : isComingSoon ? (
+          <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
+            ⏳ Tez kunda
+          </span>
         ) : item.badge !== undefined ? (
           <span
-            className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium border ${
+            className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold border shrink-0 ${
               isActive
                 ? 'bg-white/20 text-white border-white/30'
                 : item.badgeColor || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
@@ -188,14 +207,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <aside className="w-64 shrink-0 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-4 flex flex-col min-h-[calc(100vh-65px)] transition-colors">
+    <aside className="w-60 shrink-0 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-3 flex flex-col min-h-[calc(100vh-57px)] transition-colors">
       {/* Top: main nav */}
-      <div className="space-y-6 flex-1">
+      <div className="space-y-4 flex-1">
         <div>
-          <h2 className="px-3 text-[11px] font-bold uppercase tracking-wider dark:text-slate-400 text-gray-500">
+          <h2 className="px-2.5 text-[10px] font-bold uppercase tracking-wider dark:text-slate-400 text-slate-500">
             {t('section.main_modules', 'ASOSIY MODULLAR')}
           </h2>
-          <nav className="mt-2 space-y-1">
+          <nav className="mt-1.5 space-y-0.5">
             {mainNavItems.map((item) => (
               <NavButton key={item.id} item={item} />
             ))}
@@ -203,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Enterprise Quick Metrics Panel */}
-        <div className="rounded-2xl bg-gradient-to-b dark:from-slate-900/90 dark:to-slate-950/80 from-gray-50 to-white p-4 border dark:border-slate-800 border-gray-200">
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-900/80 p-3 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2 mb-2">
             <Award className="h-4 w-4 text-amber-400" />
             <h3 className="text-xs font-semibold dark:text-slate-200 text-slate-800">

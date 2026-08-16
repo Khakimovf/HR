@@ -363,19 +363,19 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 space-y-6 transition-colors">
+    <div className="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-xl p-4 border border-slate-200 dark:border-slate-800 space-y-4 transition-colors">
       {/* Header Title & Filter-Aware Action Buttons */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
-              <Users className="h-5 w-5" />
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 shrink-0">
+              <Users className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 {t('emp.title', 'Xodimlar Bazasi va Profil Kartalari')}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {language === 'kr'
                   ? '1500+ 임직원, 52개 부서, 학력, 근속, 건강검진, 포상 및 인적 필터'
                   : "1500+ Xodimlar, 52 ta bo'lim, Ta'lim, Staj, Med-ko'rik, Mukofotlar va Demografik filterlar"}

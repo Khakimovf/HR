@@ -2,7 +2,20 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type UserRole = 'SUPER_ADMIN' | 'EXECUTIVE_DIRECTOR' | 'HR_OFFICER' | 'AUDITOR';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'CEO'
+  | 'DEPUTY_CEO'
+  | 'HR_DIRECTOR'
+  | 'FINANCE'
+  | 'CTO'
+  | 'DIVISION_HEAD'
+  | 'HR_OFFICER'
+  | 'DEPT_HEAD'
+  | 'WORKER'
+  | 'EXECUTIVE_DIRECTOR'
+  | 'AUDITOR'
+  | string;
 
 export interface UserSession {
   id: string;

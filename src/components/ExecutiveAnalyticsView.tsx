@@ -439,17 +439,17 @@ export const ExecutiveAnalyticsView: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 space-y-6 text-xs p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 space-y-4 text-xs p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
       {/* ── Top Header & Department Selector Toolbar ── */}
-      <div className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+      <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-blue-600 dark:bg-gradient-to-tr dark:from-indigo-600 dark:via-indigo-500 dark:to-purple-600 flex items-center justify-center shadow-md">
-              <TrendingUp className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-blue-600 dark:bg-gradient-to-tr dark:from-indigo-600 dark:via-indigo-500 dark:to-purple-600 flex items-center justify-center shadow-sm shrink-0">
+              <TrendingUp className="h-4 w-4 text-white" />
             </div>
             {t('analytics.title', 'Rahbariyat Uchun Analitik Svodka')}
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-xs mt-1 font-medium">
+          <p className="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5 font-medium">
             {language === 'kr' ? '직위별 공석 현황(TO Matrix) 및 임직원 근태 상태 통합 분석' : "Lavozimlar kesimida vakansiyalar matrixi va 100% statuslar svodkasi"}
           </p>
         </div>

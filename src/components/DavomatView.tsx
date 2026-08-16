@@ -233,17 +233,17 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
   const dayNames   = language === 'kr' ? DAY_NAMES_KR   : DAY_NAMES_UZ;
 
   return (
-    <div className="space-y-5 bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
+    <div className="space-y-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* ── Page Header ── */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
-              <CalendarClock className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-sm shrink-0">
+              <CalendarClock className="h-4 w-4 text-white" />
             </div>
             {t('davomat.title', "Davomat va Ta'tillar Boshqaruvi")}
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
             {t('davomat.subtitle', "Xodimlarning mehnat ta'tillari, kasallik varaqalari (B/L) va B/S jurnali")}
           </p>
         </div>
@@ -252,15 +252,15 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
           onClick={() => setIsCreateOpen(true)}
           disabled={isReadOnly}
           title={isReadOnly ? "🔒 Read-only access" : "New leave request"}
-          className="inline-flex items-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 text-sm font-bold shadow-sm active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 text-xs font-bold shadow-sm active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
           {t('davomat.new_btn', "+ Yangi Ta'til / B/L Qo'shish")}
         </button>
       </div>
 
       {/* ── Stats Row ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label={language === 'kr' ? '총 등록 건수' : 'Jami Yozuvlar'} value={stats.total || 0} icon={LayoutList} colorClass="border-indigo-500/30" />
         <StatCard label={t('davomat.stat_total_on_leave', "Jami Ta'tildagilar")} value={stats.active || 0} icon={Calendar} colorClass="border-emerald-500/30" />
         <StatCard label={t('davomat.stat_sick_leave', "Vaqtincha Layoqatsiz (B/L)")} value={stats.sickLeave || 0} icon={AlertTriangle} colorClass="border-rose-500/30" />

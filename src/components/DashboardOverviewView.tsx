@@ -274,27 +274,27 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         ];
 
   return (
-    <div className="space-y-6 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
+    <div className="space-y-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       
       {/* ── PAGE HEADER & BI CONTROL TOOLBAR ── */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex-wrap gap-4">
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
-              <Zap className="h-5 w-5 text-white" />
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-sm">
+              <Zap className="h-4 w-4 text-white" />
             </div>
             {t('dash.title', 'Asosiy Boshqaruv Paneli & Analitik Svodka')}
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
             {t('dash.subtitle', 'Korxona HR ko\'rsatkichlari va tezkor nazorat markazi')}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={fetchDashboardData}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold transition cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             {t('btn.refresh', 'Yangilash')}
@@ -302,7 +302,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
 
           <button
             onClick={() => onNavigateTab('svodka')}
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-md transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95 cursor-pointer"
           >
             <Activity className="h-3.5 w-3.5" />
             {t('nav.svodka', 'Ijroiy Svodka')}
@@ -311,19 +311,19 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
       </div>
 
       {/* ── SECTION 1: TOP 6 KPI PULSE CARDS STRIP ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
         {/* Card 1: Jami Shtat va Xodimlar */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-4 transition-all flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-xl p-3.5 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t('kpi.total_staff', 'Jami Shtat va Xodimlar')}
             </span>
-            <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold">
+            <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold">
               <Users className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <div className="mt-2">
+            <div className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {metrics.totalStaff}
             </div>
             <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
@@ -333,17 +333,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* Card 2: Bugungi Davomat % */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-4 transition-all flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-xl p-3.5 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t('kpi.present_today', 'Bugungi Davomat %')}
             </span>
-            <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
+            <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
               <UserCheck className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400">
+          <div className="mt-2">
+            <div className="text-xl font-extrabold tracking-tight text-emerald-700 dark:text-emerald-400">
               {presentPct}%
             </div>
             <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">
@@ -353,17 +353,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* Card 3: Kadrlar Qo'nimsizligi */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-4 transition-all flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-xl p-3.5 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t('kpi.turnover', "Kadrlar Qo'nimsizligi")}
             </span>
-            <div className="h-9 w-9 rounded-xl bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 flex items-center justify-center font-bold">
+            <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 flex items-center justify-center font-bold">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold tracking-tight text-purple-700 dark:text-purple-400">
+          <div className="mt-2">
+            <div className="text-xl font-extrabold tracking-tight text-purple-700 dark:text-purple-400">
               {metrics.turnoverRate}%
             </div>
             <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
@@ -373,17 +373,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* Card 4: Oylik O'rtacha KPI Bali */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-4 transition-all flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-xl p-3.5 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t('kpi.avg_score', "Oylik O'rtacha KPI Bali")}
             </span>
-            <div className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
+            <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
               <Award className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold tracking-tight text-amber-700 dark:text-amber-400">
+          <div className="mt-2">
+            <div className="text-xl font-extrabold tracking-tight text-amber-700 dark:text-amber-400">
               {metrics.kpiScoreAvg}%
             </div>
             <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
@@ -393,17 +393,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* Card 5: Faol Ta'tildagilar / BL */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-4 transition-all flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-xl p-3.5 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t('kpi.on_leave_bl', "Faol Ta'tildagilar / BL")}
             </span>
-            <div className="h-9 w-9 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 flex items-center justify-center font-bold">
+            <div className="h-8 w-8 rounded-lg bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 flex items-center justify-center font-bold">
               <Palmtree className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold tracking-tight text-rose-700 dark:text-rose-400">
+          <div className="mt-2">
+            <div className="text-xl font-extrabold tracking-tight text-rose-700 dark:text-rose-400">
               {totalActiveLeaves} {language === 'kr' ? '명' : 'kishi'}
             </div>
             <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">
@@ -413,17 +413,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* Card 6: Imzo Kutayotgan Arizalar Navbati */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-2xl p-4 transition-all flex flex-col justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md rounded-xl p-3.5 transition-all flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t('kpi.pending_approval', 'Imzo Kutayotgan Arizalar Navbati')}
             </span>
-            <div className="h-9 w-9 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 flex items-center justify-center font-bold">
+            <div className="h-8 w-8 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 flex items-center justify-center font-bold">
               <FileClock className="h-4 w-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-extrabold tracking-tight text-cyan-700 dark:text-cyan-400">
+          <div className="mt-2">
+            <div className="text-xl font-extrabold tracking-tight text-cyan-700 dark:text-cyan-400">
               {metrics.pendingAppsCount} {language === 'kr' ? '건' : 'ta'}
             </div>
             <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-bold">
@@ -434,7 +434,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
       </div>
 
       {/* ── SECTION 2: AI SMART STRATEGIC INSIGHTS BANNER ── */}
-      <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50/80 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-blue-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+      <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50/80 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-blue-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-extrabold text-blue-900 dark:text-indigo-300 uppercase tracking-wider">
             <Sparkles className="h-4 w-4 text-blue-600 dark:text-indigo-400 animate-spin" />
@@ -494,18 +494,18 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
       </div>
 
       {/* ── SECTION: SYSTEM ANNOUNCEMENTS & RELEASE NOTES FEED ── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 border-l-4 border-l-blue-600 transition-all space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 border-l-4 border-l-blue-600 transition-all space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
-              <Megaphone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 flex items-center justify-center font-bold shadow-sm">
+              <Megaphone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                 {t('announcements.title', "Tizim Yangilanishlari va E'lonlar Markazi")}
                 <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-ping" />
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                 {language === 'kr' ? '실시간 시스템 업데이트, 모듈 변경 사항 및 주요 공지사항' : "Tizim versiyalari, yangi modullar va muhim e'lonlar markazi"}
               </p>
             </div>
@@ -514,7 +514,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
           {announcements.length > 0 && (
             <button
               onClick={() => setSelectedAnnouncement(announcements[0])}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 dark:text-indigo-400 hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 dark:text-indigo-400 hover:underline cursor-pointer"
             >
               <span>{t('btn.view_all', "Barchasini ko'rish")}</span>
               <ChevronRight className="h-3.5 w-3.5" />
@@ -530,10 +530,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
               <div
                 key={item.id}
                 onClick={() => setSelectedAnnouncement(item)}
-                className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-400 dark:hover:border-slate-700 transition-all cursor-pointer group flex flex-col justify-between"
+                className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-400 dark:hover:border-slate-700 transition-all cursor-pointer group flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1.5">
                     {item.category === 'FEATURE' && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                         🚀 {t('announcements.cat_feature', 'Yangi Imkoniyat')}
@@ -559,12 +559,12 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                     </span>
                   </div>
 
-                  <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-indigo-400 line-clamp-2 transition-colors">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-indigo-400 line-clamp-2 transition-colors">
                     {itemTitle}
                   </h4>
                 </div>
 
-                <div className="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px] font-bold text-slate-500">
+                <div className="mt-2 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px] font-bold text-slate-500">
                   <span>{item.affectedModule === 'ALL' ? (language === 'kr' ? '전체 모듈' : 'Barcha Modullar') : item.affectedModule}</span>
                   <span className="group-hover:translate-x-1 transition-transform text-blue-600">→</span>
                 </div>
@@ -575,20 +575,20 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
       </div>
 
       {/* ── ROW 2: TURNOVER & ATTRITION (GROUPED BAR) + REAL-TIME ATTENDANCE (DONUT) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* SECTION 3: Turnover & Attrition Analysis by Department (7 cols) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 space-y-4">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 flex items-center justify-center font-bold">
-                <BarChart3 className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 flex items-center justify-center font-bold">
+                <BarChart3 className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                   {t('chart.turnover_title', "Bo'limlar Kesimida Kadrlar Oqimi (Keldi-Ketdi)")}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                   {language === 'kr' ? '신규 입사자(초록색) 대 퇴사자(빨간색) 현황' : 'Yangi ishga qabul qilinganlar (Yashil) va ishdan bo\'shatilganlar (Qizil) dinamikasi'}
                 </p>
               </div>
@@ -630,17 +630,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* SECTION 4: Real-time Attendance & Leave Status Donut Chart (5 cols) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 space-y-3 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
-                <PieChartIcon className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
+                <PieChartIcon className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                   {t('chart.attendance_title', "Davomat va Ta'tillar Taqsimoti")}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                   {language === 'kr' ? '금일 출근 및 사유별 휴가/병가 비율' : 'Bugungi davomat va ta\'tillar nisbati'}
                 </p>
               </div>
@@ -648,7 +648,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
           </div>
 
           {/* Donut Chart with Center Text */}
-          <div className="h-[210px] w-full relative flex items-center justify-center">
+          <div className="h-[180px] w-full relative flex items-center justify-center">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -656,8 +656,8 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                     data={donutData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={65}
-                    outerRadius={95}
+                    innerRadius={55}
+                    outerRadius={80}
                     paddingAngle={3}
                     dataKey="value"
                   >
@@ -669,8 +669,8 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                     contentStyle={{
                       backgroundColor: isDarkMode ? '#0f172a' : '#ffffff',
                       borderColor: isDarkMode ? '#334155' : '#cbd5e1',
-                      borderRadius: '12px',
-                      fontSize: '12px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
                       fontWeight: 'bold',
                     }}
                   />
@@ -680,22 +680,22 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
 
             {/* Center Overlay Stats */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{presentPct}%</span>
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">
+              <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{presentPct}%</span>
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">
                 {t('chart.present', 'Ishda')}
               </span>
             </div>
           </div>
 
           {/* Donut Custom Legend Grid */}
-          <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="grid grid-cols-2 gap-1.5 text-xs pt-1.5 border-t border-slate-100 dark:border-slate-800">
             {donutData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <div key={item.name} className="flex items-center justify-between p-1 rounded-md bg-slate-50 dark:bg-slate-800/50">
                 <div className="flex items-center gap-1.5 truncate">
-                  <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                  <span className="font-bold text-slate-700 dark:text-slate-300 text-[11px] truncate">{item.name}</span>
+                  <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="font-bold text-slate-700 dark:text-slate-300 text-[10px] truncate">{item.name}</span>
                 </div>
-                <span className="font-extrabold font-mono text-slate-900 dark:text-white ml-2 text-[11px]">{item.value}</span>
+                <span className="font-extrabold font-mono text-slate-900 dark:text-white ml-1 text-[10px]">{item.value}</span>
               </div>
             ))}
           </div>
@@ -703,20 +703,20 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
       </div>
 
       {/* ── ROW 3: HEADCOUNT BUDGET vs VACANCIES + PERFORMANCE & PAYROLL BONUS TREND ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         {/* SECTION 5: Headcount Budget vs Actual & Open Vacancies Stacked Bar (7 cols) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 space-y-4">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
-                <Building2 className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
+                <Building2 className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                   {t('chart.headcount_title', 'Shtat Rejasi vs Amaldagi Vakansiyalar')}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                   {language === 'kr' ? '부서별 승인 정원 대비 실제 인원 및 공석 (TO)' : 'Rejadagi shtat, amaldagi hodimlar va vakansiyalar (TO) nisbati'}
                 </p>
               </div>
@@ -731,7 +731,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             </button>
           </div>
 
-          <div className="h-[280px] w-full pt-2">
+          <div className="h-[230px] w-full pt-1">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={headcountChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -757,17 +757,17 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         {/* SECTION 6: Performance Score & Payroll Bonus 6-Month Area Chart (5 cols) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 space-y-3 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
-                <Award className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
+                <Award className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                   {t('chart.kpi_trend_title', 'Oylik KPI va Mukofot Pul Dinamikasi')}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                   {language === 'kr' ? '최근 6개월 평균 KPI 점수 및 성과급 지급 추이' : "So'nggi 6 oylik KPI bali va mukofot fondi o'sishi"}
                 </p>
               </div>
@@ -782,7 +782,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             </button>
           </div>
 
-          <div className="h-[280px] w-full pt-2">
+          <div className="h-[230px] w-full pt-1">
             {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendPerformanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -799,12 +799,12 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                     contentStyle={{
                       backgroundColor: isDarkMode ? '#0f172a' : '#ffffff',
                       borderColor: isDarkMode ? '#334155' : '#cbd5e1',
-                      borderRadius: '12px',
-                      fontSize: '12px',
+                      borderRadius: '10px',
+                      fontSize: '11px',
                       fontWeight: 'bold',
                     }}
                   />
-                  <Area type="monotone" dataKey="kpiScore" name="O'rtacha KPI Bali (%)" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#kpiColor)" />
+                  <Area type="monotone" dataKey="kpiScore" name="O'rtacha KPI Bali (%)" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#kpiColor)" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -813,20 +813,20 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
       </div>
 
       {/* ── ROW 4: COMPLIANCE & SAFETY RISK RADAR + PENDING APPROVALS DRAWER ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         {/* SECTION 7: Compliance & Safety Permits Radar Gauges (5 cols) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 space-y-3 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 flex items-center justify-center font-bold">
-                <ShieldCheck className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 flex items-center justify-center font-bold">
+                <ShieldCheck className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                   {t('radar.title', "Med-ko'rik va Xavfsizlik Ruxsatnomalari Qamrovi")}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                   {language === 'kr' ? '법정 의무 검진 및 안전 허가서 이수율 현황' : "HSE majburiy guvohnomalari va tibbiy ko'rik ijrosi"}
                 </p>
               </div>
@@ -841,68 +841,68 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             </button>
           </div>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-3 py-1">
             {/* Progress Bar 1: Med Checkup Valid */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5 text-[11px]">
                   <HeartPulse className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   {t('radar.med_valid', "Tibbiy ko'rik amalda")}
                 </span>
-                <span className="text-emerald-700 dark:text-emerald-400 font-mono">94.5%</span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-mono text-xs">94.5%</span>
               </div>
-              <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: '94.5%' }} />
               </div>
             </div>
 
             {/* Progress Bar 2: Forklift Kara Permit */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5 text-[11px]">
                   <HardHat className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
                   {t('radar.forklift', 'Kara minish ruxsatnomalari')}
                 </span>
-                <span className="text-purple-700 dark:text-purple-400 font-mono">88.2%</span>
+                <span className="text-purple-700 dark:text-purple-400 font-mono text-xs">88.2%</span>
               </div>
-              <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div className="h-full bg-purple-500 rounded-full transition-all duration-500" style={{ width: '88.2%' }} />
               </div>
             </div>
 
             {/* Progress Bar 3: Phone & Security Clearance */}
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="text-slate-700 dark:text-slate-300 flex items-center gap-1.5 text-[11px]">
                   <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-indigo-400" />
                   {t('radar.phone_special', 'Telefon va maxsus ruxsatnomalar')}
                 </span>
-                <span className="text-blue-700 dark:text-indigo-400 font-mono">98.0%</span>
+                <span className="text-blue-700 dark:text-indigo-400 font-mono text-xs">98.0%</span>
               </div>
-              <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div className="h-full bg-blue-600 rounded-full transition-all duration-500" style={{ width: '98.0%' }} />
               </div>
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
-            <span>{language === 'kr' ? '안전 관리 준수율' : 'Xavfsizlik Muvofiqlik Indeksi'}</span>
-            <span className="text-emerald-700 dark:text-emerald-400 font-mono text-sm font-extrabold">93.6 / 100</span>
+          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
+            <span className="text-[11px]">{language === 'kr' ? '안전 관리 준수율' : 'Xavfsizlik Muvofiqlik Indeksi'}</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-mono text-xs font-extrabold">93.6 / 100</span>
           </div>
         </div>
 
         {/* SECTION 8: Pending Approvals Quick Decision Table (7 cols) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4 space-y-3 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 flex items-center justify-center font-bold">
-                <FileClock className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 flex items-center justify-center font-bold">
+                <FileClock className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                   {t('table.pending_title', 'Imzolanishi Kutilayotgan Arizalar Navbati')}
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
                   {language === 'kr' ? '경영진 직속 결재 대기 문서 및 즉시 승인' : 'Tezkor ko\'rib chiqish va 1-click tasdiqlash paneli'}
                 </p>
               </div>
@@ -921,44 +921,44 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             <table className="w-full text-xs">
               <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="px-3 py-2.5 text-left">{t('table.fio', 'F.I.O')}</th>
-                  <th className="px-3 py-2.5 text-left">{t('table.req_type', 'Ariza Turi')}</th>
-                  <th className="px-3 py-2.5 text-center">{t('davomat.col_days', 'Kunlar Soni')}</th>
-                  <th className="px-3 py-2.5 text-left">{t('table.date', 'Yuborilgan Sana')}</th>
-                  <th className="px-3 py-2.5 text-right">{t('table.actions', 'Harakatlar')}</th>
+                  <th className="px-3 py-2 text-left">{t('table.fio', 'F.I.O')}</th>
+                  <th className="px-3 py-2 text-left">{t('table.req_type', 'Ariza Turi')}</th>
+                  <th className="px-3 py-2 text-center">{t('davomat.col_days', 'Kunlar Soni')}</th>
+                  <th className="px-3 py-2 text-left">{t('table.date', 'Yuborilgan Sana')}</th>
+                  <th className="px-3 py-2 text-right">{t('table.actions', 'Harakatlar')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                 {displayPendingRequests.map((req) => (
                   <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-3 py-2.5 font-bold text-slate-900 dark:text-slate-100">
+                    <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 text-xs">
                       <div>{req.employeeName || req.employee?.lastName + ' ' + req.employee?.firstName}</div>
                       <div className="text-[10px] text-slate-500 font-medium">{req.departmentName || req.employee?.currentDepartment?.name}</div>
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td className="px-3 py-2">
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                         {req.type === 'MEHNAT_TATILI' ? (language === 'kr' ? '연차 휴가' : 'Mehnat ta\'tili') : req.type}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-center font-extrabold font-mono text-slate-900 dark:text-white">
+                    <td className="px-3 py-2 text-center font-bold font-mono text-slate-900 dark:text-white text-xs">
                       {req.totalDays} {language === 'kr' ? '일' : 'kun'}
                     </td>
-                    <td className="px-3 py-2.5 font-mono text-slate-600 dark:text-slate-400 font-semibold text-[11px]">
+                    <td className="px-3 py-2 font-mono text-slate-600 dark:text-slate-400 font-medium text-[10px]">
                       {formatDate(req.requestDate || req.createdAt)}
                     </td>
-                    <td className="px-3 py-2.5 text-right">
+                    <td className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleApprovalAction(req.id, 'approve')}
                           disabled={actionLoadingId === req.id}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-sm transition cursor-pointer"
+                          className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-sm transition cursor-pointer"
                         >
                           {t('table.approve', 'Tasdiqlash')}
                         </button>
                         <button
                           onClick={() => handleApprovalAction(req.id, 'reject')}
                           disabled={actionLoadingId === req.id}
-                          className="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 text-slate-700 dark:text-slate-300 hover:text-rose-600 font-bold text-[10px] transition cursor-pointer"
+                          className="px-2 py-1 rounded-md bg-slate-200 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 text-slate-700 dark:text-slate-300 hover:text-rose-600 font-bold text-[10px] transition cursor-pointer"
                         >
                           {t('table.reject', 'Rad etish')}
                         </button>

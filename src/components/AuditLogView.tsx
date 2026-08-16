@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useModuleAccess, ModuleConfig, ModuleStatus } from '@/contexts/ModuleAccessContext';
 import { AnnouncementCreateModal } from './AnnouncementCreateModal';
 import { AnnouncementDetailModal, AnnouncementType } from './AnnouncementDetailModal';
 
@@ -64,31 +65,29 @@ function getActionColor(action: string): string {
 
 // ─── Role Badges ──────────────────────────────────────────────────────────────
 
+// ─── Role Badges ──────────────────────────────────────────────────────────────
+
 function RoleBadge({ role }: { role: string }) {
-  if (role === 'SUPER_ADMIN') {
-    return (
-      <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-full">
-        <Crown className="h-3 w-3 text-amber-600 dark:text-amber-400" /> SUPER_ADMIN
-      </span>
-    );
-  }
-  if (role === 'EXECUTIVE_DIRECTOR') {
-    return (
-      <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-purple-800 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-2 py-0.5 rounded-full">
-        <Briefcase className="h-3 w-3 text-purple-600 dark:text-purple-400" /> EXECUTIVE
-      </span>
-    );
-  }
-  if (role === 'AUDITOR' || role === 'VIEWER_ONLY') {
-    return (
-      <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2 py-0.5 rounded-full">
-        <Eye className="h-3 w-3 text-teal-600 dark:text-teal-400" /> AUDITOR
-      </span>
-    );
-  }
+  const badgeMap: Record<string, { label: string; bg: string; text: string; border: string }> = {
+    SUPER_ADMIN: { label: '⚡ SUPER_ADMIN', bg: 'bg-amber-100 dark:bg-amber-950/80', text: 'text-amber-800 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-800' },
+    CEO: { label: '👑 CEO', bg: 'bg-purple-100 dark:bg-purple-950/80', text: 'text-purple-800 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-800' },
+    DEPUTY_CEO: { label: '💼 DEPUTY_CEO', bg: 'bg-purple-50 dark:bg-purple-950/50', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-700' },
+    HR_DIRECTOR: { label: '👔 HR_DIRECTOR', bg: 'bg-indigo-100 dark:bg-indigo-950/80', text: 'text-indigo-800 dark:text-indigo-300', border: 'border-indigo-300 dark:border-indigo-800' },
+    FINANCE: { label: '💰 FINANCE', bg: 'bg-emerald-100 dark:bg-emerald-950/80', text: 'text-emerald-800 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-800' },
+    CTO: { label: '⚙️ CTO', bg: 'bg-cyan-100 dark:bg-cyan-950/80', text: 'text-cyan-800 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-800' },
+    DIVISION_HEAD: { label: '🏗️ DIVISION_HEAD', bg: 'bg-blue-100 dark:bg-blue-950/80', text: 'text-blue-800 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-800' },
+    HR_OFFICER: { label: '🏢 HR_OFFICER', bg: 'bg-blue-50 dark:bg-blue-950/50', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-700' },
+    DEPT_HEAD: { label: '🏬 DEPT_HEAD', bg: 'bg-amber-50 dark:bg-amber-950/50', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-700' },
+    WORKER: { label: '👤 WORKER', bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700' },
+    EXECUTIVE_DIRECTOR: { label: '💼 EXECUTIVE', bg: 'bg-purple-100 dark:bg-purple-950/80', text: 'text-purple-800 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-800' },
+    AUDITOR: { label: '🔍 AUDITOR', bg: 'bg-teal-100 dark:bg-teal-950/80', text: 'text-teal-800 dark:text-teal-300', border: 'border-teal-300 dark:border-teal-800' },
+  };
+
+  const meta = badgeMap[role] || { label: role, bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-800 dark:text-slate-200', border: 'border-slate-300 dark:border-slate-700' };
+
   return (
-    <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-blue-800 dark:text-indigo-300 bg-blue-100 dark:bg-indigo-950/80 border border-blue-300 dark:border-indigo-800 px-2 py-0.5 rounded-full">
-      <Building className="h-3 w-3 text-blue-600 dark:text-indigo-400" /> HR_OFFICER
+    <span className={`inline-flex items-center gap-1 font-extrabold text-[10px] px-2 py-0.5 rounded-full border ${meta.bg} ${meta.text} ${meta.border}`}>
+      {meta.label}
     </span>
   );
 }
@@ -564,28 +563,70 @@ const UserRegisterModal: React.FC<{
     password: '',
     role: 'HR_OFFICER',
     assignedDepartmentIds: [] as string[],
-    allowedModuleKeys: ['workforce', 'davomat', 'transfers'],
+    allowedModuleKeys: ['workforce', 'davomat', 'transfers', 'arizalar'],
   });
-  const [deptSearch, setDeptSearch] = useState('');
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState('');
 
-  const filteredDepts = departments.filter((d) =>
-    d.name.toLowerCase().includes(deptSearch.toLowerCase()) ||
-    (d.code && d.code.toLowerCase().includes(deptSearch.toLowerCase()))
-  );
+  const [employees, setEmployees]         = useState<any[]>([]);
+  const [empSearch, setEmpSearch]         = useState('');
+  const [loadingEmp, setLoadingEmp]       = useState(false);
+  const [selectedEmpId, setSelectedEmpId] = useState('');
+  const [loading, setLoading]             = useState(false);
+  const [error, setError]                 = useState('');
 
-  const toggleDept = (id: string) => {
-    setForm((f) => ({
-      ...f,
-      assignedDepartmentIds: f.assignedDepartmentIds.includes(id)
-        ? f.assignedDepartmentIds.filter((d) => d !== id)
-        : [...f.assignedDepartmentIds, id],
-    }));
+  // Fetch employees list for Employee binding dropdown
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      setLoadingEmp(true);
+      try {
+        const res = await fetch('/api/employees?limit=200');
+        const data = await res.json();
+        if (data.success) setEmployees(data.employees || []);
+      } catch (e) {
+        console.error('Failed to load employees for binding', e);
+      } finally {
+        setLoadingEmp(false);
+      }
+    };
+    fetchEmployees();
+  }, []);
+
+  const handleSelectEmployee = (empId: string) => {
+    setSelectedEmpId(empId);
+    if (!empId) return;
+    const emp = employees.find((e) => e.id === empId);
+    if (emp) {
+      const full = `${emp.lastName} ${emp.firstName} ${emp.middleName || ''}`.trim();
+      const autoUsername = `${emp.firstName[0]?.toLowerCase() || 'user'}.${(emp.lastName || '').toLowerCase()}`.replace(/[^a-z0-9.]/g, '');
+      setForm((f) => ({
+        ...f,
+        fullName: full,
+        tabelNumber: emp.tabelNumber || '',
+        position: emp.position || '',
+        userDepartmentId: emp.currentDepartmentId || emp.departmentId || f.userDepartmentId,
+        username: autoUsername,
+        email: `${autoUsername}@enterprise-hr.uz`,
+      }));
+    }
   };
 
-  const selectAll = () => setForm((f) => ({ ...f, assignedDepartmentIds: departments.map((d) => d.id) }));
-  const clearAll  = () => setForm((f) => ({ ...f, assignedDepartmentIds: [] }));
+  const filteredEmployees = employees.filter((e) => {
+    const query = empSearch.toLowerCase();
+    const full = `${e.lastName} ${e.firstName} ${e.tabelNumber || ''}`.toLowerCase();
+    return full.includes(query);
+  });
+
+  const WORKFLOW_ROLES = [
+    { id: 'WORKER', label: '👤 WORKER', desc: 'Oddiy Xodim (Ariza beruvchi)' },
+    { id: 'DEPT_HEAD', label: '🏬 DEPT_HEAD', desc: 'Sex / Bo\'lim Boshlig\'i (Stage 1)' },
+    { id: 'HR_OFFICER', label: '🏢 HR_OFFICER', desc: 'HR Bo\'lim Xodimi (Stage 2)' },
+    { id: 'DIVISION_HEAD', label: '🏗️ DIVISION_HEAD', desc: 'Boshqarma Boshlig\'i (Stage 3A)' },
+    { id: 'CTO', label: '⚙️ CTO', desc: 'Texnik Direktor / Bosh Muhandis (Stage 3B)' },
+    { id: 'FINANCE', label: '💰 FINANCE', desc: 'Moliya / Iqtisod Bo\'limi (Stage 4)' },
+    { id: 'HR_DIRECTOR', label: '👔 HR_DIRECTOR', desc: 'HR Boshqarma Direktori (Stage 5)' },
+    { id: 'DEPUTY_CEO', label: '💼 DEPUTY_CEO', desc: 'Bosh Direktor O\'rinbosari (Stage 6A)' },
+    { id: 'CEO', label: '👑 CEO', desc: 'Bosh Direktor (Stage 6 Final E-Signer)' },
+    { id: 'SUPER_ADMIN', label: '⚡ SUPER_ADMIN', desc: 'Tizim Administratori (To\'liq Ruxsat)' },
+  ];
 
   const handleSubmit = async () => {
     if (!form.fullName || !form.tabelNumber || !form.position || !form.username || !form.password) {
@@ -614,15 +655,50 @@ const UserRegisterModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden">
+      <div className="w-full max-w-3xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50 dark:bg-slate-900/90">
           <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-2">
-            <UserIcon className="h-4 w-4 text-blue-600 dark:text-indigo-400" /> Yangi Foydalanuvchi Ro'yxatdan O'tkazish
+            <UserIcon className="h-4 w-4 text-blue-600 dark:text-indigo-400" /> Yangi Foydalanuvchi Ro'yxatdan O'tkazish (Tabel № Link & 10 Role Matrix)
           </h3>
           <button onClick={onClose}><X className="h-4 w-4 text-slate-500 hover:text-slate-900 dark:hover:text-white" /></button>
         </div>
 
         <div className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
+          {/* Section 1: Employee Binding (Tabel № Link) */}
+          <div className="p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-blue-900 dark:text-blue-300 font-extrabold flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span>1. Xodim Profilidan Biriktirish (Tabel № Link)</span>
+              </label>
+              {loadingEmp && <span className="text-[10px] text-blue-600 font-bold animate-pulse">Xodimlar yuklanmoqda...</span>}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <select
+                value={selectedEmpId}
+                onChange={(e) => handleSelectEmployee(e.target.value)}
+                className="w-full rounded-xl border border-blue-300 dark:border-blue-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+              >
+                <option value="">-- Module 2 Xodimlari Ro'yxatidan Tanlang --</option>
+                {employees.map((emp) => (
+                  <option key={emp.id} value={emp.id}>
+                    [{emp.tabelNumber}] {emp.lastName} {emp.firstName} ({emp.position})
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="text"
+                value={empSearch}
+                onChange={(e) => setEmpSearch(e.target.value)}
+                placeholder="Qidiruv: Ism yoki Tabel №..."
+                className="w-full rounded-xl border border-blue-300 dark:border-blue-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Section 2: Personal & Credentials Details */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
               <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">F.I.O. (To'liq Ismi) *</label>
@@ -650,12 +726,12 @@ const UserRegisterModal: React.FC<{
               <input
                 value={form.position}
                 onChange={(e) => setForm({ ...form, position: e.target.value })}
-                placeholder="Kadrlar bo'limi inspektori"
+                placeholder="Bo'lim boshlig'i / HR Mutaxassis"
                 className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Asosiy Ish Bo'limi (Home Dept)</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Asosiy Ish Bo'limi (Home Department Binding) *</label>
               <select
                 value={form.userDepartmentId}
                 onChange={(e) => setForm({ ...form, userDepartmentId: e.target.value })}
@@ -701,40 +777,39 @@ const UserRegisterModal: React.FC<{
             </div>
           </div>
 
+          {/* Section 3: 10 Granular Workflow System Roles */}
           <div>
-            <label className="text-slate-700 dark:text-slate-300 font-bold mb-2 block">Tizimdagi Roli (System Role) *</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { id: 'SUPER_ADMIN', label: '👑 SUPER_ADMIN', desc: 'Barcha bo\'limlarga to\'liq tahrirlash' },
-                { id: 'EXECUTIVE_DIRECTOR', label: '💼 EXECUTIVE', desc: 'Kompaniya bo\'yicha ko\'rish & hisobotlar' },
-                { id: 'HR_OFFICER', label: '🏢 HR_OFFICER', desc: 'Biriktirilgan bo\'limlarda tahrirlash' },
-                { id: 'AUDITOR', label: '🔍 AUDITOR', desc: 'Muvofiqlik va HSE bo\'yicha auditor' },
-              ].map((r) => {
+            <label className="text-slate-700 dark:text-slate-300 font-bold mb-2 block flex items-center justify-between">
+              <span>Tizimdagi Workflow Roli (Approval Hierarchy Role) *</span>
+              <span className="text-[10px] text-blue-600 dark:text-indigo-400 font-mono font-bold">10 Ruxsat Darajasi</span>
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {WORKFLOW_ROLES.map((r) => {
                 const isSelected = form.role === r.id;
                 return (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => setForm({ ...form, role: r.id })}
-                    className={`p-3 rounded-xl border text-left transition ${
+                    className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
                       isSelected
-                        ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 text-indigo-900 dark:text-white font-bold shadow-sm'
-                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                        ? 'bg-blue-50 dark:bg-indigo-950/60 border-blue-500 dark:border-indigo-500 text-blue-900 dark:text-white font-bold shadow-sm ring-1 ring-blue-500'
+                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <div className="font-extrabold text-[11px]">{r.label}</div>
-                    <div className="text-[9px] text-slate-600 dark:text-slate-400 mt-1 leading-tight">{r.desc}</div>
+                    <div className="font-extrabold text-[11px] truncate">{r.label}</div>
+                    <div className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight line-clamp-2">{r.desc}</div>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {error && <div className="text-rose-600 font-bold text-xs p-2 bg-rose-50 rounded-xl">{error}</div>}
+          {error && <div className="text-rose-600 font-bold text-xs p-2.5 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-800">{error}</div>}
 
           <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
-            <button onClick={onClose} className="rounded-xl bg-slate-200 dark:bg-slate-800 px-4 py-2 font-bold text-slate-800 dark:text-slate-300">Bekor</button>
-            <button onClick={handleSubmit} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 text-white px-6 py-2.5 font-bold shadow-sm cursor-pointer">
+            <button onClick={onClose} className="rounded-xl bg-slate-200 dark:bg-slate-800 px-4 py-2 font-bold text-slate-800 dark:text-slate-300 cursor-pointer">Bekor</button>
+            <button onClick={handleSubmit} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 font-bold shadow-sm transition active:scale-95 cursor-pointer">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Ro'yxatdan O'tkazish
             </button>
@@ -910,6 +985,260 @@ const HrUserPanel: React.FC<{ departments: any[]; onOpenAddEmployee?: () => void
   );
 };
 
+// ─── ModuleEditModal Component ───────────────────────────────────────────────
+
+const ModuleEditModal: React.FC<{
+  moduleConfig: ModuleConfig;
+  onClose: () => void;
+  onSave: (updates: Partial<ModuleConfig>) => void;
+}> = ({ moduleConfig, onClose, onSave }) => {
+  const { language } = useLanguage();
+  const [msgUz, setMsgUz] = useState(moduleConfig.message_uz);
+  const [msgKr, setMsgKr] = useState(moduleConfig.message_kr);
+  const [estTime, setEstTime] = useState(moduleConfig.estimated_completion);
+  const [status, setStatus] = useState<ModuleStatus>(moduleConfig.status);
+
+  const handleFormSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      message_uz: msgUz,
+      message_kr: msgKr,
+      estimated_completion: estTime,
+      status,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <Wrench className="h-4 w-4 text-amber-500" />
+            <span>{moduleConfig.name_uz} ({moduleConfig.name_kr}) — Tahrirlash</span>
+          </h3>
+          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleFormSave} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as ModuleStatus)}
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none"
+            >
+              <option value="ACTIVE">🟢 Faol (Ochiq)</option>
+              <option value="MAINTENANCE">🟠 Texnik Xizmatda</option>
+              <option value="COMING_SOON">🔵 Tez Kunda</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Profilaktika Xabari (O'zbekcha)</label>
+            <textarea
+              rows={2}
+              value={msgUz}
+              onChange={(e) => setMsgUz(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Profilaktika Xabari (한국어)</label>
+            <textarea
+              rows={2}
+              value={msgKr}
+              onChange={(e) => setMsgKr(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Taxminiy Yakunlanish Vaqti</label>
+            <input
+              type="text"
+              value={estTime}
+              onChange={(e) => setEstTime(e.target.value)}
+              placeholder="e.g. 18:00 (Bugun)"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold transition cursor-pointer"
+            >
+              {language === 'kr' ? '취소' : 'Bekor qilish'}
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md transition cursor-pointer"
+            >
+              {language === 'kr' ? '저장' : 'Saqlash'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── ModuleAccessControlPanel Component ─────────────────────────────────────
+
+const ModuleAccessControlPanel: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { modules, toggleModuleStatus, updateModuleConfig, resetAllModules } = useModuleAccess();
+  const [editingModuleKey, setEditingModuleKey] = useState<string | null>(null);
+
+  const moduleList = Object.values(modules);
+  const editingModule = editingModuleKey ? modules[editingModuleKey] : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Top Banner with Reset Button */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl shadow-sm flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold">
+            <SlidersHorizontal className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              {t('moduleControl.title', "Modullar va Menyular Boshqaruvi Engine")}
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                {moduleList.length} Modul
+              </span>
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              {language === 'kr' ? '모듈별 점검 상태, 접근 권한 및 안내 메시지 통합 관리' : "Modullar faolligi, texnik profilaktika xabarlari va rollar ruxsatini real-vaqt rejimida boshqarish"}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={resetAllModules}
+          className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer"
+        >
+          {language === 'kr' ? '초기화 (모두 사용 가능)' : 'Barcha Modullarni Tiklash'}
+        </button>
+      </div>
+
+      {/* Modules Table */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] border-b border-slate-300 dark:border-slate-700 tracking-wider">
+              <tr>
+                <th className="px-4 py-3 text-left">Modul Nomi</th>
+                <th className="px-4 py-3 text-center">Hozirgi Status</th>
+                <th className="px-4 py-3 text-center">Quick Toggle</th>
+                <th className="px-4 py-3 text-left">Profilaktika Xabari (UZ/KR)</th>
+                <th className="px-4 py-3 text-center">Ruxsat Berilgan Rollar</th>
+                <th className="px-4 py-3 text-right">Harakatlar</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              {moduleList.map((m) => {
+                const name = language === 'kr' ? m.name_kr : m.name_uz;
+                const msg = language === 'kr' ? m.message_kr : m.message_uz;
+                return (
+                  <tr key={m.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    {/* Name & Key */}
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-slate-900 dark:text-slate-100 text-xs">{name}</div>
+                      <span className="font-mono text-[10px] text-slate-400">key: {m.key}</span>
+                    </td>
+
+                    {/* Status Select */}
+                    <td className="px-4 py-3 text-center">
+                      <select
+                        value={m.status}
+                        onChange={(e) => toggleModuleStatus(m.key, e.target.value as ModuleStatus)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border cursor-pointer focus:outline-none ${
+                          m.status === 'ACTIVE'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                            : m.status === 'MAINTENANCE'
+                            ? 'bg-amber-50 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                            : 'bg-blue-50 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800'
+                        }`}
+                      >
+                        <option value="ACTIVE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">🟢 {t('moduleControl.status_active', 'Faol (Ochiq)')}</option>
+                        <option value="MAINTENANCE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">🟠 {t('moduleControl.status_maintenance', 'Texnik Xizmatda')}</option>
+                        <option value="COMING_SOON" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">🔵 {t('moduleControl.status_coming_soon', 'Tez Kunda')}</option>
+                      </select>
+                    </td>
+
+                    {/* Quick Toggle Switch */}
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => toggleModuleStatus(m.key)}
+                        className={`px-3 py-1 rounded-full text-[10px] font-extrabold transition-all cursor-pointer ${
+                          m.status === 'ACTIVE'
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                            : 'bg-amber-500 text-white hover:bg-amber-600'
+                        }`}
+                      >
+                        {m.status === 'ACTIVE' ? 'ON 🟢' : 'OFF 🔴'}
+                      </button>
+                    </td>
+
+                    {/* Message Preview */}
+                    <td className="px-4 py-3 max-w-[240px]">
+                      <div className="text-[11px] text-slate-700 dark:text-slate-300 font-medium line-clamp-1" title={msg}>
+                        {msg}
+                      </div>
+                      <div className="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-bold">
+                        ⏱️ {m.estimated_completion}
+                      </div>
+                    </td>
+
+                    {/* Allowed Roles */}
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-1 flex-wrap">
+                        {m.allowed_roles.map((role) => (
+                          <span key={role} className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            {role}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => setEditingModuleKey(m.key)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold transition cursor-pointer"
+                      >
+                        <Edit className="h-3 w-3" />
+                        <span>{language === 'kr' ? '편집' : 'Tahrirlash'}</span>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Edit Modal */}
+      {editingModule && (
+        <ModuleEditModal
+          moduleConfig={editingModule}
+          onClose={() => setEditingModuleKey(null)}
+          onSave={(updates) => {
+            updateModuleConfig(editingModule.key, updates);
+            setEditingModuleKey(null);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
 // ─── Main AuditLogView Component ──────────────────────────────────────────────
 
 interface AuditLogViewProps {
@@ -919,7 +1248,7 @@ interface AuditLogViewProps {
 
 export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], onOpenAddEmployee }) => {
   const { t, language } = useLanguage();
-  const [activeSection, setActiveSection] = useState<'logs' | 'announcements' | 'users'>('logs');
+  const [activeSection, setActiveSection] = useState<'logs' | 'users' | 'announcements' | 'modules'>('logs');
   const [logs, setLogs]         = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
@@ -953,41 +1282,44 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], on
   const hasFilters = search || actionFilter !== 'ALL' || dateFrom || dateTo;
 
   return (
-    <div className="space-y-5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
+    <div className="space-y-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-slate-700 dark:bg-slate-800 text-white flex items-center justify-center shadow-sm">
-              <ShieldAlert className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-slate-700 dark:bg-slate-800 text-white flex items-center justify-center shadow-sm shrink-0">
+              <ShieldAlert className="h-4 w-4 text-white" />
             </div>
             {language === 'kr' ? '시스템 감사 및 공지사항 관리' : 'Tizim Auditi va E\'lonlar Markazi'}
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
             {language === 'kr' ? '인사 시스템 감사 로그, 시스템 공지사항 및 2D RBAC 권한 관리' : "HR amallarining to'liq audit logi, tizim e'lonlari va 2D ruxsatlar boshqaruvi (RBAC)"}
           </p>
         </div>
       </div>
 
-      {/* Section Tabs */}
-      <div className="flex rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 p-1 shadow-sm">
+      {/* Section Tabs Bar */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-xl shadow-sm flex flex-wrap gap-2 mb-4">
         {[
-          { id: 'logs',  label: language === 'kr' ? '감사 로그' : 'Audit Loglari', icon: Activity },
-          { id: 'announcements', label: t('announcements.manage_tab', "📢 Tizim E'lonlari Boshqaruvi"), icon: Megaphone },
-          { id: 'users', label: language === 'kr' ? 'HR 사용자 & RBAC' : 'HR Foydalanuvchilar & RBAC', icon: UserIcon },
+          { id: 'logs',          label: language === 'kr' ? '📋 감사 로그' : '📋 Tizim Harakatlari Auditi', icon: Activity },
+          { id: 'users',         label: language === 'kr' ? '👤 사용자 관리 & RBAC' : '👤 Foydalanuvchilar Boshqaruvi', icon: UserIcon },
+          { id: 'announcements', label: language === 'kr' ? '📢 시스템 공지사항 센터' : "📢 Tizim E'lonlari Markazi", icon: Megaphone },
+          { id: 'modules',       label: language === 'kr' ? '🎛 모듈 및 메뉴 관리' : '🎛 Modullar Boshqaruvi', icon: SlidersHorizontal },
         ].map((s) => {
           const Icon = s.icon;
+          const isActive = activeSection === s.id;
           return (
             <button
               key={s.id}
               onClick={() => setActiveSection(s.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                activeSection === s.id
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-extrabold'
-                  : 'text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+              className={`px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer ${
+                isActive
+                  ? 'bg-blue-600 text-white font-bold shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
-              <Icon className="h-4 w-4 text-blue-600 dark:text-indigo-400" />{s.label}
+              <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
+              <span>{s.label}</span>
             </button>
           );
         })}
@@ -1115,14 +1447,19 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], on
         </div>
       )}
 
-      {/* ── Section 2: Announcements Admin Control Panel ── */}
+      {/* ── Section 2: HR Users & RBAC ── */}
+      {activeSection === 'users' && (
+        <HrUserPanel departments={departments} onOpenAddEmployee={onOpenAddEmployee} />
+      )}
+
+      {/* ── Section 3: Announcements Admin Control Panel ── */}
       {activeSection === 'announcements' && (
         <AnnouncementAdminPanel />
       )}
 
-      {/* ── Section 3: HR Users & RBAC ── */}
-      {activeSection === 'users' && (
-        <HrUserPanel departments={departments} onOpenAddEmployee={onOpenAddEmployee} />
+      {/* ── Section 4: Module Access & Maintenance Control Panel ── */}
+      {activeSection === 'modules' && (
+        <ModuleAccessControlPanel />
       )}
     </div>
   );

@@ -88,6 +88,14 @@ export const translations: Record<Language, Record<string, string>> = {
     'announcements.draft': "Qoralama",
     'announcements.detail_title': "Tizim Yangilanishi Tafsilotlari",
     'announcements.manage_tab': "📢 Tizim E'lonlari Boshqaruvi",
+    'announcements.center_tab': "📢 Tizim E'lonlari Markazi",
+    'nav.moduleControl': "🎛 Modullar va Menyular Boshqaruvi",
+    'moduleControl.title': "Modullar va Menyular Boshqaruvi Engine",
+    'moduleControl.status_active': "Faol (Ochiq)",
+    'moduleControl.status_maintenance': "Texnik Xizmatda",
+    'moduleControl.status_coming_soon': "Tez Kunda",
+    'moduleControl.msg_label': "Profilaktika Xabari",
+    'moduleControl.est_time_label': "Taxminiy Yakunlanish Vaqti",
 
     // Module 2 Page Header & Top Metric Cards (`emp`)
     'emp.title': 'Xodimlar Bazasi va Profil Kartalari',
@@ -556,6 +564,14 @@ export const translations: Record<Language, Record<string, string>> = {
     'announcements.draft': "임시 저장",
     'announcements.detail_title': "시스템 공지사항 상세 내용",
     'announcements.manage_tab': "📢 시스템 공지사항 관리",
+    'announcements.center_tab': "📢 시스템 공지사항 센터",
+    'nav.moduleControl': "🎛 모듈 및 메뉴 관리",
+    'moduleControl.title': "모듈 및 메뉴 관리 엔진",
+    'moduleControl.status_active': "사용 가능",
+    'moduleControl.status_maintenance': "시스템 점검 중",
+    'moduleControl.status_coming_soon': "출시 예정",
+    'moduleControl.msg_label': "점검 안내 메시지",
+    'moduleControl.est_time_label': "완료 예정 시간",
 
     // Module 2 Page Header & Top Metric Cards (`emp`)
     'emp.title': '임직원 데이터베이스 및 프로필 카드',
