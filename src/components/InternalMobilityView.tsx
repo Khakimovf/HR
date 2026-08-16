@@ -17,6 +17,7 @@ import {
 import { formatDate } from '@/lib/utils';
 import { TransferWizardModal } from '@/components/TransferWizardModal';
 import { DepartmentConfigModal } from '@/components/DepartmentConfigModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DepartmentItem {
   id: string;
@@ -48,6 +49,8 @@ interface TransferRecord {
 }
 
 export const InternalMobilityView: React.FC = () => {
+  const { t, language } = useLanguage();
+
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -126,16 +129,16 @@ export const InternalMobilityView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* ── TOP HEADER & PRIMARY ACTIONS ── */}
-      <div className="glass-panel rounded-2xl p-6 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
-            <ArrowLeftRight className="h-6 w-6 text-indigo-400" />
-            <span>Bo'limlararo Ko'chish Tarixi (Internal Mobility Logs)</span>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <ArrowLeftRight className="h-6 w-6 text-blue-600 dark:text-indigo-400" />
+            <span>{t('mobility.title', "Bo'limlararo Ko'chish Tarixi")}</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Xodimlarning bir bo'limdan boshqasiga o'tkazilish tarixi, shtat sig'imi nazorati va buyruqlar logi
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
+            {t('mobility.subtitle', "Xodimlarning bo'limlararo o'tishi va lavozim o'zgarishlari jurnali")}
           </p>
         </div>
 
@@ -143,37 +146,37 @@ export const InternalMobilityView: React.FC = () => {
           {/* Action 1: Config Modal */}
           <button
             onClick={() => handleOpenConfigWithDept()}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 px-4 py-2.5 text-xs font-bold hover:bg-amber-500/10 hover:border-amber-500/60 transition active:scale-95"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-4 py-2.5 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-sm"
           >
-            <Settings className="h-4 w-4" />
-            <span>⚙️ Bo'lim va Shtat Sozlamalari</span>
+            <Settings className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <span>⚙️ {language === 'kr' ? '부서 및 정원 설정' : "Bo'lim va Shtat Sozlamalari"}</span>
           </button>
 
           {/* Action 2: New Transfer Wizard */}
           <button
             onClick={() => setIsWizardOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:from-indigo-500 hover:to-purple-500 transition active:scale-95"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 text-xs font-bold shadow-sm transition active:scale-95 cursor-pointer"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>+ Yangi Ko'chirish Buyrug'i</span>
+            <span>{t('mobility.new_btn', "+ Yangi Ko'chirish Yozuvini Qo'shish")}</span>
           </button>
         </div>
       </div>
 
       {/* ── FILTERS BAR ── */}
-      <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-3">
+      <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
-            <Filter className="h-3.5 w-3.5 text-indigo-400" />
-            Ko'chirish Loglarini Qidirish va Filtrlar
+          <span className="text-[11px] uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+            <Filter className="h-3.5 w-3.5 text-blue-600 dark:text-indigo-400" />
+            {language === 'kr' ? '전보 이력 검색 및 필터' : "Ko'chirish Loglarini Qidirish va Filtrlar"}
           </span>
           {activeFiltersCount > 0 && (
             <button
               onClick={resetFilters}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 transition"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline transition cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Filtrlarni Tozalash ({activeFiltersCount})
+              {language === 'kr' ? '필터 초기화' : 'Filtrlarni Tozalash'} ({activeFiltersCount})
             </button>
           )}
         </div>
@@ -181,34 +184,34 @@ export const InternalMobilityView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* 1. Live Text Search */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-              Qidiruv (Tabel / FIO / Buyruq №):
+            <label className="block text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 mb-1">
+              {t('mobility.search', 'Qidiruv (F.I.O, Tabel №)...')}
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
               <input
                 type="text"
                 value={searchVal}
                 onChange={(e) => setSearchVal(e.target.value)}
-                placeholder="TB-8090, Ism, BUYRUK..."
-                className="w-full rounded-xl bg-slate-950 border border-slate-700/80 py-2 pl-9 pr-3 text-xs text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+                placeholder={language === 'kr' ? '사번, 성명, 발령 번호...' : 'TB-8090, Ism, BUYRUK...'}
+                className="w-full rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 py-2 pl-9 pr-3 text-xs placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium"
               />
             </div>
           </div>
 
           {/* 2. From Department Filter */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-              Qaysi Bo'limdan:
+            <label className="block text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 mb-1">
+              {t('mobility.col_old', "Eski Bo'lim / Lavozim")}:
             </label>
             <select
               value={fromDeptId}
               onChange={(e) => setFromDeptId(e.target.value)}
-              className="w-full rounded-xl bg-slate-950 border border-slate-700/80 py-2 px-3 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 py-2 px-3 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
             >
-              <option value="">-- Barcha Chiquvchi Bo'limlar --</option>
+              <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">-- {language === 'kr' ? '전체 이전 부서' : "Barcha Chiquvchi Bo'limlar"} --</option>
               {departments.map((d) => (
-                <option key={d.id} value={d.id}>
+                <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                   [{d.code}] {d.name}
                 </option>
               ))}
@@ -217,17 +220,17 @@ export const InternalMobilityView: React.FC = () => {
 
           {/* 3. To Department Filter */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-              Qaysi Bo'limga (Nishon):
+            <label className="block text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 mb-1">
+              {t('mobility.col_new', "Yangi Bo'lim / Lavozim")}:
             </label>
             <select
               value={toDeptId}
               onChange={(e) => setToDeptId(e.target.value)}
-              className="w-full rounded-xl bg-slate-950 border border-slate-700/80 py-2 px-3 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 py-2 px-3 text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
             >
-              <option value="">-- Barcha Kiruvchi Bo'limlar --</option>
+              <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">-- {language === 'kr' ? '전체 발령 부서' : "Barcha Kiruvchi Bo'limlar"} --</option>
               {departments.map((d) => (
-                <option key={d.id} value={d.id}>
+                <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                   [{d.code}] {d.name}
                 </option>
               ))}
@@ -236,83 +239,91 @@ export const InternalMobilityView: React.FC = () => {
 
           {/* 4. Date From */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-              Sanadan (Dan):
+            <label className="block text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 mb-1">
+              {language === 'kr' ? '시작 일자:' : 'Sanadan (Dan):'}
             </label>
             <input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="w-full rounded-xl bg-slate-950 border border-slate-700/80 py-2 px-3 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 py-2 px-3 text-xs font-mono font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
 
           {/* 5. Date To */}
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-              Sanagacha (Gacha):
+            <label className="block text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 mb-1">
+              {language === 'kr' ? '종료 일자:' : 'Sanagacha (Gacha):'}
             </label>
             <input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="w-full rounded-xl bg-slate-950 border border-slate-700/80 py-2 px-3 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 py-2 px-3 text-xs font-mono font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* ── ENHANCED LOGS TABLE ── */}
-      <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <span>Bo'limlararo Ko'chirish Jurnali</span>
-            <span className="text-xs font-mono text-indigo-400">({transfers.length} ta yozuv)</span>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>{t('mobility.title', "Bo'limlararo Ko'chish Tarixi")}</span>
+            <span className="text-xs font-mono font-bold text-blue-700 dark:text-indigo-400">({transfers.length} {language === 'kr' ? '건' : 'ta yozuv'})</span>
           </h3>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase tracking-wider border-b border-slate-300 dark:border-slate-700 text-[10px]">
               <tr>
-                <th className="px-4 py-3.5">Xodim (Tabel №)</th>
-                <th className="px-4 py-3.5">Qaysi Bo'limdan</th>
-                <th className="px-4 py-3.5">Qaysi Bo'limga</th>
-                <th className="px-4 py-3.5">Buyruq Raqami</th>
-                <th className="px-4 py-3.5">Ko'chish Sanasi</th>
-                <th className="px-4 py-3.5">Asosi / Sababi</th>
+                <th className="px-4 py-3.5">{t('mobility.col_fio', 'F.I.O')} ({t('mobility.col_tabel', 'Tabel №')})</th>
+                <th className="px-4 py-3.5">{t('mobility.col_old', "Eski Bo'lim / Lavozim")}</th>
+                <th className="px-4 py-3.5">{t('mobility.col_new', "Yangi Bo'lim / Lavozim")}</th>
+                <th className="px-4 py-3.5">{t('mobility.col_order', 'Buyruq № va Sana')}</th>
+                <th className="px-4 py-3.5">{t('transfer_modal.effective_date', 'Kuchga Kirish Sanasi')}</th>
+                <th className="px-4 py-3.5">{t('mobility.col_reason', "Ko'chish Sababi / Asos")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-400">
-                    <Loader2 className="h-5 w-5 animate-spin inline mr-2 text-indigo-400" />
-                    Ko'chirish loglari yuklanmoqda...
+                  <td colSpan={6} className="text-center py-10 text-slate-600 dark:text-slate-400 font-medium">
+                    <Loader2 className="h-5 w-5 animate-spin inline mr-2 text-blue-600 dark:text-indigo-400" />
+                    {language === 'kr' ? '부서 이동 데이터를 불러오는 중입니다...' : "Ko'chirish loglari yuklanmoqda..."}
                   </td>
                 </tr>
               ) : transfers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-400">
-                    Tanlangan filtrlarga mos keluvchi ko'chirish yozuvlari topilmadi
+                  <td colSpan={6} className="text-center py-10 text-slate-600 dark:text-slate-400 font-medium">
+                    {language === 'kr' ? '해당 필터에 일치하는 부서 이동 이력이 없습니다.' : "Tanlangan filtrlarga mos keluvchi ko'chirish yozuvlari topilmadi"}
                   </td>
                 </tr>
               ) : (
                 transfers.map((tr) => (
-                  <tr key={tr.id} className="hover:bg-slate-900/60 transition group">
-                    <td className="px-4 py-3 font-semibold text-slate-200">
-                      <span className="font-mono text-indigo-400 mr-2">[{tr.employee?.tabelNumber}]</span>
+                  <tr key={tr.id} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                    <td className="px-4 py-3 font-bold text-slate-900 dark:text-slate-100">
+                      <span className="font-mono text-blue-700 dark:text-indigo-400 font-bold mr-2 text-[11px]">[{tr.employee?.tabelNumber}]</span>
                       {tr.employee?.lastName} {tr.employee?.firstName}
                     </td>
-                    <td className="px-4 py-3 font-medium text-rose-300">
-                      {tr.fromDepartment ? `[${tr.fromDepartment.code}] ${tr.fromDepartment.name}` : '—'}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-medium px-2.5 py-1 rounded-md text-xs">
+                        {tr.fromDepartment ? `[${tr.fromDepartment.code}] ${tr.fromDepartment.name}` : '—'}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 font-medium text-emerald-300">
-                      {tr.toDepartment ? `[${tr.toDepartment.code}] ${tr.toDepartment.name}` : '—'}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold px-2.5 py-1 rounded-md text-xs">
+                        {tr.toDepartment ? `[${tr.toDepartment.code}] ${tr.toDepartment.name}` : '—'}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold text-indigo-300">{tr.orderNumber}</td>
-                    <td className="px-4 py-3 font-mono text-slate-400">{formatDate(tr.transferDate)}</td>
-                    <td className="px-4 py-3 text-slate-300">{tr.reason || 'Kadrlar rotatsiyasi va ichki ko\'chirish'}</td>
+                    <td className="px-4 py-3 font-mono font-bold">
+                      <span className="bg-blue-50 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-semibold px-2 py-0.5 rounded text-xs">
+                        {language === 'kr' ? `발령 번호 ${tr.orderNumber}` : tr.orderNumber}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400 text-xs font-bold">{formatDate(tr.transferDate)}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-xs italic font-medium">{tr.reason || (language === 'kr' ? '인력 순환 및 부서 이동' : "Kadrlar rotatsiyasi va ichki ko'chirish")}</td>
                   </tr>
                 ))
               )}

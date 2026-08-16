@@ -25,32 +25,7 @@ import {
 import { LeaveCreationModal, LEAVE_TYPES } from './LeaveCreationModal';
 import { formatDate } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-
-// ─── Type Metadata ────────────────────────────────────────────────────────────
-
-const TYPE_META: Record<string, { label: string; short: string; bgClass: string; textClass: string; borderClass: string }> = {
-  MEHNAT_TATILI:        { label: "Mehnat ta'tili",   short: 'M/T',  bgClass: 'bg-blue-500/15',   textClass: 'text-blue-300',   borderClass: 'border-blue-500/30' },
-  MT:                   { label: "Mehnat ta'tili",   short: 'M/T',  bgClass: 'bg-blue-500/15',   textClass: 'text-blue-300',   borderClass: 'border-blue-500/30' },
-  SICK_LEAVE_BL:        { label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L',  bgClass: 'bg-rose-500/15',   textClass: 'text-rose-300',   borderClass: 'border-rose-500/30' },
-  BL:                   { label: "Vaqtincha mehnatka layoqatsizlik", short: 'B/L',  bgClass: 'bg-rose-500/15',   textClass: 'text-rose-300',   borderClass: 'border-rose-500/30' },
-  BS_UNPAID:            { label: "O'z hisobidan ta'til", short: 'B/S', bgClass: 'bg-amber-500/15',  textClass: 'text-amber-300',  borderClass: 'border-amber-500/30' },
-  BS:                   { label: "O'z hisobidan ta'til", short: 'B/S', bgClass: 'bg-amber-500/15',  textClass: 'text-amber-300',  borderClass: 'border-amber-500/30' },
-  OQISH_TATILI:         { label: "O'qish davri uchun qo'shimcha ta'til", short: "O'Q", bgClass: 'bg-purple-500/15', textClass: 'text-purple-300', borderClass: 'border-purple-500/30' },
-  OTGUL:                { label: 'Kechikish / soatli ruxsatnoma', short: 'OTG',  bgClass: 'bg-teal-500/15',   textClass: 'text-teal-300',   borderClass: 'border-teal-500/30' },
-  ADMIN_TATIL:          { label: "Administrativ ta'til", short: 'ADM',  bgClass: 'bg-indigo-500/15', textClass: 'text-indigo-300', borderClass: 'border-indigo-500/30' },
-  KECHIKISH_RUXSATNOMA: { label: 'Kechikish / soatli ruxsatnoma', short: 'KECH', bgClass: 'bg-orange-500/15', textClass: 'text-orange-300', borderClass: 'border-orange-500/30' },
-  LATE_ARRIVAL:         { label: 'Kechikish / soatli ruxsatnoma', short: 'KECH', bgClass: 'bg-orange-500/15', textClass: 'text-orange-300', borderClass: 'border-orange-500/30' },
-  PROGUL:               { label: 'Devonsizlik', short: 'PRG',  bgClass: 'bg-red-600/15',    textClass: 'text-red-400',    borderClass: 'border-red-500/30' },
-  STUDY_LEAVE:          { label: "O'qish davri uchun qo'shimcha ta'til", short: "O'Q", bgClass: 'bg-purple-500/15', textClass: 'text-purple-300', borderClass: 'border-purple-500/30' },
-  MILITARY_DUTY:        { label: 'Harbiy', short: 'HRB',  bgClass: 'bg-slate-500/15',  textClass: 'text-slate-300',  borderClass: 'border-slate-500/30' },
-};
-
-const STATUS_META: Record<string, { label: string; bgClass: string; textClass: string; borderClass: string }> = {
-  ACTIVE:    { label: 'Faol',         bgClass: 'bg-emerald-500/15', textClass: 'text-emerald-400', borderClass: 'border-emerald-500/30' },
-  APPROVED:  { label: 'Tasdiqlangan', bgClass: 'bg-emerald-500/15', textClass: 'text-emerald-400', borderClass: 'border-emerald-500/30' },
-  COMPLETED: { label: 'Tugallangan',  bgClass: 'bg-slate-500/15',   textClass: 'text-slate-400',   borderClass: 'border-slate-700' },
-  CANCELLED: { label: 'Bekor',        bgClass: 'bg-rose-500/10',    textClass: 'text-rose-400',    borderClass: 'border-rose-500/20' },
-};
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ─── Month Calendar / Gantt helpers ──────────────────────────────────────────
 
@@ -62,33 +37,25 @@ function getMonthStart(year: number, month: number) {
   return new Date(year, month, 1).getDay(); // 0=Sun
 }
 
-const MONTH_NAMES = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
-const DAY_NAMES   = ['Dush', 'Sesh', 'Chor', 'Pay', 'Juma', 'Shan', 'Yak'];
+const MONTH_NAMES_UZ = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+const MONTH_NAMES_KR = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+
+const DAY_NAMES_UZ   = ['Dush', 'Sesh', 'Chor', 'Pay', 'Juma', 'Shan', 'Yak'];
+const DAY_NAMES_KR   = ['월', '화', '수', '목', '금', '토', '일'];
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
 const StatCard = ({ label, value, icon: Icon, colorClass }: { label: string; value: number; icon: any; colorClass: string }) => (
-  <div className={`glass-card rounded-2xl p-4 border ${colorClass} flex items-center gap-4`}>
-    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${colorClass.replace('border-', 'bg-').replace('/30', '/20')}`}>
-      <Icon className={`h-5 w-5 ${colorClass.replace('border-', 'text-').replace('/30', '')}`} />
+  <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500 transition-all flex items-center gap-4">
+    <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
+      <Icon className="h-5 w-5" />
     </div>
     <div>
-      <div className="text-2xl font-extrabold text-white">{value}</div>
-      <div className="text-[11px] text-slate-400">{label}</div>
+      <div className="text-2xl font-extrabold text-slate-900 dark:text-white">{value}</div>
+      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">{label}</div>
     </div>
   </div>
 );
-
-// ─── Type Badge ───────────────────────────────────────────────────────────────
-
-const TypeBadge = ({ type }: { type: string }) => {
-  const meta = TYPE_META[type] || { label: type, short: type, bgClass: 'bg-slate-700', textClass: 'text-slate-300', borderClass: 'border-slate-600' };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border ${meta.bgClass} ${meta.textClass} ${meta.borderClass}`}>
-      {meta.short}
-    </span>
-  );
-};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -98,6 +65,8 @@ interface DavomatViewProps {
 
 export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) => {
   const { isReadOnly } = useAuth();
+  const { t, language } = useLanguage();
+
   const [leaves, setLeaves]             = useState<any[]>([]);
   const [stats, setStats]               = useState<any>({});
   const [loading, setLoading]           = useState(true);
@@ -151,7 +120,7 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
   }, [fetchLeaves]);
 
   const handleCancel = async (id: string) => {
-    if (!confirm("Bu ta'til yozuvini BEKOR qilishni tasdiqlaysizmi?")) return;
+    if (!confirm(language === 'kr' ? '이 휴가/병가 내역을 취소하시겠습니까?' : "Bu ta'til yozuvini BEKOR qilishni tasdiqlaysizmi?")) return;
     setCancellingId(id);
     try {
       await fetch(`/api/leaves/${id}`, {
@@ -163,6 +132,65 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
     } finally {
       setCancellingId(null);
     }
+  };
+
+  // Type metadata helper with language dynamic support
+  const getTypeBadge = (type: string) => {
+    if (type === 'MEHNAT_TATILI' || type === 'MT') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800">
+          {t('davomat.badge_annual', "MEHNAT TA'TILI")}
+        </span>
+      );
+    }
+    if (type === 'SICK_LEAVE_BL' || type === 'BL') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800">
+          {t('davomat.badge_sick', "VAQTINCHA LAYOQATSIZLIK (B/L)")}
+        </span>
+      );
+    }
+    if (type === 'BS_UNPAID' || type === 'BS') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800">
+          {t('davomat.badge_unpaid', "O'Z HISOBIDAN (B/S)")}
+        </span>
+      );
+    }
+    if (type === 'OQISH_TATILI' || type === 'STUDY_LEAVE') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-800">
+          {t('davomat.badge_study', "O'QISH TA'TILI")}
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black border bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700">
+        {type}
+      </span>
+    );
+  };
+
+  const getStatusBadge = (status: string) => {
+    if (status === 'ACTIVE' || status === 'APPROVED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800">
+          {language === 'kr' ? '진행 중' : 'Faol'}
+        </span>
+      );
+    }
+    if (status === 'COMPLETED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700">
+          {language === 'kr' ? '종료됨' : 'Tugallangan'}
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800">
+        {language === 'kr' ? '취소됨' : 'Bekor'}
+      </span>
+    );
   };
 
   // Paginated data
@@ -201,77 +229,79 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
   };
 
   const hasActiveFilters = search || filterType !== 'ALL' || filterDept !== 'ALL' || filterStatus !== 'ALL' || dateFrom || dateTo;
+  const monthNames = language === 'kr' ? MONTH_NAMES_KR : MONTH_NAMES_UZ;
+  const dayNames   = language === 'kr' ? DAY_NAMES_KR   : DAY_NAMES_UZ;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* ── Page Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
               <CalendarClock className="h-5 w-5 text-white" />
             </div>
-            Davomat & Ta'tillar Boshqaruvi
+            {t('davomat.title', "Davomat va Ta'tillar Boshqaruvi")}
           </h2>
-          <p className="text-sm text-slate-400 mt-1 ml-13">
-            M/T, B/S, B/L, Otgul, Ruxsatnoma va Kechikishlar umumiy logi
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+            {t('davomat.subtitle', "Xodimlarning mehnat ta'tillari, kasallik varaqalari (B/L) va B/S jurnali")}
           </p>
         </div>
 
         <button
           onClick={() => setIsCreateOpen(true)}
           disabled={isReadOnly}
-          title={isReadOnly ? "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin" : "Yangi ta'til yoki ruxsatnoma qo'shish"}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-amber-500/25 hover:from-amber-400 hover:to-orange-500 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          title={isReadOnly ? "🔒 Read-only access" : "New leave request"}
+          className="inline-flex items-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 text-sm font-bold shadow-sm active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          Yangi Ta'til / Ruxsatnoma
+          {t('davomat.new_btn', "+ Yangi Ta'til / B/L Qo'shish")}
         </button>
       </div>
 
       {/* ── Stats Row ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami Yozuvlar"          value={stats.total || 0}      icon={LayoutList}    colorClass="border-indigo-500/30" />
-        <StatCard label="Faol Ta'tildagilar"      value={stats.active || 0}     icon={Calendar}      colorClass="border-emerald-500/30" />
-        <StatCard label="Vaqtincha mehnatka layoqatsizlik" value={stats.sickLeave || 0} icon={AlertTriangle}  colorClass="border-rose-500/30" />
-        <StatCard label="O'z hisobidan ta'til"  value={stats.bsUnpaid || 0}  icon={Clock}         colorClass="border-amber-500/30" />
+        <StatCard label={language === 'kr' ? '총 등록 건수' : 'Jami Yozuvlar'} value={stats.total || 0} icon={LayoutList} colorClass="border-indigo-500/30" />
+        <StatCard label={t('davomat.stat_total_on_leave', "Jami Ta'tildagilar")} value={stats.active || 0} icon={Calendar} colorClass="border-emerald-500/30" />
+        <StatCard label={t('davomat.stat_sick_leave', "Vaqtincha Layoqatsiz (B/L)")} value={stats.sickLeave || 0} icon={AlertTriangle} colorClass="border-rose-500/30" />
+        <StatCard label={t('davomat.stat_unpaid_leave', "O'z Hisobidan (B/S)")} value={stats.bsUnpaid || 0} icon={Clock} colorClass="border-amber-500/30" />
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="glass-panel rounded-2xl border border-slate-800 p-4 space-y-3">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-sm">
         {/* Row 1: Search + View toggle */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-48">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Xodim ismi yoki tabel raqami bo'yicha qidirish..."
-              className="w-full rounded-xl border border-slate-700 bg-slate-900/60 pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:outline-none transition"
+              placeholder={t('davomat.search', 'Qidiruv (F.I.O, Tabel №)...')}
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition font-medium"
             />
           </div>
 
           <button
             onClick={fetchLeaves}
-            className="rounded-xl p-2 text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-white transition"
-            title="Yangilash"
+            className="rounded-lg p-2 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+            title={language === 'kr' ? '새로고침' : 'Yangilash'}
           >
             <RefreshCw className="h-4 w-4" />
           </button>
 
           {/* View Switcher */}
-          <div className="flex rounded-xl border border-slate-700 overflow-hidden">
+          <div className="flex rounded-lg border border-slate-300 dark:border-slate-700 overflow-hidden">
             <button
               onClick={() => setView('table')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition ${view === 'table' ? 'bg-amber-500/20 text-amber-300 border-r border-slate-700' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200 border-r border-slate-700'}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition cursor-pointer ${view === 'table' ? 'bg-blue-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
             >
-              <LayoutList className="h-3.5 w-3.5" /> Ro'yxat
+              <LayoutList className="h-3.5 w-3.5" /> {language === 'kr' ? '목록' : "Ro'yxat"}
             </button>
             <button
               onClick={() => setView('calendar')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition ${view === 'calendar' ? 'bg-amber-500/20 text-amber-300' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition cursor-pointer ${view === 'calendar' ? 'bg-blue-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
             >
-              <LayoutGrid className="h-3.5 w-3.5" /> Kalendar
+              <LayoutGrid className="h-3.5 w-3.5" /> {language === 'kr' ? '달력' : 'Kalendar'}
             </button>
           </div>
         </div>
@@ -284,23 +314,24 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
           <select
             value={filterType}
             onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-            className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none transition"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition cursor-pointer"
           >
-            <option value="ALL">Barcha turlar</option>
-            {Array.from(new Map(LEAVE_TYPES.map((lt) => [lt.label, lt])).values()).map((lt) => (
-              <option key={lt.id} value={lt.id}>{lt.label}</option>
-            ))}
+            <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{t('davomat.tab_all', 'Barchasi')}</option>
+            <option value="MEHNAT_TATILI" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{t('davomat.tab_annual', "Mehnat ta'tili")}</option>
+            <option value="SICK_LEAVE_BL" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{t('davomat.tab_sick', "Vaqtincha layoqatsizlik (B/L)")}</option>
+            <option value="BS_UNPAID" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{t('davomat.tab_unpaid', "O'z hisobidan (B/S)")}</option>
+            <option value="OQISH_TATILI" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{t('davomat.tab_study', "O'qish ta'tili")}</option>
           </select>
 
           {/* Department filter */}
           <select
             value={filterDept}
             onChange={(e) => { setFilterDept(e.target.value); setPage(1); }}
-            className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none transition"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition cursor-pointer"
           >
-            <option value="ALL">Barcha bo'limlar</option>
+            <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">-- {t('analytics.all_depts', "Barcha Bo'limlar")} --</option>
             {departments.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
+              <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{d.name}</option>
             ))}
           </select>
 
@@ -308,12 +339,12 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
           <select
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-            className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none transition"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition cursor-pointer"
           >
-            <option value="ALL">Barcha holat</option>
-            <option value="ACTIVE">Faol</option>
-            <option value="COMPLETED">Tugallangan</option>
-            <option value="CANCELLED">Bekor</option>
+            <option value="ALL" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">-- {language === 'kr' ? '전체 상태' : 'Barcha holat'} --</option>
+            <option value="ACTIVE" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{language === 'kr' ? '진행 중' : 'Faol'}</option>
+            <option value="COMPLETED" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{language === 'kr' ? '종료됨' : 'Tugallangan'}</option>
+            <option value="CANCELLED" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{language === 'kr' ? '취소됨' : 'Bekor'}</option>
           </select>
 
           {/* Date range */}
@@ -321,22 +352,22 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
             type="date"
             value={dateFrom}
             onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-            className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none transition"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
           />
-          <span className="text-slate-600 text-xs">—</span>
+          <span className="text-slate-500 text-xs">—</span>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-            className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none transition"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
           />
 
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
-              className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition"
+              className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline transition cursor-pointer"
             >
-              <XCircle className="h-3.5 w-3.5" /> Tozalash
+              <XCircle className="h-3.5 w-3.5" /> {t('filter.reset', 'Filtrlarni tiklash')}
             </button>
           )}
         </div>
@@ -344,101 +375,102 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
 
       {/* ── Content: Table View ── */}
       {view === 'table' && (
-        <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center p-16 gap-3">
-              <Loader2 className="h-6 w-6 text-amber-400 animate-spin" />
-              <span className="text-slate-400 text-sm">Yuklanmoqda...</span>
+              <Loader2 className="h-6 w-6 text-blue-600 dark:text-amber-400 animate-spin" />
+              <span className="text-slate-600 dark:text-slate-400 text-sm font-medium">{language === 'kr' ? '데이터를 불러오는 중입니다...' : 'Yuklanmoqda...'}</span>
             </div>
           ) : leaves.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-16 space-y-3">
-              <Calendar className="h-12 w-12 text-slate-700" />
-              <p className="text-slate-400 font-medium">Ta'til yozuvlari topilmadi</p>
-              <p className="text-slate-600 text-sm">Filtrlarni o'zgartiring yoki yangi yozuv qo'shing</p>
-              <button onClick={() => setIsCreateOpen(true)} className="mt-2 inline-flex items-center gap-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 px-4 py-2 text-xs font-semibold hover:bg-amber-500/30 transition">
-                <Plus className="h-4 w-4" /> Yangi Ta'til Qo'shish
+              <Calendar className="h-12 w-12 text-slate-400" />
+              <p className="text-slate-700 dark:text-slate-300 font-bold">{language === 'kr' ? '등록된 휴가 내역이 없습니다.' : "Ta'til yozuvlari topilmadi"}</p>
+              <p className="text-slate-500 text-sm">{language === 'kr' ? '필터를 변경하거나 신규 휴가를 등록하세요.' : "Filtrlarni o'zgartiring yoki yangi yozuv qo'shing"}</p>
+              <button onClick={() => setIsCreateOpen(true)} className="mt-2 inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition">
+                <Plus className="h-4 w-4" /> {t('davomat.new_btn', "+ Yangi Ta'til / B/L Qo'shish")}
               </button>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-900/80 text-slate-400 font-semibold uppercase tracking-wide border-b border-slate-800 text-[10px]">
+                  <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase tracking-wider border-b border-slate-300 dark:border-slate-700 text-[10px]">
                     <tr>
-                      <th className="px-4 py-3 text-left">Xodim</th>
-                      <th className="px-4 py-3 text-left">Bo'lim</th>
-                      <th className="px-4 py-3 text-left">Tur</th>
-                      <th className="px-4 py-3 text-left">Boshlanish</th>
-                      <th className="px-4 py-3 text-left">Tugash</th>
-                      <th className="px-4 py-3 text-center">Kun/Soat</th>
-                      <th className="px-4 py-3 text-left">Buyruq №</th>
-                      <th className="px-4 py-3 text-left">Sabab</th>
-                      <th className="px-4 py-3 text-center">Holat</th>
-                      <th className="px-4 py-3 text-right">Amal</th>
+                      <th className="px-4 py-3.5 text-left">{t('mobility.col_fio', 'F.I.O')} ({t('mobility.col_tabel', 'Tabel №')})</th>
+                      <th className="px-4 py-3.5 text-left">{t('table.dept', "Bo'lim")}</th>
+                      <th className="px-4 py-3.5 text-left">{t('davomat.col_leave_type', "Ta'til / B/L Turi")}</th>
+                      <th className="px-4 py-3.5 text-left">{t('table.date', 'Boshlanish Sanasi')}</th>
+                      <th className="px-4 py-3.5 text-left">{t('davomat.col_return_date', 'Ishga Qaytish Sanasi')}</th>
+                      <th className="px-4 py-3.5 text-center">{t('davomat.col_days', 'Kunlar Soni')}</th>
+                      <th className="px-4 py-3.5 text-left">{t('mobility.col_order', 'Buyruq №')}</th>
+                      <th className="px-4 py-3.5 text-left">{t('mobility.col_reason', 'Sabab')}</th>
+                      <th className="px-4 py-3.5 text-center">{t('table.status', 'Status')}</th>
+                      <th className="px-4 py-3.5 text-right">{t('mobility.col_actions', 'Harakatlar')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                     {pagedLeaves.map((lv) => {
-                      const statusMeta = STATUS_META[lv.status] || STATUS_META.ACTIVE;
                       return (
-                        <tr key={lv.id} className="hover:bg-slate-800/30 transition-colors group">
+                        <tr key={lv.id} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                           {/* Employee */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0">
+                              <div className="h-7 w-7 rounded-lg bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0 shadow-sm">
                                 {lv.employee?.firstName?.[0]}
                               </div>
                               <div>
-                                <div className="font-semibold text-slate-200 leading-tight">
+                                <div className="font-bold text-slate-900 dark:text-slate-100 leading-tight">
                                   {lv.employee?.lastName} {lv.employee?.firstName}
                                 </div>
-                                <div className="font-mono text-[10px] text-indigo-400">{lv.employee?.tabelNumber}</div>
+                                <div className="font-mono text-[10px] text-blue-700 dark:text-indigo-400 font-bold">[{lv.employee?.tabelNumber}]</div>
                               </div>
                             </div>
                           </td>
 
                           {/* Department */}
-                          <td className="px-4 py-3 text-slate-400 max-w-[120px]">
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-medium max-w-[120px]">
                             <span className="truncate block text-[11px]">{lv.employee?.currentDepartment?.name}</span>
                           </td>
 
                           {/* Type */}
                           <td className="px-4 py-3">
-                            <TypeBadge type={lv.type} />
+                            {getTypeBadge(lv.type)}
                           </td>
 
                           {/* Dates */}
-                          <td className="px-4 py-3 font-mono text-slate-400 text-[11px]">
+                          <td className="px-4 py-3 font-mono text-slate-800 dark:text-slate-200 font-semibold text-[11px]">
                             {lv.startTime ? `${formatDate(lv.startDate)} ${lv.startTime}` : formatDate(lv.startDate)}
                           </td>
-                          <td className="px-4 py-3 font-mono text-slate-400 text-[11px]">
+                          <td className="px-4 py-3 font-mono text-slate-800 dark:text-slate-200 font-semibold text-[11px]">
                             {lv.endTime ? lv.endTime : formatDate(lv.endDate)}
                           </td>
 
                           {/* Duration */}
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-4 py-3 text-center font-bold">
                             {lv.totalHours ? (
-                              <span className="font-bold text-orange-300">{lv.totalHours}h</span>
+                              <span className="text-amber-700 dark:text-orange-300 font-bold">{lv.totalHours}{language === 'kr' ? '시간' : 'h'}</span>
                             ) : (
-                              <span className="font-bold text-white">{lv.totalDays}<span className="text-slate-500 font-normal ml-1">kun</span></span>
+                              <span className="text-slate-900 dark:text-white font-bold">{lv.totalDays}<span className="text-slate-500 font-semibold ml-1">{language === 'kr' ? '일' : 'kun'}</span></span>
                             )}
                           </td>
 
                           {/* Order # */}
-                          <td className="px-4 py-3 font-mono text-slate-400 text-[11px]">
-                            {lv.orderNumber || <span className="text-slate-700">—</span>}
+                          <td className="px-4 py-3 font-mono text-slate-800 dark:text-slate-300 font-bold text-[11px]">
+                            {lv.orderNumber ? (
+                              <span className="bg-blue-50 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-semibold px-2 py-0.5 rounded text-xs">
+                                {lv.orderNumber}
+                              </span>
+                            ) : <span className="text-slate-400">—</span>}
                           </td>
 
                           {/* Reason */}
-                          <td className="px-4 py-3 text-slate-400 max-w-[160px]">
-                            <span className="truncate block text-[11px]">{lv.reason || '—'}</span>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300 max-w-[160px]">
+                            <span className="truncate block text-[11px] font-medium italic">{lv.reason || '—'}</span>
                           </td>
 
                           {/* Status */}
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusMeta.bgClass} ${statusMeta.textClass} ${statusMeta.borderClass}`}>
-                              {statusMeta.label}
-                            </span>
+                            {getStatusBadge(lv.status)}
                           </td>
 
                           {/* Actions */}
@@ -447,8 +479,8 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
                               <button
                                 onClick={() => handleCancel(lv.id)}
                                 disabled={cancellingId === lv.id}
-                                className="rounded-lg p-1.5 text-slate-600 hover:bg-rose-500/15 hover:text-rose-400 transition opacity-0 group-hover:opacity-100"
-                                title="Bekor qilish"
+                                className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-rose-100 dark:hover:bg-rose-500/15 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
+                                title={t('common.cancel', 'Bekor qilish')}
                               >
                                 {cancellingId === lv.id ? (
                                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -467,15 +499,15 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800 bg-slate-900/40">
-                  <span className="text-[11px] text-slate-500">
-                    {leaves.length} ta yozuvdan {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, leaves.length)} ko'rsatilmoqda
+                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
+                  <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                    {leaves.length}{language === 'kr' ? '건 중 ' : ' ta yozuvdan '}{(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, leaves.length)} {language === 'kr' ? '표시 중' : "ko'rsatilmoqda"}
                   </span>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-30 transition"
+                      className="rounded-lg p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -483,7 +515,7 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
                       <button
                         key={p}
                         onClick={() => setPage(p)}
-                        className={`w-7 h-7 rounded-lg text-xs font-semibold transition ${p === page ? 'bg-amber-500 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition cursor-pointer ${p === page ? 'bg-blue-600 text-white' : 'text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
                       >
                         {p}
                       </button>
@@ -491,7 +523,7 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
                     <button
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-30 transition"
+                      className="rounded-lg p-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 transition cursor-pointer"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -505,40 +537,30 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
 
       {/* ── Content: Calendar View ── */}
       {view === 'calendar' && (
-        <div className="glass-panel rounded-2xl border border-slate-800 p-5 space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-sm">
           {/* Calendar Nav */}
           <div className="flex items-center justify-between">
             <button
               onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); } else setCalMonth(m => m - 1); }}
-              className="rounded-xl p-2 text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-white transition"
+              className="rounded-lg p-2 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <h3 className="text-lg font-bold text-white">
-              {MONTH_NAMES[calMonth]} {calYear}
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {monthNames[calMonth]} {calYear}
             </h3>
             <button
               onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); }}
-              className="rounded-xl p-2 text-slate-400 border border-slate-700 hover:bg-slate-800 hover:text-white transition"
+              className="rounded-lg p-2 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Legend */}
-          <div className="flex flex-wrap gap-3">
-            {Array.from(new Map(Object.entries(TYPE_META).map(([_, meta]) => [meta.label, meta])).values()).map((meta) => (
-              <div key={meta.label} className="flex items-center gap-1.5 text-[10px]">
-                <div className={`h-3 w-5 rounded-sm ${meta.bgClass} border ${meta.borderClass}`} />
-                <span className={meta.textClass}>{meta.short}</span>
-              </div>
-            ))}
-          </div>
-
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 mb-1">
-            {DAY_NAMES.map((d) => (
-              <div key={d} className="text-center text-[10px] font-bold text-slate-500 uppercase py-1">{d}</div>
+            {dayNames.map((d) => (
+              <div key={d} className="text-center text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase py-1">{d}</div>
             ))}
           </div>
 
@@ -557,80 +579,33 @@ export const DavomatView: React.FC<DavomatViewProps> = ({ departments = [] }) =>
                 <div
                   key={day}
                   className={`relative min-h-20 rounded-xl p-1.5 border transition-all ${
-                    isToday ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'
+                    isToday ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
-                  <div className={`text-[11px] font-bold mb-1 ${isToday ? 'text-amber-400' : 'text-slate-400'}`}>
+                  <div className={`text-[11px] font-bold mb-1 ${isToday ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-400'}`}>
                     {day}
                   </div>
                   <div className="space-y-0.5 overflow-hidden">
                     {dayLeaves.slice(0, 3).map((lv) => {
-                      const meta = TYPE_META[lv.type] || { short: lv.type, bgClass: 'bg-slate-700', textClass: 'text-slate-300', borderClass: '' };
                       return (
                         <div
                           key={lv.id}
-                          className={`text-[9px] font-bold px-1 py-0.5 rounded truncate ${meta.bgClass} ${meta.textClass} border ${meta.borderClass}`}
-                          title={`${lv.employee?.lastName} ${lv.employee?.firstName} — ${meta.short}`}
+                          className="text-[9px] font-bold px-1 py-0.5 rounded truncate bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
                         >
-                          {lv.employee?.firstName?.slice(0, 1)}.{lv.employee?.lastName?.slice(0, 6)} [{meta.short}]
+                          {lv.employee?.firstName?.slice(0, 1)}.{lv.employee?.lastName?.slice(0, 6)}
                         </div>
                       );
                     })}
                     {dayLeaves.length > 3 && (
-                      <div className="text-[9px] text-slate-500 font-semibold px-1">+{dayLeaves.length - 3} ta</div>
+                      <div className="text-[9px] text-slate-500 font-bold px-1">+{dayLeaves.length - 3}</div>
                     )}
                   </div>
                 </div>
               );
             })}
           </div>
-
-          {/* Calendar month summary */}
-          <div className="border-t border-slate-800 pt-4">
-            <h4 className="text-xs font-bold text-slate-300 mb-3">
-              {MONTH_NAMES[calMonth]} oyi ta'til yozuvlari ({calLeaves.length} ta)
-            </h4>
-            {calLeaves.length === 0 ? (
-              <p className="text-slate-500 text-xs">Bu oyda hech qanday ta'til yozuvi topilmadi</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {calLeaves.slice(0, 9).map((lv) => (
-                  <div key={lv.id} className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 p-2">
-                    <TypeBadge type={lv.type} />
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold text-slate-200 truncate">
-                        {lv.employee?.lastName} {lv.employee?.firstName}
-                      </div>
-                      <div className="text-[10px] text-slate-500">
-                        {formatDate(lv.startDate)} — {formatDate(lv.endDate)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {calLeaves.length > 9 && (
-                  <div className="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 p-2">
-                    <button onClick={() => setView('table')} className="text-xs text-amber-400 hover:text-amber-300 transition font-semibold">
-                      + {calLeaves.length - 9} ta ko'rish →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       )}
-
-      {/* ── KPI Linkage Info Banner ── */}
-      <div className="rounded-2xl bg-gradient-to-r from-indigo-900/30 via-purple-900/20 to-slate-900 border border-indigo-500/20 p-4 flex items-start gap-3">
-        <TrendingUp className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
-        <div>
-          <div className="font-semibold text-indigo-300 text-sm">KPI Dvigateli bilan avtomatik bog'liq</div>
-          <p className="text-slate-400 text-xs mt-1">
-            Bu modulda kiritilgan <strong className="text-amber-300">O'z hisobidan ta'til</strong>, <strong className="text-rose-300">Vaqtincha mehnatka layoqatsizlik</strong> va <strong className="text-orange-300">Kechikish / soatli ruxsatnoma</strong> yozuvlari
-            KPI Dvigateli tomonidan avtomatik o'qiladi va mos ushlab qolish foizi hisoblashda ishlatiladi.
-          </p>
-        </div>
-      </div>
 
       {/* ── Creation Modal ── */}
       <LeaveCreationModal

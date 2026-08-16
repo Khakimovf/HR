@@ -273,18 +273,18 @@ export const ImportHubView: React.FC = () => {
   const invalidCount = parsedRows.filter((r) => !r.isValid).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* Title Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+          <div className="h-12 w-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
             <FileSpreadsheet className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               Ommaviy Fayllarni Yuklash va Integratsiya Markazi
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
               1500+ Xodimlarni, 70+ bo'limlar hamda HSE yo'riqnomalarini markaziy boshqaruv sahifasidan yuklash
             </p>
           </div>
@@ -292,9 +292,9 @@ export const ImportHubView: React.FC = () => {
 
         <button
           onClick={() => downloadTemplate(activeSection)}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-xs font-bold text-emerald-400 hover:bg-slate-700 hover:text-white transition shadow-md"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition shadow-sm cursor-pointer"
         >
-          <Download className="h-4 w-4" />
+          <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           Shablonni Yuklab Olish (.xlsx)
         </button>
       </div>
@@ -307,21 +307,21 @@ export const ImportHubView: React.FC = () => {
             title: "1. Xodimlarni Ommaviy Yuklash",
             subtitle: "1500+ Ishchilar bazasi, tabel № va lavozimlar",
             icon: Users,
-            color: "from-indigo-600 to-blue-600",
+            color: "bg-blue-600 text-white",
           },
           {
             id: 'DEPARTMENTS',
             title: "2. Bo'limlar va Sexlarni Yuklash",
             subtitle: "70+ Bo'limlar ierarxiyasi va shtat kvotalari",
             icon: Building2,
-            color: "from-purple-600 to-indigo-600",
+            color: "bg-purple-600 text-white",
           },
           {
             id: 'HSE',
             title: "3. Med-Ko'rik & HSE Shablonlari",
             subtitle: "Tibbiy ko'riqlar va xavfsizlik yo'riqnomalari",
             icon: Stethoscope,
-            color: "from-emerald-600 to-teal-600",
+            color: "bg-emerald-600 text-white",
           },
         ].map((card) => {
           const Icon = card.icon;
@@ -336,34 +336,34 @@ export const ImportHubView: React.FC = () => {
                 setErrorMsg('');
                 setSuccessMsg('');
               }}
-              className={`p-5 rounded-2xl border cursor-pointer transition-all ${
+              className={`p-5 rounded-2xl border cursor-pointer transition-all shadow-sm ${
                 isActive
-                  ? 'bg-slate-900 border-emerald-500/80 shadow-2xl ring-2 ring-emerald-500/30'
-                  : 'bg-slate-950/60 border-slate-800 hover:bg-slate-900/60 hover:border-slate-700'
+                  ? 'bg-white dark:bg-slate-900 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-400'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
-                <div className={`h-10 w-10 rounded-xl bg-gradient-to-tr ${card.color} flex items-center justify-center text-white shadow-md`}>
+                <div className={`h-10 w-10 rounded-xl ${card.color} flex items-center justify-center shadow-sm`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 {isActive && (
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full">
                     FAOL TANLANGAN
                   </span>
                 )}
               </div>
-              <h3 className="text-sm font-bold text-white mb-1">{card.title}</h3>
-              <p className="text-xs text-slate-400">{card.subtitle}</p>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-1">{card.title}</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">{card.subtitle}</p>
             </div>
           );
         })}
       </div>
 
       {/* Drag & Drop File Upload Dropzone */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 bg-slate-900/90 space-y-4">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-2xl p-8 text-center bg-slate-950/40 cursor-pointer transition group"
+          className="bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-2xl p-8 text-center transition-all shadow-sm cursor-pointer group"
         >
           <input
             ref={fileInputRef}
@@ -372,36 +372,36 @@ export const ImportHubView: React.FC = () => {
             onChange={handleFileUpload}
             className="hidden"
           />
-          <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+          <div className="h-14 w-14 rounded-2xl bg-blue-100 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
             <UploadCloud className="h-7 w-7" />
           </div>
-          <h4 className="text-base font-bold text-white mb-1">
-            {fileName ? fileName : "Excel (.xlsx) yoki CSV faylingizni shu yerga tashlang"}
+          <h4 className="text-sm font-extrabold text-slate-900 dark:text-white mb-1">
+            {fileName ? fileName : "Faylni bering yoki bu yerga tashlang"}
           </h4>
-          <p className="text-xs text-slate-400">
-            Kompyuteringizdan <strong className="text-emerald-400">.xlsx</strong>, <strong className="text-emerald-400">.csv</strong> fayllarni tanlang
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Kompyuteringizdan <strong className="text-blue-600 dark:text-blue-400">.xlsx</strong>, <strong className="text-blue-600 dark:text-blue-400">.csv</strong> fayllarni tanlang
           </p>
         </div>
 
         {/* Live Validation & Preview Section */}
         {parsing ? (
-          <div className="p-8 text-center text-slate-400 flex items-center justify-center gap-3">
-            <Loader2 className="h-5 w-5 text-emerald-400 animate-spin" />
-            <span>Excel sheet o'qilmoqda va validator tomonidan tekshirilmoqda...</span>
+          <div className="p-8 text-center text-slate-600 dark:text-slate-400 flex items-center justify-center gap-3">
+            <Loader2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 animate-spin" />
+            <span className="font-bold text-xs">Excel sheet o'qilmoqda va validator tomonidan tekshirilmoqda...</span>
           </div>
         ) : parsedRows.length > 0 ? (
           <div className="space-y-4 pt-2">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-4 text-xs">
-                <span className="text-slate-300 font-semibold">
-                  Jami parsing qilingan: <strong className="text-white font-mono">{parsedRows.length}</strong>
+                <span className="text-slate-700 dark:text-slate-300 font-bold">
+                  Jami parsing qilingan: <strong className="text-slate-900 dark:text-white font-mono font-extrabold">{parsedRows.length}</strong>
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-lg">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 px-3 py-1 rounded-lg">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  To'g me'zon (Yashil): {validCount}
+                  To'g'ri (Yashil): {validCount}
                 </span>
                 {invalidCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-lg">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 px-3 py-1 rounded-lg">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     Xatolik (Qizil): {invalidCount}
                   </span>
@@ -411,7 +411,7 @@ export const ImportHubView: React.FC = () => {
               <button
                 onClick={handleSaveToDatabase}
                 disabled={validCount === 0 || saving}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-2.5 text-xs font-extrabold text-white shadow-xl shadow-emerald-500/30 hover:from-emerald-400 hover:to-teal-500 active:scale-95 disabled:opacity-40 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 text-xs font-extrabold shadow-sm active:scale-95 disabled:opacity-40 transition cursor-pointer"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
                 🚀 1-Tugma Bilan Bazaga Saqlash ({validCount})
@@ -419,9 +419,9 @@ export const ImportHubView: React.FC = () => {
             </div>
 
             {/* Preview Table */}
-            <div className="rounded-xl border border-slate-800 overflow-hidden max-h-[350px] overflow-y-auto">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden max-h-[350px] overflow-y-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-950 text-slate-400 font-semibold uppercase text-[10px] sticky top-0 border-b border-slate-800">
+                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] sticky top-0 border-b border-slate-300 dark:border-slate-700">
                   <tr>
                     <th className="px-3 py-2.5 text-center w-12">№</th>
                     <th className="px-3 py-2.5">Status</th>
@@ -449,20 +449,20 @@ export const ImportHubView: React.FC = () => {
                     <th className="px-3 py-2.5">Xatolik Izohi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                   {parsedRows.map((r) => (
                     <tr
                       key={r._rowId}
-                      className={r.isValid ? 'hover:bg-emerald-500/5' : 'bg-rose-500/10 hover:bg-rose-500/15'}
+                      className={r.isValid ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-950/30'}
                     >
-                      <td className="px-3 py-2 text-center font-mono text-slate-500">{r._rowId}</td>
+                      <td className="px-3 py-2 text-center font-mono text-slate-500 font-bold">{r._rowId}</td>
                       <td className="px-3 py-2">
                         {r.isValid ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/30">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800">
                             <CheckCircle2 className="h-3 w-3" /> TO'G'RI
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-400 bg-rose-500/15 px-2 py-0.5 rounded border border-rose-500/30">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded border border-rose-300 dark:border-rose-800">
                             <X className="h-3 w-3" /> XATO
                           </span>
                         )}
@@ -470,27 +470,27 @@ export const ImportHubView: React.FC = () => {
 
                       {activeSection === 'DEPARTMENTS' ? (
                         <>
-                          <td className="px-3 py-2 font-bold text-slate-200">{r.name}</td>
-                          <td className="px-3 py-2 text-slate-400">{r.parentName || '—'}</td>
-                          <td className="px-3 py-2 font-mono text-slate-300">{r.staffLimit}</td>
+                          <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100">{r.name}</td>
+                          <td className="px-3 py-2 text-slate-700 dark:text-slate-300 font-medium">{r.parentName || '—'}</td>
+                          <td className="px-3 py-2 font-mono text-slate-800 dark:text-slate-200 font-bold">{r.staffLimit}</td>
                         </>
                       ) : activeSection === 'HSE' ? (
                         <>
-                          <td className="px-3 py-2 font-mono font-bold text-indigo-400">{r.tabelNumber}</td>
-                          <td className="px-3 py-2 font-semibold text-slate-200">{r.fullName || '—'}</td>
-                          <td className="px-3 py-2 text-amber-400 font-bold">{r.type}</td>
-                          <td className="px-3 py-2 text-slate-300">{r.title}</td>
+                          <td className="px-3 py-2 font-mono font-bold text-blue-700 dark:text-indigo-400">{r.tabelNumber}</td>
+                          <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100">{r.fullName || '—'}</td>
+                          <td className="px-3 py-2 text-amber-700 dark:text-amber-400 font-bold">{r.type}</td>
+                          <td className="px-3 py-2 text-slate-700 dark:text-slate-300 font-medium">{r.title}</td>
                         </>
                       ) : (
                         <>
-                          <td className="px-3 py-2 font-mono font-bold text-indigo-400">{r.tabelNumber}</td>
-                          <td className="px-3 py-2 font-semibold text-slate-200">{r.fullName}</td>
-                          <td className="px-3 py-2 text-slate-400">{r.departmentName || '—'}</td>
-                          <td className="px-3 py-2 text-slate-400">{r.position}</td>
+                          <td className="px-3 py-2 font-mono font-bold text-blue-700 dark:text-indigo-400">{r.tabelNumber}</td>
+                          <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100">{r.fullName}</td>
+                          <td className="px-3 py-2 text-slate-700 dark:text-slate-300 font-medium">{r.departmentName || '—'}</td>
+                          <td className="px-3 py-2 text-slate-700 dark:text-slate-300 font-medium">{r.position}</td>
                         </>
                       )}
 
-                      <td className="px-3 py-2 text-rose-400 font-semibold text-[11px]">
+                      <td className="px-3 py-2 text-rose-700 dark:text-rose-400 font-bold text-[11px]">
                         {r.errors.length > 0 ? r.errors.join(', ') : '—'}
                       </td>
                     </tr>
@@ -502,14 +502,14 @@ export const ImportHubView: React.FC = () => {
         ) : null}
 
         {errorMsg && (
-          <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-rose-300 text-xs font-semibold">
+          <div className="rounded-xl bg-rose-100 dark:bg-rose-950 border border-rose-300 dark:border-rose-800 p-3 text-rose-800 dark:text-rose-300 text-xs font-bold">
             ⚠️ {errorMsg}
           </div>
         )}
 
         {successMsg && (
-          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-emerald-300 text-xs font-bold flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="rounded-xl bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800 p-3 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             {successMsg}
           </div>
         )}

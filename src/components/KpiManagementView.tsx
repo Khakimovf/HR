@@ -20,6 +20,7 @@ import {
   Edit,
   RotateCcw,
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '@/lib/utils';
 
 interface Department {
@@ -40,6 +41,8 @@ interface KpiManagementViewProps {
 }
 
 export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ departments = [] }) => {
+  const { t, language } = useLanguage();
+
   const [activeTab, setActiveTab] = useState<'templates' | 'evaluations' | 'payroll'>('templates');
   const [deptList, setDeptList] = useState<Department[]>(departments);
   const [selectedDeptId, setSelectedDeptId] = useState<string>('');
@@ -89,12 +92,12 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.templates && data.templates.length > 0) {
-          const t = data.templates[0];
-          setTemplateTitle(t.title || "Bo'lim KPI Mezonlari va Og'irliklari");
-          setPositionTitle(t.position || '');
-          if (Array.isArray(t.criteria) && t.criteria.length > 0) {
+          const tData = data.templates[0];
+          setTemplateTitle(tData.title || "Bo'lim KPI Mezonlari va Og'irliklari");
+          setPositionTitle(tData.position || '');
+          if (Array.isArray(tData.criteria) && tData.criteria.length > 0) {
             setCriteria(
-              t.criteria.map((c: any) => ({
+              tData.criteria.map((c: any) => ({
                 id: c.id,
                 name: c.name,
                 weight: c.weight,
@@ -115,7 +118,7 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
 
   const handleAddCriterion = () => {
     if (!newCritName.trim()) {
-      alert("Mezon nomini kiriting");
+      alert(language === 'kr' ? '평가 항목명을 입력하세요.' : "Mezon nomini kiriting");
       return;
     }
     setCriteria([
@@ -140,7 +143,7 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
     if (Math.abs(totalWeight - 100) > 0.01) {
       setTemplateMsg({
         type: 'error',
-        text: `Mezonlar og'irliklari yig'indisi 100% bo'lishi shart! (Hozirgi yig'indi: ${totalWeight}%)`,
+        text: language === 'kr' ? `가중치의 합은 반드시 100%이어야 합니다. (현재: ${totalWeight}%)` : `Mezonlar og'irliklari yig'indisi 100% bo'lishi shart! (Hozirgi yig'indi: ${totalWeight}%)`,
       });
       return;
     }
@@ -161,7 +164,7 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
       });
       const data = await res.json();
       if (data.success) {
-        setTemplateMsg({ type: 'success', text: "KPI Shablon va mezonlar muvaffaqiyatli saqlandi!" });
+        setTemplateMsg({ type: 'success', text: language === 'kr' ? 'KPI 템플릿이 성공적으로 저장되었습니다!' : "KPI Shablon va mezonlar muvaffaqiyatli saqlandi!" });
       } else {
         setTemplateMsg({ type: 'error', text: data.error || "Saqlashda xatolik" });
       }
@@ -211,26 +214,26 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
   const getScoreBadge = (score: number) => {
     if (score >= 90) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-500/20">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> A'lo ({score}%)
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-bold">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" /> {t('kpi_module.grade_excellent', "A'lo (90-100%)")} ({score}%)
         </span>
       );
     } else if (score >= 70) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[11px] font-bold text-blue-400 border border-blue-500/20">
-          Yaxshi ({score}%)
+        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-300 dark:border-blue-800 px-2.5 py-0.5 text-[11px] font-bold">
+          {t('kpi_module.grade_good', 'Yaxshi (70-89%)')} ({score}%)
         </span>
       );
     } else if (score >= 50) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-400 border border-amber-500/20">
-          O'rta ({score}%)
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-800 px-2.5 py-0.5 text-[11px] font-bold">
+          {t('kpi_module.grade_average', "O'rta (50-69%)")} ({score}%)
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-[11px] font-bold text-rose-400 border border-rose-500/20">
-          Qoniqarsiz (Mukofot 0%)
+        <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-800 px-2.5 py-0.5 text-[11px] font-bold">
+          {t('kpi_module.grade_poor', 'Qoniqarsiz (<50%)')}
         </span>
       );
     }
@@ -258,7 +261,7 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
       });
       const data = await res.json();
       if (data.success) {
-        setEvalMsg({ type: 'success', text: `${data.count} ta xodimning KPI baholash ko'rsatkichlari saqlandi!` });
+        setEvalMsg({ type: 'success', text: language === 'kr' ? `${data.count}명의 KPI 점수가 저장되었습니다!` : `${data.count} ta xodimning KPI baholash ko'rsatkichlari saqlandi!` });
       } else {
         setEvalMsg({ type: 'error', text: data.error || "Saqlashda xatolik" });
       }
@@ -309,27 +312,27 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
   // Excel / CSV Export
   const handleExportPayrollExcel = () => {
     if (payrollRows.length === 0) {
-      alert("Eksport qilish uchun ma'lumot yo'q");
+      alert(language === 'kr' ? '내보낼 데이터가 없습니다.' : "Eksport qilish uchun ma'lumot yo'q");
       return;
     }
 
-    const printDate = new Date().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
-    const deptName = selectedDepartmentObj ? selectedDepartmentObj.name : "Barcha Bo'limlar";
+    const printDate = new Date().toLocaleDateString(language === 'kr' ? 'ko-KR' : 'uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+    const deptName = selectedDepartmentObj ? selectedDepartmentObj.name : (language === 'kr' ? '전체 부서' : "Barcha Bo'limlar");
 
     const lines = [
-      `"YIRIK ISHLAB CHIQARISH KORXONASI - MUKOFOT VA PAYROLL SVODKASI"`,
-      `"Davr: ${period} | Bo'lim: ${deptName} | Eksport sanasi: ${printDate}"`,
+      `"KPI PAYROLL SUMMARY REPORT"`,
+      `"Period: ${period} | Department: ${deptName} | Export Date: ${printDate}"`,
       ``,
-      `"1. EXECUTUVE PAYROLL SUMMARY"`,
-      `"Ko'rsatkich","Qiymat"`,
-      `"Jami Xodimlar",${payrollStats.totalEmployees}`,
-      `"Mukofot Oladigan Xodimlar Soni",${payrollStats.eligibleCount}`,
-      `"Jami Oklad Fondi (UZS)",${payrollStats.totalBaseSalary}`,
-      `"Jami Mukofot Fondi (UZS)",${payrollStats.totalBonusAmount}`,
-      `"O'rtacha KPI Bali",${payrollStats.avgKpiScore}%`,
+      `"1. EXECUTIVE PAYROLL SUMMARY"`,
+      `"Category","Value"`,
+      `"Total Employees",${payrollStats.totalEmployees}`,
+      `"Eligible Count",${payrollStats.eligibleCount}`,
+      `"Total Base Salary",${payrollStats.totalBaseSalary}`,
+      `"Total Bonus Amount",${payrollStats.totalBonusAmount}`,
+      `"Average KPI Score",${payrollStats.avgKpiScore}%`,
       ``,
       `"2. DETAILED PAYROLL BONUS LIST"`,
-      `"№","Tabel №","F.I.O","Bo'lim","Oklad (UZS)","KPI Bali (%)","Mukofot Stavkasi (%)","To'lanadigan Mukofot (UZS)"`,
+      `"№","Tabel №","F.I.O","Department","Base Salary","KPI Score","Bonus Rate","Bonus Amount"`,
       ...payrollRows.map((r, idx) =>
         [
           idx + 1,
@@ -358,12 +361,12 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
   // Printable A4 PDF Export
   const handleExportPayrollPDF = () => {
     if (payrollRows.length === 0) {
-      alert("PDF eksport qilish uchun ma'lumot yo'q");
+      alert(language === 'kr' ? '내보낼 데이터가 없습니다.' : "PDF eksport qilish uchun ma'lumot yo'q");
       return;
     }
 
-    const printDate = new Date().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
-    const deptName = selectedDepartmentObj ? selectedDepartmentObj.name : "Barcha Bo'limlar";
+    const printDate = new Date().toLocaleDateString(language === 'kr' ? 'ko-KR' : 'uz-UZ', { year: 'numeric', month: 'long', day: 'numeric' });
+    const deptName = selectedDepartmentObj ? selectedDepartmentObj.name : (language === 'kr' ? '전체 부서' : "Barcha Bo'limlar");
 
     const rowsHtml = payrollRows
       .map(
@@ -411,18 +414,18 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
 
 <div class="header-box">
   <div>
-    <div class="header-title">YIRIK ISHLAB CHIQARISH KORXONASI</div>
-    <div class="header-sub">KPI SAMARADORLIK VA OYLIK MUKOFOT PAYROLL SVODKASI</div>
+    <div class="header-title">ENTERPRISE HR MANAGEMENT</div>
+    <div class="header-sub">KPI PERFORMANCE & MONTHLY PAYROLL BONUS SUMMARY</div>
   </div>
   <div style="text-align: right; font-size: 8.5pt;">
-    <div>Davr: <b>${period}</b></div>
-    <div>Sana: <b>${printDate}</b></div>
+    <div>Period: <b>${period}</b></div>
+    <div>Date: <b>${printDate}</b></div>
   </div>
 </div>
 
 <div class="summary-banner">
-  <div><b>Bo'lim:</b> ${deptName} | <b>Jami Xodimlar:</b> ${payrollStats.totalEmployees} ta</div>
-  <div><b>Oklad Fondi:</b> ${formatCurrency(payrollStats.totalBaseSalary)} UZS | <b>Jami Mukofot Fondi:</b> <b style="color: #0284c7;">${formatCurrency(payrollStats.totalBonusAmount)} UZS</b></div>
+  <div><b>Department:</b> ${deptName} | <b>Total Employees:</b> ${payrollStats.totalEmployees}</div>
+  <div><b>Base Salary Pool:</b> ${formatCurrency(payrollStats.totalBaseSalary)} UZS | <b>Bonus Pool:</b> <b style="color: #0284c7;">${formatCurrency(payrollStats.totalBonusAmount)} UZS</b></div>
 </div>
 
 <table>
@@ -431,11 +434,11 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
       <th style="width: 30px; text-align: center;">№</th>
       <th>Tabel №</th>
       <th>F.I.O</th>
-      <th>Bo'lim</th>
-      <th style="text-align: right;">Oklad (UZS)</th>
-      <th style="text-align: center;">KPI Bali (%)</th>
-      <th style="text-align: center;">Mukofot Stavkasi (%)</th>
-      <th style="text-align: right;">To'lanadigan Mukofot (UZS)</th>
+      <th>Department</th>
+      <th style="text-align: right;">Base Salary</th>
+      <th style="text-align: center;">KPI Score (%)</th>
+      <th style="text-align: center;">Bonus Rate (%)</th>
+      <th style="text-align: right;">Bonus Amount (UZS)</th>
     </tr>
   </thead>
   <tbody>
@@ -445,15 +448,15 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
 
 <div class="signatures">
   <div>
-    <div><b>Bosh Direktor:</b> Nazarov B.</div>
+    <div><b>CEO / General Director:</b> Nazarov B.</div>
     <div class="sig-line"></div>
   </div>
   <div>
-    <div><b>HR Boshlig'i:</b> Karimov J.</div>
+    <div><b>HR Director:</b> Karimov J.</div>
     <div class="sig-line"></div>
   </div>
   <div>
-    <div><b>Bosh Buxgalter:</b> Usmonova M.</div>
+    <div><b>Chief Accountant:</b> Usmonova M.</div>
     <div class="sig-line"></div>
   </div>
 </div>
@@ -470,22 +473,22 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
+    <div className="bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-indigo-600/20 text-blue-600 dark:text-indigo-400 border border-blue-200 dark:border-indigo-500/30">
             <Calculator className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              KPI & Samaradorlikni Baholash Dvigateli
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono border border-blue-500/30">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              {t('kpi_module.title', 'KPI & Samaradorlikni Baholash Dvigateli')}
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-400 font-mono border border-blue-300 dark:border-blue-500/30 font-bold">
                 20% Max Bonus Formula
               </span>
             </h2>
-            <p className="text-xs text-slate-400">
-              Shablonlar, oylik baholash va base salary (Oklad) bo'yicha mukofot svodkasi
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {language === 'kr' ? '템플릿, 월별 성과 평가 및 기본급 대비 성과급 산출' : "Shablonlar, oylik baholash va base salary (Oklad) bo'yicha mukofot svodkasi"}
             </p>
           </div>
         </div>
@@ -493,15 +496,15 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
         {/* Global Filters: Department & Period */}
         <div className="flex items-center gap-3 flex-wrap">
           <div>
-            <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">
-              Bo'lim (Department):
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+              {t('kpi_module.select_dept', "Bo'limni tanlang")}:
             </label>
             <select
               value={selectedDeptId}
               onChange={(e) => setSelectedDeptId(e.target.value)}
-              className="bg-slate-800 text-slate-200 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
-              <option value="">-- Barcha Bo'limlar --</option>
+              <option value="">-- {language === 'kr' ? '전체 부서' : "Barcha Bo'limlar"} --</option>
               {deptList.map((d) => (
                 <option key={d.id} value={d.id}>
                   [{d.code}] {d.name}
@@ -511,55 +514,55 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">
-              Baholash Davri (Period):
+            <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+              {t('kpi_module.period', 'Baholash davri (Yil / Oy)')}:
             </label>
             <input
               type="month"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
-              className="bg-slate-800 text-slate-200 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+              className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
             />
           </div>
         </div>
       </div>
 
-      {/* 3 Operational Sub-Tabs Navigation */}
-      <div className="flex border-b border-slate-800 space-x-2">
+      {/* 3 Operational Sub-Tabs Navigation Header */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-xl shadow-sm flex flex-wrap gap-2">
         <button
           onClick={() => setActiveTab('templates')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs rounded-lg transition cursor-pointer ${
             activeTab === 'templates'
-              ? 'bg-indigo-600 text-white border-b-2 border-indigo-400'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white font-semibold'
           }`}
         >
           <SlidersHorizontal className="h-4 w-4" />
-          <span>1. KPI Shablonlari va Mezonlar</span>
+          <span>{t('kpi_module.tab1', '1. KPI Shablonlari va Mezonlar')}</span>
         </button>
 
         <button
           onClick={() => setActiveTab('evaluations')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs rounded-lg transition cursor-pointer ${
             activeTab === 'evaluations'
-              ? 'bg-indigo-600 text-white border-b-2 border-indigo-400'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white font-semibold'
           }`}
         >
           <TrendingUp className="h-4 w-4" />
-          <span>2. Oylik Baholash Oynasi</span>
+          <span>{t('kpi_module.tab2', '2. Oylik Baholash Oynasi')}</span>
         </button>
 
         <button
           onClick={() => setActiveTab('payroll')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs rounded-lg transition cursor-pointer ${
             activeTab === 'payroll'
-              ? 'bg-indigo-600 text-white border-b-2 border-indigo-400'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
+              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white font-semibold'
           }`}
         >
           <Award className="h-4 w-4" />
-          <span>3. Mukofot Svodkasi va Payroll</span>
+          <span>{t('kpi_module.tab3', '3. Mukofot va Payroll Svodkasi')}</span>
         </button>
       </div>
 
@@ -570,23 +573,23 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
             <div
               className={`p-3 rounded-xl text-xs font-semibold flex items-center justify-between ${
                 templateMsg.type === 'success'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                  : 'bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
               }`}
             >
               <span>{templateMsg.text}</span>
-              <button onClick={() => setTemplateMsg(null)} className="text-slate-400 hover:text-white">✕</button>
+              <button onClick={() => setTemplateMsg(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
           )}
 
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 space-y-4 shadow-xl">
+          <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  Bo'lim KPI Baholash Mezonlari va Og'irliklari
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  {t('kpi_module.existing_criteria', "Mavjud mezonlar ro'yxati")}
                 </h3>
-                <p className="text-xs text-slate-400">
-                  Bo'lim uchun mezonlar va % og'irliklarini sozlang. Barcha og'irliklar yig'indisi aniq 100% bo'lishi kerak.
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  {language === 'kr' ? '부서별 평가 항목 및 가중치(%)를 설정하세요. 가중치의 합은 100%이어야 합니다.' : "Bo'lim uchun mezonlar va % og'irliklarini sozlang. Barcha og'irliklar yig'indisi aniq 100% bo'lishi kerak."}
                 </p>
               </div>
 
@@ -594,41 +597,41 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                 <div
                   className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold border ${
                     Math.abs(totalWeight - 100) < 0.01
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                      ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30'
+                      : 'bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-400 border-amber-300 dark:border-amber-500/30'
                   }`}
                 >
-                  Jami Og'irlik: {totalWeight}% / 100%
+                  {language === 'kr' ? '총 가중치' : "Jami Og'irlik"}: {totalWeight}% / 100%
                 </div>
 
                 <button
                   onClick={handleSaveTemplate}
                   disabled={savingTemplate}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition active:scale-95 disabled:opacity-50"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-sm transition active:scale-95 disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" />
-                  <span>💾 Shablonni Saqlash</span>
+                  <span>💾 {t('kpi_module.save_template', 'Shablonni saqlash')}</span>
                 </button>
               </div>
             </div>
 
             {/* Existing Criteria Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-800">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+                <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold border-b border-slate-300 dark:border-slate-700">
                   <tr>
                     <th className="px-4 py-3">№</th>
-                    <th className="px-4 py-3">Mezon Nomi (Criterion Name)</th>
-                    <th className="px-4 py-3 text-center">Og'irligi % (Weight)</th>
-                    <th className="px-4 py-3">Maqsad (Target Value)</th>
-                    <th className="px-4 py-3 text-right">Harakatlar</th>
+                    <th className="px-4 py-3">{t('kpi_module.criterion_name', 'Mezon nomi')}</th>
+                    <th className="px-4 py-3 text-center">{t('kpi_module.weight', 'Salmoq (Ves %)')}</th>
+                    <th className="px-4 py-3">{t('kpi_module.target', "Maqsaddagi ko'rsatkich (Target)")}</th>
+                    <th className="px-4 py-3 text-right">{t('table.actions', 'Harakatlar')}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                   {criteria.map((crit, idx) => (
-                    <tr key={crit.id || idx} className="hover:bg-slate-800/50 transition">
-                      <td className="px-4 py-3 font-bold text-slate-400">{idx + 1}</td>
-                      <td className="px-4 py-3 font-semibold text-slate-100">
+                    <tr key={crit.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400">{idx + 1}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
                         <input
                           type="text"
                           value={crit.name}
@@ -637,10 +640,10 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                             updated[idx].name = e.target.value;
                             setCriteria(updated);
                           }}
-                          className="bg-slate-800 border border-slate-700 text-xs text-slate-100 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </td>
-                      <td className="px-4 py-3 text-center font-mono font-bold text-indigo-400">
+                      <td className="px-4 py-3 text-center font-mono font-bold text-blue-600 dark:text-indigo-400">
                         <input
                           type="number"
                           value={crit.weight}
@@ -649,7 +652,7 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                             updated[idx].weight = Number(e.target.value);
                             setCriteria(updated);
                           }}
-                          className="bg-slate-800 border border-slate-700 text-xs text-indigo-300 rounded px-2 py-1 w-20 text-center font-mono font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 mx-auto"
+                          className="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-blue-600 dark:text-indigo-300 rounded px-2 py-1 w-20 text-center font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mx-auto"
                         />
                         %
                       </td>
@@ -662,14 +665,14 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                             updated[idx].target = e.target.value;
                             setCriteria(updated);
                           }}
-                          className="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => handleDeleteCriterion(crit.id, idx)}
-                          className="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-500/10 transition cursor-pointer"
-                          title="🗑️ O'chirish"
+                          className="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 p-1 rounded hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
+                          title={t('common.delete', "O'chirish")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -681,10 +684,10 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
             </div>
 
             {/* Add New Criterion Box */}
-            <div className="rounded-xl bg-slate-950/60 border border-slate-800 p-3 space-y-2">
-              <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <Plus className="h-3.5 w-3.5 text-indigo-400" />
-                Yangi Mezon Qo'shish
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 p-3 space-y-2">
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Plus className="h-3.5 w-3.5 text-blue-600 dark:text-indigo-400" />
+                {t('kpi_module.add_criterion', "Yangi mezon qo'shish")}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="sm:col-span-2">
@@ -692,8 +695,8 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                     type="text"
                     value={newCritName}
                     onChange={(e) => setNewCritName(e.target.value)}
-                    placeholder="Mezon nomi (masalan: Mehnat muhofazasi)..."
-                    className="w-full bg-slate-800 text-slate-200 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder={t('kpi_module.criterion_name', 'Mezon nomi')}
+                    className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
                 <div>
@@ -701,17 +704,17 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                     type="number"
                     value={newCritWeight}
                     onChange={(e) => setNewCritWeight(Number(e.target.value))}
-                    placeholder="Og'irligi %"
-                    className="w-full bg-slate-800 text-slate-200 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                    placeholder={t('kpi_module.weight', 'Salmoq (Ves %)')}
+                    className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
                   />
                 </div>
                 <div>
                   <button
                     onClick={handleAddCriterion}
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-1.5 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition shadow-sm"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    <span>[+] Mezon Qo'shish</span>
+                    <span>[+] {t('kpi_module.add_criterion', "Mezon qo'shish")}</span>
                   </button>
                 </div>
               </div>
@@ -727,79 +730,79 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
             <div
               className={`p-3 rounded-xl text-xs font-semibold flex items-center justify-between ${
                 evalMsg.type === 'success'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                  : 'bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
               }`}
             >
               <span>{evalMsg.text}</span>
-              <button onClick={() => setEvalMsg(null)} className="text-slate-400 hover:text-white">✕</button>
+              <button onClick={() => setEvalMsg(null)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
           )}
 
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-white">
-                Oylik KPI Baholash Kiritish ({period})
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                {t('kpi_module.tab2', '2. Oylik Baholash Oynasi')} ({period})
               </h3>
-              <p className="text-xs text-slate-400">
-                Xodimlar bo'yicha KPI ko'rsatkichlarini (0-100%) kiriting. Baho statusi real-vaqtda yangilanadi.
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                {language === 'kr' ? '임직원별 성과 점수(0-100%)를 입력하세요. 등급은 실시간으로 산출됩니다.' : "Xodimlar bo'yicha KPI ko'rsatkichlarini (0-100%) kiriting. Baho statusi real-vaqtda yangilanadi."}
               </p>
             </div>
 
             <button
               onClick={handleSaveEvaluations}
               disabled={savingEvaluations}
-              className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md transition active:scale-95"
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-sm transition active:scale-95"
             >
               <Save className="h-4 w-4" />
-              <span>💾 Oylik Baholashni Saqlash</span>
+              <span>💾 {t('kpi_module.save_scores', 'Baholarni saqlash')}</span>
             </button>
           </div>
 
           {/* Evaluations Table */}
-          <div className="overflow-x-auto rounded-xl border border-slate-800 shadow-xl">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/90 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+              <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold border-b border-slate-300 dark:border-slate-700 uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-3.5">№</th>
-                  <th className="px-4 py-3.5">Tabel № / F.I.O</th>
-                  <th className="px-4 py-3.5">Bo'lim & Lavozim</th>
-                  <th className="px-4 py-3.5 text-center">Jami KPI Bali (0-100%)</th>
-                  <th className="px-4 py-3.5 text-center">Baholash Statusi</th>
+                  <th className="px-4 py-3.5">{t('table.tabel_no', 'Tabel №')} / {t('table.fio', 'F.I.O')}</th>
+                  <th className="px-4 py-3.5">{t('table.dept', "Bo'lim")} & {t('table.position', 'Lavozimi')}</th>
+                  <th className="px-4 py-3.5 text-center">{t('kpi_module.score_pct', "To'plangan Ball (%)")}</th>
+                  <th className="px-4 py-3.5 text-center">{t('kpi_module.grade', 'Natija / Daraja')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                 {evalLoading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-slate-400">
-                      Ma'lumotlar yuklanmoqda...
+                    <td colSpan={5} className="text-center py-12 text-slate-600 dark:text-slate-400 font-medium">
+                      {language === 'kr' ? '데이터를 불러오는 중...' : "Ma'lumotlar yuklanmoqda..."}
                     </td>
                   </tr>
                 ) : evalEmps.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-slate-400">
-                      Ushbu bo'limda faol xodimlar topilmadi
+                    <td colSpan={5} className="text-center py-12 text-slate-600 dark:text-slate-400 font-medium">
+                      {language === 'kr' ? '해당 부서에 재직 중인 임직원이 없습니다.' : "Ushbu bo'limda faol xodimlar topilmadi"}
                     </td>
                   </tr>
                 ) : (
                   evalEmps.map((emp, idx) => {
                     const score = evalScores[emp.id] ?? 85.0;
                     return (
-                      <tr key={emp.id} className="hover:bg-slate-900/60 transition">
-                        <td className="px-4 py-3 font-bold text-slate-400">{idx + 1}</td>
+                      <tr key={emp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-b border-slate-200 dark:border-slate-800">
+                        <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400">{idx + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-indigo-400">
+                            <span className="font-mono text-xs font-bold text-blue-600 dark:text-indigo-400">
                               {emp.tabelNumber}
                             </span>
-                            <span className="font-semibold text-slate-100">
+                            <span className="font-semibold text-slate-900 dark:text-slate-100">
                               {emp.lastName} {emp.firstName} {emp.middleName || ''}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-300">
+                        <td className="px-4 py-3 text-slate-800 dark:text-slate-200 font-medium">
                           <span>{emp.position}</span>
-                          <p className="text-[11px] text-indigo-300">{emp.currentDepartment?.name}</p>
+                          <p className="text-[11px] text-blue-600 dark:text-indigo-300 font-semibold">{emp.currentDepartment?.name}</p>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
@@ -812,9 +815,9 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
                                 const val = Math.min(100, Math.max(0, Number(e.target.value)));
                                 setEvalScores({ ...evalScores, [emp.id]: val });
                               }}
-                              className="bg-slate-800 border border-slate-700 text-xs text-white rounded-lg px-2 py-1 w-20 text-center font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                              className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 text-xs rounded-lg px-2 py-1 w-20 text-center font-mono focus:outline-none"
                             />
-                            <span className="font-mono text-slate-400">%</span>
+                            <span className="font-mono text-slate-600 dark:text-slate-400 font-bold">%</span>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">{getScoreBadge(score)}</td>
@@ -833,141 +836,141 @@ export const KpiManagementView: React.FC<KpiManagementViewProps> = ({ department
         <div className="space-y-6 animate-fadeIn">
           {/* Executive KPI Payroll Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-1">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                <span>Jami Oklad Fondi</span>
-                <DollarSign className="h-4 w-4 text-indigo-400" />
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-1 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase">
+                <span>{t('kpi_module.base_salary', 'Asosiy Oklad')}</span>
+                <DollarSign className="h-4 w-4 text-blue-600 dark:text-indigo-400" />
               </div>
-              <p className="text-xl font-mono font-bold text-white">
+              <p className="text-xl font-mono font-extrabold text-slate-900 dark:text-white">
                 {formatCurrency(payrollStats.totalBaseSalary)} UZS
               </p>
-              <p className="text-[11px] text-slate-500">{payrollStats.totalEmployees} ta xodim bo'yicha</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{payrollStats.totalEmployees} {language === 'kr' ? '명 기준' : "ta xodim bo'yicha"}</p>
             </div>
 
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-1">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                <span>Hisoblangan Mukofot Fondi</span>
-                <Award className="h-4 w-4 text-emerald-400" />
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-1 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase">
+                <span>{t('kpi_module.total_bonus_pool', 'Jami Mukofot Fondi (UZS)')}</span>
+                <Award className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <p className="text-xl font-mono font-bold text-emerald-400">
+              <p className="text-xl font-mono font-extrabold text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(payrollStats.totalBonusAmount)} UZS
               </p>
-              <p className="text-[11px] text-slate-500">Max 20% stavka bo'yicha</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{language === 'kr' ? '최대 20% 지급률 적용' : 'Max 20% stavka bo\'yicha'}</p>
             </div>
 
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-1">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                <span>O'rtacha KPI Bali</span>
-                <Percent className="h-4 w-4 text-blue-400" />
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-1 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase">
+                <span>{t('kpi_module.avg_kpi', "O'rtacha KPI Bali")}</span>
+                <Percent className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-xl font-mono font-bold text-blue-400">{payrollStats.avgKpiScore}%</p>
-              <p className="text-[11px] text-slate-500">Bo'lim ko'rsatkichi</p>
+              <p className="text-xl font-mono font-extrabold text-blue-600 dark:text-blue-400">{payrollStats.avgKpiScore}%</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{language === 'kr' ? '부서 평균 성과' : "Bo'lim ko'rsatkichi"}</p>
             </div>
 
-            <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 space-y-1">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase">
-                <span>Mukofot Oladiganlar</span>
-                <Users className="h-4 w-4 text-amber-400" />
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-1 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase">
+                <span>{language === 'kr' ? '성과급 수령 대상자' : 'Mukofot Oladiganlar'}</span>
+                <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
-              <p className="text-xl font-mono font-bold text-amber-400">
+              <p className="text-xl font-mono font-extrabold text-amber-600 dark:text-amber-400">
                 {payrollStats.eligibleCount} / {payrollStats.totalEmployees}
               </p>
-              <p className="text-[11px] text-slate-500">KPI ≥ 50% bo'lganlar</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">KPI ≥ 50%</p>
             </div>
           </div>
 
           {/* Action Bar with Exports */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-white">
-                Oylik Mukofot Svodkasi va Payroll ({period})
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                {t('kpi_module.tab3', '3. Mukofot va Payroll Svodkasi')} ({period})
               </h3>
-              <p className="text-xs text-slate-400">
-                Formula: Mukofot % = IF KPI ≥ 50% THEN (20% × KPI / 100) ELSE 0%. Mukofot Summasi = Oklad × Mukofot %.
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Formula: Bonus = Base Salary * (20% * Score / 100).
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={handleExportPayrollExcel}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md transition active:scale-95"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer transition active:scale-95"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                <span>📊 Excel Mukofot Svodkasini Yuklash</span>
+                <span>📊 {t('kpi_module.export_excel', 'Excel ga yuklash')}</span>
               </button>
 
               <button
                 onClick={handleExportPayrollPDF}
-                className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md transition active:scale-95"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer transition active:scale-95"
               >
                 <Download className="w-4 h-4" />
-                <span>📄 PDF KPI Svodka Yuklash</span>
+                <span>📄 {t('kpi_module.export_pdf', 'PDF Svodka Yuklash')}</span>
               </button>
             </div>
           </div>
 
           {/* Summary Table */}
-          <div className="overflow-x-auto rounded-xl border border-slate-800 shadow-xl">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/90 text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-800">
+              <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold border-b border-slate-300 dark:border-slate-700 uppercase tracking-wider">
                 <tr>
                   <th className="px-4 py-3.5">№</th>
-                  <th className="px-4 py-3.5">Tabel № / F.I.O</th>
-                  <th className="px-4 py-3.5">Bo'limi</th>
-                  <th className="px-4 py-3.5 text-right">Okladi (UZS)</th>
-                  <th className="px-4 py-3.5 text-center">KPI Bali (%)</th>
-                  <th className="px-4 py-3.5 text-center">Mukofot Stavkasi (%)</th>
-                  <th className="px-4 py-3.5 text-right">To'lanadigan Mukofot (UZS)</th>
+                  <th className="px-4 py-3.5">{t('table.tabel_no', 'Tabel №')} / {t('table.fio', 'F.I.O')}</th>
+                  <th className="px-4 py-3.5">{t('table.dept', "Bo'limi")}</th>
+                  <th className="px-4 py-3.5 text-right">{t('kpi_module.base_salary', 'Asosiy Oklad')} (UZS)</th>
+                  <th className="px-4 py-3.5 text-center">{t('kpi_module.score_pct', "KPI Bali (%)")}</th>
+                  <th className="px-4 py-3.5 text-center">{t('kpi_module.bonus_rate', 'Mukofot koeffitsiyenti (20%)')}</th>
+                  <th className="px-4 py-3.5 text-right">{t('kpi_module.calculated_bonus', 'Hisoblangan Mukofot Pul (UZS)')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-950/40 font-mono">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900 font-mono">
                 {payrollLoading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400 font-sans">
-                      Mukofot svodkasi hisoblanmoqda...
+                    <td colSpan={7} className="text-center py-12 text-slate-600 dark:text-slate-400 font-sans font-medium">
+                      {language === 'kr' ? '성과급 계산 중...' : "Mukofot svodkasi hisoblanmoqda..."}
                     </td>
                   </tr>
                 ) : payrollRows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400 font-sans">
-                      Ushbu bo'limda ma'lumot yo'q
+                    <td colSpan={7} className="text-center py-12 text-slate-600 dark:text-slate-400 font-sans font-medium">
+                      {language === 'kr' ? '데이터가 없습니다.' : "Ushbu bo'limda ma'lumot yo'q"}
                     </td>
                   </tr>
                 ) : (
                   payrollRows.map((row, idx) => (
-                    <tr key={row.employeeId || idx} className="hover:bg-slate-900/60 transition">
-                      <td className="px-4 py-3 font-bold text-slate-400 font-sans">{idx + 1}</td>
+                    <tr key={row.employeeId || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-b border-slate-200 dark:border-slate-800">
+                      <td className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 font-sans">{idx + 1}</td>
                       <td className="px-4 py-3 font-sans">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-indigo-400">
+                          <span className="font-mono text-xs font-bold text-blue-600 dark:text-indigo-400">
                             {row.tabelNumber}
                           </span>
-                          <span className="font-semibold text-slate-100">{row.fullName}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">{row.fullName}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-sans text-indigo-300">{row.departmentName}</td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-200">
+                      <td className="px-4 py-3 font-sans text-blue-600 dark:text-indigo-300 font-medium">{row.departmentName}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-900 dark:text-slate-100">
                         {formatCurrency(row.baseSalary)}
                       </td>
                       <td className="px-4 py-3 text-center font-bold">
                         <span
-                          className={`px-2 py-0.5 rounded text-xs ${
+                          className={`px-2 py-0.5 rounded text-xs border font-bold ${
                             row.kpiScore >= 90
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                               : row.kpiScore >= 70
-                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-300 dark:border-blue-800'
                               : row.kpiScore >= 50
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-300 dark:border-rose-800'
                           }`}
                         >
                           {row.kpiScore}%
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center font-bold text-indigo-400">
+                      <td className="px-4 py-3 text-center font-bold text-blue-600 dark:text-indigo-400">
                         {row.bonusRatePct}%
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-emerald-400">
+                      <td className="px-4 py-3 text-right font-bold text-blue-600 dark:text-blue-400">
                         {formatCurrency(row.bonusAmountUzs)}
                       </td>
                     </tr>

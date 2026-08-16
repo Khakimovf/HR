@@ -415,4 +415,17 @@ model LeaveApprovalStep {
   actionDate   DateTime?
 }
 
-
+model Announcement {
+  id             String   @id @default(uuid())
+  title_uz       String
+  title_kr       String
+  content_uz     String
+  content_kr     String
+  category       String   @default("UPDATE") // FEATURE, UPDATE, MAINTENANCE, IMPORTANT
+  affectedModule String   @default("ALL")    // ALL, KPI, ATTENDANCE, APPLICATIONS, SAFETY, HIERARCHY
+  priority       String   @default("MEDIUM") // HIGH, MEDIUM, LOW
+  created_by     String   @default("Admin HR")
+  is_published   Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

@@ -79,20 +79,20 @@ function StatCard({
   icon: React.ElementType;
 }) {
   const colors = {
-    indigo: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400',
-    emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    rose: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
-    purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
-    slate: 'bg-slate-800 border-slate-700 text-slate-400',
+    indigo: 'bg-blue-100 dark:bg-indigo-500/10 border-blue-300 dark:border-indigo-500/20 text-blue-800 dark:text-indigo-400',
+    emerald: 'bg-emerald-100 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-400',
+    amber: 'bg-amber-100 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/20 text-amber-800 dark:text-amber-400',
+    rose: 'bg-rose-100 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/20 text-rose-800 dark:text-rose-400',
+    purple: 'bg-purple-100 dark:bg-purple-500/10 border-purple-300 dark:border-purple-500/20 text-purple-800 dark:text-purple-400',
+    slate: 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-400',
   };
 
   return (
-    <div className={`flex items-center gap-3 rounded-xl border px-3 py-3 ${colors[color]}`}>
+    <div className={`flex items-center gap-3 rounded-xl border px-3 py-3 font-bold ${colors[color]}`}>
       <Icon className="h-4 w-4 flex-shrink-0" />
       <div className="min-w-0">
-        <p className="text-[10px] font-medium opacity-70 truncate">{label}</p>
-        <p className="text-base font-bold leading-tight">{value}</p>
+        <p className="text-[10px] font-semibold opacity-80 truncate">{label}</p>
+        <p className="text-base font-extrabold leading-tight">{value}</p>
       </div>
     </div>
   );
@@ -145,7 +145,7 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -153,31 +153,30 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
 
       {/* Drawer */}
       <div
-        className={`fixed right-0 top-0 z-50 h-full w-full max-w-[480px] flex flex-col border-l border-slate-800 shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed right-0 top-0 z-50 h-full w-full max-w-[480px] flex flex-col border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
-        style={{ background: 'linear-gradient(180deg, #0f1526 0%, #111827 100%)' }}
       >
         {/* Drawer Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 px-5 py-4 flex-shrink-0">
+        <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 px-5 py-4 flex-shrink-0 bg-slate-100 dark:bg-slate-800/90">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex-shrink-0 mt-0.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-indigo-500/15 border border-blue-300 dark:border-indigo-500/20 text-blue-700 dark:text-indigo-400 font-bold flex-shrink-0 mt-0.5">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white leading-snug">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
                 {department?.name || 'Bo\'lim'}
               </h2>
               <div className="flex items-center gap-2 mt-1">
-                <span className="font-mono text-[11px] text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/15">
+                <span className="font-mono text-[11px] text-blue-800 dark:text-indigo-300 bg-blue-100 dark:bg-indigo-500/10 px-2 py-0.5 rounded-md border border-blue-300 dark:border-indigo-500/15 font-bold">
                   {department?.code}
                 </span>
                 {isFull ? (
-                  <span className="text-[10px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                  <span className="text-[10px] font-bold text-rose-800 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-300 dark:border-rose-500/20">
                     ● To'liq
                   </span>
                 ) : (
-                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/20">
                     ● {vacancyCount} vakansiya
                   </span>
                 )}
@@ -186,7 +185,7 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition flex-shrink-0"
+            className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition flex-shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
@@ -197,20 +196,20 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
 
           {/* ── Section 1: Department Info ── */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-400 flex items-center gap-1.5">
               <Hash className="h-3 w-3" /> Bo'lim Ma'lumoti
             </h3>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/50 divide-y divide-slate-800 text-xs">
-              <InfoRow label="Nomi" value={department?.name || '—'} />
-              <InfoRow label="Kodi" value={<span className="font-mono text-indigo-300">{department?.code || '—'}</span>} />
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 divide-y divide-slate-200 dark:divide-slate-800 text-xs font-medium">
+              <InfoRow label="Nomi" value={<span className="font-bold text-slate-900 dark:text-slate-100">{department?.name || '—'}</span>} />
+              <InfoRow label="Kodi" value={<span className="font-mono font-bold text-blue-700 dark:text-indigo-300">{department?.code || '—'}</span>} />
               {stats?.department?.parent && (
                 <InfoRow
                   label="Yuqori bo'lim"
                   value={
                     <span className="flex items-center gap-1">
-                      <GitBranch className="h-3 w-3 text-purple-400" />
-                      <span className="text-purple-300">{stats.department.parent.name}</span>
-                      <span className="font-mono text-slate-500 text-[10px]">[{stats.department.parent.code}]</span>
+                      <GitBranch className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                      <span className="text-purple-700 dark:text-purple-300 font-bold">{stats.department.parent.name}</span>
+                      <span className="font-mono text-slate-600 dark:text-slate-500 text-[10px]">[{stats.department.parent.code}]</span>
                     </span>
                   }
                 />
@@ -221,11 +220,11 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
               <InfoRow
                 label="Shtat holati"
                 value={
-                  <span className="flex items-center gap-2">
-                    <span className="font-bold text-white">{empCount}</span>
-                    <span className="text-slate-500">/</span>
-                    <span className="text-slate-400">{staffLimit} shtat</span>
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${isFull ? 'text-rose-400 bg-rose-500/10' : 'text-emerald-400 bg-emerald-500/10'}`}>
+                  <span className="flex items-center gap-2 font-bold">
+                    <span className="text-slate-900 dark:text-white">{empCount}</span>
+                    <span className="text-slate-400">/</span>
+                    <span className="text-slate-600 dark:text-slate-400">{staffLimit} shtat</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isFull ? 'text-rose-800 bg-rose-100 dark:text-rose-400 dark:bg-rose-500/10' : 'text-emerald-800 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10'}`}>
                       {isFull ? 'To\'liq' : `+${vacancyCount} bo'sh`}
                     </span>
                   </span>
@@ -236,29 +235,29 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
 
           {/* ── Section 2: Head of Department ── */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-400 flex items-center gap-1.5">
               <UserCheck className="h-3 w-3" /> Bo'lim Boshlig'i
             </h3>
             {headName ? (
-              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 space-y-2">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 p-3 space-y-2 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white text-xs font-bold flex-shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold flex-shrink-0">
                     {headName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-white">{headName}</p>
-                    <p className="text-[11px] text-slate-400">Bo'lim Boshlig'i</p>
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">{headName}</p>
+                    <p className="text-[11px] text-blue-700 dark:text-slate-400 font-semibold">Bo'lim Boshlig'i</p>
                   </div>
                 </div>
                 {(headPhone || headEmail) && (
-                  <div className="space-y-1 pt-1 border-t border-slate-800">
+                  <div className="space-y-1 pt-1 border-t border-slate-200 dark:border-slate-800 font-medium">
                     {headPhone && (
-                      <a href={`tel:${headPhone}`} className="flex items-center gap-2 text-[11px] text-slate-400 hover:text-indigo-300 transition">
+                      <a href={`tel:${headPhone}`} className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-indigo-300 transition">
                         <Phone className="h-3 w-3" /> {headPhone}
                       </a>
                     )}
                     {headEmail && (
-                      <a href={`mailto:${headEmail}`} className="flex items-center gap-2 text-[11px] text-slate-400 hover:text-indigo-300 transition truncate">
+                      <a href={`mailto:${headEmail}`} className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-indigo-300 transition truncate">
                         <Mail className="h-3 w-3" /> {headEmail}
                       </a>
                     )}
@@ -266,7 +265,7 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 px-4 py-3 text-[11px] text-slate-500 text-center">
+              <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 px-4 py-3 text-[11px] text-slate-600 dark:text-slate-500 text-center font-medium">
                 Bo'lim boshlig'i tayinlanmagan
               </div>
             )}
@@ -274,13 +273,13 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
 
           {/* ── Section 3: Attendance Stats ── */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-400 flex items-center gap-1.5">
               <BarChart3 className="h-3 w-3" /> Real-Vaqt Davomat Statistikasi
             </h3>
 
             {loading ? (
-              <div className="flex items-center justify-center py-8 text-slate-500 text-xs gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
+              <div className="flex items-center justify-center py-8 text-slate-600 dark:text-slate-500 text-xs gap-2 font-medium">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-indigo-400" />
                 Statistika yuklanmoqda...
               </div>
             ) : stats ? (
@@ -295,7 +294,7 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
             ) : (
               <div className="grid grid-cols-2 gap-2 opacity-40">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-slate-800 animate-pulse" />
+                  <div key={i} className="h-16 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
                 ))}
               </div>
             )}
@@ -303,28 +302,28 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
 
           {/* ── Section 4: Penalties ── */}
           <section className="space-y-2">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-700 dark:text-slate-400 flex items-center gap-1.5">
               <ShieldAlert className="h-3 w-3" /> Intizomiy Holat
             </h3>
-            <div className={`rounded-xl border px-4 py-3 flex items-center justify-between ${
-              !stats ? 'border-slate-800 bg-slate-900/40' :
+            <div className={`rounded-xl border px-4 py-3 flex items-center justify-between shadow-sm ${
+              !stats ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40' :
               stats.activePenalties > 0
-                ? 'border-rose-500/20 bg-rose-500/5'
-                : 'border-emerald-500/20 bg-emerald-500/5'
+                ? 'border-rose-300 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/5'
+                : 'border-emerald-300 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/5'
             }`}>
               <div className="flex items-center gap-2.5">
                 <ShieldAlert className={`h-5 w-5 ${
-                  !stats ? 'text-slate-600' :
-                  stats.activePenalties > 0 ? 'text-rose-400' : 'text-emerald-400'
+                  !stats ? 'text-slate-400' :
+                  stats.activePenalties > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                 }`} />
                 <div>
-                  <p className="text-xs font-semibold text-white">Faol jazo choralari</p>
-                  <p className="text-[10px] text-slate-400">Joriy oy uchun</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">Faol jazo choralari</p>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">Joriy oy uchun</p>
                 </div>
               </div>
-              <div className={`text-2xl font-bold ${
-                !stats ? 'text-slate-600' :
-                stats.activePenalties > 0 ? 'text-rose-400' : 'text-emerald-400'
+              <div className={`text-2xl font-extrabold ${
+                !stats ? 'text-slate-400' :
+                stats.activePenalties > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
               }`}>
                 {loading ? '—' : (stats?.activePenalties ?? '—')}
               </div>
@@ -333,7 +332,7 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
         </div>
 
         {/* Drawer Footer CTA */}
-        <div className="border-t border-slate-800 px-5 py-4 flex-shrink-0">
+        <div className="border-t border-slate-200 dark:border-slate-800 px-5 py-4 flex-shrink-0 bg-slate-100 dark:bg-slate-900">
           <button
             onClick={() => {
               if (department) {
@@ -341,13 +340,13 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
                 onClose();
               }
             }}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 hover:from-indigo-500 hover:to-indigo-400 active:scale-[0.98] transition-all"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-4 py-3 text-sm font-bold text-white shadow-sm active:scale-95 transition-all"
           >
             <Users className="h-4 w-4" />
             Ushbu bo'lim xodimlarini ko'rish
             <ArrowRight className="h-4 w-4 ml-auto" />
           </button>
-          <p className="text-center text-[10px] text-slate-600 mt-2">
+          <p className="text-center text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">
             Xodimlar ro'yxatiga o'tib, bu bo'lim uchun filtr avtomatik qo'llanadi
           </p>
         </div>
@@ -365,8 +364,8 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 px-3 py-2.5">
-      <span className="text-slate-500 text-[11px] flex-shrink-0">{label}</span>
-      <span className="text-slate-200 text-xs text-right">{value}</span>
+      <span className="text-slate-600 dark:text-slate-400 text-[11px] flex-shrink-0 font-medium">{label}</span>
+      <span className="text-slate-900 dark:text-slate-200 text-xs text-right font-medium">{value}</span>
     </div>
   );
 }

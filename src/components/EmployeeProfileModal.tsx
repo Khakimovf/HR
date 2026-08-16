@@ -31,6 +31,7 @@ import {
 import { calculateTenure } from '@/lib/kpi';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EmployeeProfileModalProps {
   employeeId: string | null;
@@ -443,6 +444,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   onRefreshData,
 }) => {
   const { canEditEmployee } = useAuth();
+  const { t, language } = useLanguage();
   const [employee, setEmployee] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'personal_edu' | 'transfers' | 'leaves' | 'discipline_rewards' | 'permits'>('personal_edu');
@@ -1216,7 +1218,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
       {/* Micro Toast */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-2 bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 px-4 py-2 rounded-xl shadow-2xl backdrop-blur-lg animate-bounce text-xs font-bold">
@@ -1225,31 +1227,31 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
         </div>
       )}
 
-      <div className="relative w-full max-w-5xl rounded-2xl glass-panel border border-slate-700/80 shadow-2xl overflow-hidden my-8">
+      <div className="relative w-full max-w-5xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden my-8 transition-colors">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/90 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-lg font-bold text-white shadow-lg shadow-indigo-600/30">
               {employee ? employee.firstName[0] : 'X'}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                   {employee ? `${employee.lastName} ${employee.firstName} ${employee.middleName || ''}` : 'Yuklanmoqda...'}
                 </h3>
                 {employee && (
-                  <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                  <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-500/20">
                     {employee.tabelNumber}
                   </span>
                 )}
                 {employee && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/25">
                     {employee.status}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {employee?.position} • {employee?.currentDepartment?.name}
               </p>
             </div>
@@ -1257,7 +1259,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
           <div className="flex items-center gap-2">
             {!isAllowedToEdit && (
-              <span className="text-[11px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+              <span className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5 shrink-0" />
                 🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin
               </span>
@@ -1268,10 +1270,10 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               <button
                 onClick={() => handleDownloadEmployeePDF(employee, tenure, disciplinaryList, rewardsList, [...sertifikatList, ...guvohnomaList, ...ruxsatnomaList])}
                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                title="Xodimning to'liq 5-bo'lim PDF varakasini yuklab olish"
+                title={language === 'kr' ? '임직원 360° PDF 보고서 다운로드' : "Xodimning to'liq 5-bo'lim PDF varakasini yuklab olish"}
               >
                 <Download className="w-4 h-4" />
-                <span>PDF Yuklab Olish</span>
+                <span>{language === 'kr' ? 'PDF 다운로드' : 'PDF Yuklab Olish'}</span>
               </button>
             )}
 
@@ -1280,7 +1282,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               onClick={handleOffboard}
               disabled={!isAllowedToEdit}
               title={isAllowedToEdit ? "Mehnat shartnomasini bekor qilish" : "🔒 Faqat o'zingizga biriktirilgan bo'lim xodimlarini tahrirlashingiz mumkin"}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3.5 py-2 text-xs font-bold hover:bg-rose-500/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 px-3.5 py-2 text-xs font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Trash2 className="h-4 w-4" />
               <span>Offboard</span>
@@ -1288,7 +1290,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
             <button
               onClick={onClose}
-              className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+              className="rounded-xl p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -1298,24 +1300,24 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
         {loading ? (
           <div className="p-12 text-center">
             <div className="inline-flex flex-col items-center gap-3">
-              <div className="h-8 w-8 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
-              <span className="text-slate-400 text-sm">Profil ma'lumotlari yuklanmoqda...</span>
+              <div className="h-8 w-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+              <span className="text-slate-500 dark:text-slate-400 text-sm">Profil ma'lumotlari yuklanmoqda...</span>
             </div>
           </div>
         ) : !employee ? (
-          <div className="p-12 text-center text-slate-400 text-sm">
+          <div className="p-12 text-center text-slate-500 dark:text-slate-400 text-sm">
             Xodim topilmadi
           </div>
         ) : (
           <div>
             {/* ── 5-Tab Navigation ── */}
-            <div className="flex overflow-x-auto border-b border-slate-800 bg-slate-950/60 px-4">
+            <div className="flex overflow-x-auto border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-950/60 px-4 gap-1 py-1">
               {[
-                { id: 'personal_edu', label: "Shaxsiy Ma'lumotlar", icon: User },
-                { id: 'transfers', label: "Bo'limlar Rotatsiyasi", icon: ArrowLeftRight },
-                { id: 'leaves', label: "Ta'til va Davomat", icon: Calendar },
-                { id: 'discipline_rewards', label: "Jazo & Mukofotlar", icon: ShieldAlert },
-                { id: 'permits', label: "Sertifikatlar, Guvohnomalar va Ruxsatnomalar", icon: Award },
+                { id: 'personal_edu', label: t('profile.tab1', "Shaxsiy Ma'lumotlar"), icon: User },
+                { id: 'transfers', label: t('profile.tab2', "Kadrlar Hujjatlari & Buyruqlar"), icon: ArrowLeftRight },
+                { id: 'leaves', label: t('profile.tab3', "Ta'til & Davomat Tarixi"), icon: Calendar },
+                { id: 'discipline_rewards', label: t('profile.tab4', "Oklad & KPI Tarixi"), icon: ShieldAlert },
+                { id: 'permits', label: t('profile.tab5', "Sertifikatlar & Ruxsatnomalar"), icon: Award },
               ].map((tab, idx) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1323,13 +1325,13 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2 border-b-2 px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    className={`flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       isActive
-                        ? 'border-indigo-500 text-indigo-300 bg-indigo-500/5 font-bold'
-                        : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                        ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <span className={`flex items-center justify-center h-5 w-5 rounded-full text-[10px] font-bold ${isActive ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400'}`}>
+                    <span className={`flex items-center justify-center h-5 w-5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
                       {idx + 1}
                     </span>
                     <Icon className="h-3.5 w-3.5" />
@@ -1346,23 +1348,23 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               {activeTab === 'personal_edu' && (
                 <div className="space-y-6 text-xs">
                   {/* Tenure Banner */}
-                  <div className="rounded-2xl bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900 border border-indigo-500/30 p-5 flex items-center justify-between">
+                  <div className="rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-slate-100 dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-slate-900 border border-blue-200 dark:border-indigo-500/30 p-5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 dark:bg-indigo-500/20 text-blue-600 dark:text-indigo-300">
                         <Clock className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="text-xs uppercase font-bold tracking-wider text-indigo-300">
+                        <span className="text-xs uppercase font-bold tracking-wider text-blue-700 dark:text-blue-300">
                           Umumiy Mehnat Staji (Auto-Calculated)
                         </span>
-                        <div className="text-xl font-extrabold text-white mt-0.5">
+                        <div className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">
                           {tenure.formatted}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs text-slate-400">Ishga qabul qilingan sana:</span>
-                      <div className="font-mono text-sm font-semibold text-slate-200">
+                      <span className="text-xs text-slate-600 dark:text-slate-400">Ishga qabul qilingan sana:</span>
+                      <div className="font-mono text-sm font-bold text-slate-900 dark:text-slate-200">
                         {formatDate(employee.hireDate)}
                       </div>
                     </div>
@@ -1370,33 +1372,33 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Shaxsiy Ma'lumotlar Card with Field-Level Pencil Icons */}
-                    <div className="glass-card rounded-xl p-4 space-y-3">
-                      <h4 className="font-bold text-slate-200 border-b border-slate-700/60 pb-2 flex items-center justify-between">
+                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                      <h4 className="font-bold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2 flex items-center justify-between">
                         <span className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-indigo-400" /> Shaxsiy Ma'lumotlar
+                          <User className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Shaxsiy Ma'lumotlar
                         </span>
                       </h4>
 
                       {/* Jinsi */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400">Jinsi:</span>
-                        <span className="font-semibold text-slate-200">{employee.gender === 'MALE' ? 'Erkak' : 'Ayol'}</span>
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold">Jinsi:</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{employee.gender === 'MALE' ? 'Erkak' : 'Ayol'}</span>
                       </div>
 
                       {/* Tug'ilgan sanasi */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400">Tug'ilgan sanasi:</span>
-                        <span className="font-semibold text-slate-200">{formatDate(employee.dateOfBirth)}</span>
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold">Tug'ilgan sanasi:</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{formatDate(employee.dateOfBirth)}</span>
                       </div>
 
                       {/* Telefon */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                           Telefon:
                           {editingField !== 'phone' && (
                             <button
                               onClick={() => handleStartEditField('phone', employee.phone || '')}
-                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-0.5 rounded cursor-pointer"
                               title="Tahrirlash"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -1410,34 +1412,34 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                               type="text"
                               value={fieldInput}
                               onChange={(e) => setFieldInput(e.target.value)}
-                              className="bg-slate-950 border border-indigo-500/50 text-indigo-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-32"
+                              className="bg-white dark:bg-slate-900 border border-blue-500 text-slate-900 dark:text-slate-100 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-32"
                               placeholder="+998 90 123 45 67"
                             />
                             <button
                               onClick={() => handleSaveField('phone', fieldInput)}
                               disabled={savingField === 'phone'}
-                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
                               title="Saqlash"
                             >
                               {savingField === 'phone' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="font-semibold font-mono text-indigo-300">{employee.phone || 'Kiritilmagan'}</span>
+                          <span className="font-semibold font-mono text-blue-600 dark:text-blue-400">{employee.phone || 'Kiritilmagan'}</span>
                         )}
                       </div>
 
                       {/* Elektron pochta */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                           Elektron pochta:
                           {editingField !== 'email' && (
                             <button
                               onClick={() => handleStartEditField('email', employee.email || '')}
-                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-0.5 rounded cursor-pointer"
                               title="Tahrirlash"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -1451,34 +1453,34 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                               type="email"
                               value={fieldInput}
                               onChange={(e) => setFieldInput(e.target.value)}
-                              className="bg-slate-950 border border-indigo-500/50 text-indigo-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-40"
+                              className="bg-white dark:bg-slate-900 border border-blue-500 text-slate-900 dark:text-slate-100 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-40"
                               placeholder="email@domain.com"
                             />
                             <button
                               onClick={() => handleSaveField('email', fieldInput)}
                               disabled={savingField === 'email'}
-                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
                               title="Saqlash"
                             >
                               {savingField === 'email' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="font-semibold font-mono text-slate-200">{employee.email || 'Kiritilmagan'}</span>
+                          <span className="font-semibold font-mono text-slate-900 dark:text-slate-100">{employee.email || 'Kiritilmagan'}</span>
                         )}
                       </div>
 
                       {/* JSHSHIR (PINFL) */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                           JSHSHIR (PINFL):
                           {editingField !== 'pinfl' && (
                             <button
                               onClick={() => handleStartEditField('pinfl', employee.pinfl || '')}
-                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-0.5 rounded cursor-pointer"
                               title="Tahrirlash"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -1492,44 +1494,44 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                               type="text"
                               value={fieldInput}
                               onChange={(e) => setFieldInput(e.target.value)}
-                              className="bg-slate-950 border border-indigo-500/50 text-indigo-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-36"
+                              className="bg-white dark:bg-slate-900 border border-blue-500 text-slate-900 dark:text-slate-100 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-36"
                               placeholder="3120495..."
                             />
                             <button
                               onClick={() => handleSaveField('pinfl', fieldInput)}
                               disabled={savingField === 'pinfl'}
-                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
                               title="Saqlash"
                             >
                               {savingField === 'pinfl' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="font-semibold font-mono text-slate-200">{employee.pinfl || 'Kiritilmagan'}</span>
+                          <span className="font-semibold font-mono text-slate-900 dark:text-slate-100">{employee.pinfl || 'Kiritilmagan'}</span>
                         )}
                       </div>
 
                     </div>
 
                     {/* Harbiylik & Shtat Card */}
-                    <div className="glass-card rounded-xl p-4 space-y-3">
-                      <h4 className="font-bold text-slate-200 border-b border-slate-700/60 pb-2 flex items-center justify-between">
+                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                      <h4 className="font-bold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2 flex items-center justify-between">
                         <span className="flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-emerald-400" /> Harbiylik & Shtat
+                          <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Harbiylik & Shtat
                         </span>
                       </h4>
 
                       {/* Harbiy guvohnoma */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                           Harbiy guvohnoma:
                           {editingField !== 'militaryCertificate' && (
                             <button
                               onClick={() => handleStartEditField('militaryCertificate', employee.militaryCertificate || '')}
-                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-0.5 rounded cursor-pointer"
                               title="Tahrirlash"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -1543,34 +1545,34 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                               type="text"
                               value={fieldInput}
                               onChange={(e) => setFieldInput(e.target.value)}
-                              className="bg-slate-950 border border-emerald-500/50 text-emerald-200 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-36"
+                              className="bg-white dark:bg-slate-900 border border-emerald-500 text-slate-900 dark:text-slate-100 font-mono text-xs px-2 py-0.5 rounded focus:outline-none w-36"
                               placeholder="Guvohnoma raqami"
                             />
                             <button
                               onClick={() => handleSaveField('militaryCertificate', fieldInput)}
                               disabled={savingField === 'militaryCertificate'}
-                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
                               title="Saqlash"
                             >
                               {savingField === 'militaryCertificate' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="font-semibold text-emerald-400">{employee.militaryCertificate || 'Mavjud emas'}</span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">{employee.militaryCertificate || 'Mavjud emas'}</span>
                         )}
                       </div>
 
                       {/* Lavozimi */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                           Lavozimi:
                           {editingField !== 'position' && (
                             <button
                               onClick={() => handleStartEditField('position', employee.position || '')}
-                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-0.5 rounded cursor-pointer"
                               title="Tahrirlash"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -1584,39 +1586,39 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                               type="text"
                               value={fieldInput}
                               onChange={(e) => setFieldInput(e.target.value)}
-                              className="bg-slate-950 border border-emerald-500/50 text-emerald-200 text-xs px-2 py-0.5 rounded focus:outline-none w-36"
+                              className="bg-white dark:bg-slate-900 border border-emerald-500 text-slate-900 dark:text-slate-100 text-xs px-2 py-0.5 rounded focus:outline-none w-36"
                             />
                             <button
                               onClick={() => handleSaveField('position', fieldInput)}
                               disabled={savingField === 'position'}
-                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
                               title="Saqlash"
                             >
                               {savingField === 'position' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="font-semibold text-slate-200">{employee.position}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">{employee.position}</span>
                         )}
                       </div>
 
                       {/* Hozirgi Bo'lim */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400">Hozirgi Bo'lim:</span>
-                        <span className="font-semibold text-slate-200">{employee.currentDepartment?.name || '—'}</span>
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold">Hozirgi Bo'lim:</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{employee.currentDepartment?.name || '—'}</span>
                       </div>
 
                       {/* Shtat holati */}
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/50">
-                        <span className="text-slate-400 flex items-center gap-1">
+                      <div className="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-700/50">
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
                           Shtat holati:
                           {editingField !== 'status' && (
                             <button
                               onClick={() => handleStartEditField('status', employee.status || 'ACTIVE')}
-                              className="text-slate-400 hover:text-indigo-400 transition-colors p-0.5 rounded cursor-pointer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-0.5 rounded cursor-pointer"
                               title="Tahrirlash"
                             >
                               <Pencil className="w-3.5 h-3.5" />
@@ -1629,7 +1631,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <select
                               value={fieldInput}
                               onChange={(e) => setFieldInput(e.target.value)}
-                              className="bg-slate-950 border border-emerald-500/50 text-emerald-200 text-xs px-2 py-0.5 rounded focus:outline-none"
+                              className="bg-white dark:bg-slate-900 border border-emerald-500 text-slate-900 dark:text-slate-100 text-xs px-2 py-0.5 rounded focus:outline-none"
                             >
                               <option value="ACTIVE">ACTIVE</option>
                               <option value="INACTIVE">INACTIVE</option>
@@ -1639,17 +1641,17 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <button
                               onClick={() => handleSaveField('status', fieldInput)}
                               disabled={savingField === 'status'}
-                              className="p-1 bg-emerald-600/80 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
+                              className="p-1 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition cursor-pointer"
                               title="Saqlash"
                             >
                               {savingField === 'status' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                             </button>
-                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                            <button onClick={() => setEditingField(null)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
                               <X className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         ) : (
-                          <span className="font-semibold text-emerald-400 font-bold">{employee.status}</span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 font-bold">{employee.status}</span>
                         )}
                       </div>
 
@@ -1659,54 +1661,54 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   {/* Education Section */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-slate-200 flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-purple-400" /> Oliy va Maxsus Ta'lim Dargohi
+                      <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-purple-600 dark:text-purple-400" /> Oliy va Maxsus Ta'lim Dargohi
                       </h4>
                       <button
                         onClick={() => setShowNewEduForm((prev) => !prev)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-indigo-500/20 transition cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition cursor-pointer"
                         title="Yangi ta'lim muassasasi qo'shish"
                       >
-                        <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                        <Plus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         <span>Qo'shish</span>
                       </button>
                     </div>
 
                     {showNewEduForm && (
-                      <div className="glass-card rounded-xl p-4 border border-indigo-500/40 bg-indigo-950/20 space-y-3 animate-fadeIn">
-                        <div className="flex justify-between items-center border-b border-indigo-500/20 pb-2">
-                          <span className="font-bold text-indigo-300 text-xs">Yangi ta'lim muassasasi qo'shish</span>
-                          <button onClick={() => setShowNewEduForm(false)} className="text-slate-400 hover:text-white">
+                      <div className="rounded-xl p-4 border border-blue-200 dark:border-blue-500/40 bg-blue-50/50 dark:bg-indigo-950/20 space-y-3 animate-fadeIn">
+                        <div className="flex justify-between items-center border-b border-blue-200 dark:border-indigo-500/20 pb-2">
+                          <span className="font-bold text-blue-700 dark:text-blue-300 text-xs">Yangi ta'lim muassasasi qo'shish</span>
+                          <button onClick={() => setShowNewEduForm(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Muassasa nomi</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Muassasa nomi</label>
                             <input
                               type="text"
                               value={newEdu.institutionName}
                               onChange={(e) => setNewEdu({ ...newEdu, institutionName: e.target.value })}
                               placeholder="Masalan: TDTU, SamDU..."
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Mutaxassislik</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Mutaxassislik</label>
                             <input
                               type="text"
                               value={newEdu.fieldOfStudy}
                               onChange={(e) => setNewEdu({ ...newEdu, fieldOfStudy: e.target.value })}
                               placeholder="Masalan: Mexanika..."
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Darajasi</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Darajasi</label>
                             <select
                               value={newEdu.level}
                               onChange={(e) => setNewEdu({ ...newEdu, level: e.target.value })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                             >
                               <option value="HIGHER">Oliy (Bakalavr)</option>
                               <option value="SPECIAL_SECONDARY">O'rta maxsus</option>
@@ -1715,19 +1717,19 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Bitirgan yili</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Bitirgan yili</label>
                             <input
                               type="number"
                               value={newEdu.graduationYear}
                               onChange={(e) => setNewEdu({ ...newEdu, graduationYear: parseInt(e.target.value, 10) || new Date().getFullYear() })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500 font-mono"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
                             />
                           </div>
                         </div>
-                        <div className="flex justify-end gap-2 pt-2 border-t border-indigo-500/20">
+                        <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                           <button
                             onClick={() => setShowNewEduForm(false)}
-                            className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs font-medium hover:bg-slate-700"
+                            className="px-3 py-1.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium hover:bg-slate-300 dark:hover:bg-slate-700"
                           >
                             Bekor qilish
                           </button>
@@ -1745,34 +1747,34 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
 
                     {employee.educations && employee.educations.length > 0 ? (
                       employee.educations.map((edu: any) => (
-                        <div key={edu.id} className="glass-card rounded-xl p-4 border border-slate-800 space-y-2">
+                        <div key={edu.id} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-2">
                           {editingEduId === edu.id ? (
                             <div className="space-y-3">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-1">Muassasa nomi</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Muassasa nomi</label>
                                   <input
                                     type="text"
                                     value={editEduData.institutionName}
                                     onChange={(e) => setEditEduData({ ...editEduData, institutionName: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1 rounded focus:outline-none"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-1">Mutaxassislik</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Mutaxassislik</label>
                                   <input
                                     type="text"
                                     value={editEduData.fieldOfStudy}
                                     onChange={(e) => setEditEduData({ ...editEduData, fieldOfStudy: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1 rounded focus:outline-none"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-1">Darajasi</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Darajasi</label>
                                   <select
                                     value={editEduData.level}
                                     onChange={(e) => setEditEduData({ ...editEduData, level: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1 rounded focus:outline-none"
                                   >
                                     <option value="HIGHER">Oliy (Bakalavr)</option>
                                     <option value="SPECIAL_SECONDARY">O'rta maxsus</option>
@@ -1781,17 +1783,17 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-1">Bitirgan yili</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Bitirgan yili</label>
                                   <input
                                     type="number"
                                     value={editEduData.graduationYear}
                                     onChange={(e) => setEditEduData({ ...editEduData, graduationYear: parseInt(e.target.value, 10) || new Date().getFullYear() })}
-                                    className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded focus:outline-none font-mono"
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1 rounded focus:outline-none font-mono"
                                   />
                                 </div>
                               </div>
-                              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                                <button onClick={() => setEditingEduId(null)} className="px-3 py-1 rounded bg-slate-800 text-slate-300 text-xs">
+                              <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                <button onClick={() => setEditingEduId(null)} className="px-3 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs">
                                   Bekor qilish
                                 </button>
                                 <button
@@ -1808,18 +1810,18 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <div className="flex justify-between items-center">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="rounded bg-indigo-500/20 text-indigo-300 px-2 py-0.5 font-semibold text-[10px]">
+                                  <span className="rounded bg-blue-100 dark:bg-indigo-500/20 text-blue-800 dark:text-indigo-300 px-2 py-0.5 font-semibold text-[10px]">
                                     {edu.level}
                                   </span>
-                                  <span className="font-bold text-slate-100">{edu.institutionName}</span>
+                                  <span className="font-bold text-slate-900 dark:text-slate-100">{edu.institutionName}</span>
                                 </div>
-                                <p className="text-slate-300">Mutaxassislik: <span className="font-semibold text-white">{edu.fieldOfStudy}</span></p>
+                                <p className="text-slate-700 dark:text-slate-300">Mutaxassislik: <span className="font-semibold text-slate-900 dark:text-white">{edu.fieldOfStudy}</span></p>
                               </div>
                               <div className="flex items-center gap-3">
-                                <div className="text-right font-mono text-slate-400 text-xs">
-                                  Bitirgan yili: <span className="font-bold text-indigo-400">{edu.graduationYear || '—'}</span>
+                                <div className="text-right font-mono text-slate-600 dark:text-slate-400 text-xs">
+                                  Bitirgan yili: <span className="font-bold text-blue-600 dark:text-blue-400">{edu.graduationYear || '—'}</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 pl-2 border-l border-slate-800">
+                                <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700">
                                   <button
                                     onClick={() => {
                                       setEditingEduId(edu.id);
@@ -1830,14 +1832,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                         graduationYear: edu.graduationYear || new Date().getFullYear(),
                                       });
                                     }}
-                                    className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                    className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors rounded cursor-pointer"
                                     title="Tahrirlash"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteEducation(edu.id)}
-                                    className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                    className="p-1 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors rounded cursor-pointer"
                                     title="O'chirish"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -1849,14 +1851,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                         </div>
                       ))
                     ) : (
-                      <p className="text-slate-400">Ta'lim ma'lumotlari kiritilmagan</p>
+                      <p className="text-slate-600 dark:text-slate-400">Ta'lim ma'lumotlari kiritilmagan</p>
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-slate-800 flex justify-end">
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
                     <button
                       onClick={handleOffboard}
-                      className="inline-flex items-center gap-2 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/30 px-4 py-2 text-xs font-semibold hover:bg-rose-600 hover:text-white transition"
+                      className="inline-flex items-center gap-2 rounded-xl bg-rose-50 dark:bg-rose-600/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 px-4 py-2 text-xs font-semibold hover:bg-rose-600 hover:text-white transition"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span>Mehnat Shartnomasini Bekor Qilish (Offboard)</span>
@@ -1868,28 +1870,28 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               {/* ── Tab 2: Department Transfer History ── */}
               {activeTab === 'transfers' && (
                 <div className="space-y-4 text-xs">
-                  <h4 className="font-bold text-slate-200 mb-2">Bo'limlararo Ko'chish Tarixi (Internal Mobility Logs)</h4>
+                  <h4 className="font-bold text-slate-900 dark:text-slate-100 mb-2">Bo'limlararo Ko'chish Tarixi (Internal Mobility Logs)</h4>
                   {employee.transfers && employee.transfers.length > 0 ? (
                     employee.transfers.map((tr: any) => (
-                      <div key={tr.id} className="glass-card rounded-xl p-4 border border-slate-800 space-y-2">
+                      <div key={tr.id} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-2">
                         <div className="flex items-center justify-between font-semibold">
                           <div className="flex items-center gap-2">
-                            <span className="text-rose-300">{tr.fromDepartment?.name}</span>
-                            <ArrowLeftRight className="h-4 w-4 text-indigo-400" />
-                            <span className="text-emerald-300">{tr.toDepartment?.name}</span>
+                            <span className="text-rose-600 dark:text-rose-400 font-bold">{tr.fromDepartment?.name}</span>
+                            <ArrowLeftRight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">{tr.toDepartment?.name}</span>
                           </div>
-                          <span className="font-mono text-slate-400">{formatDate(tr.transferDate)}</span>
+                          <span className="font-mono text-slate-600 dark:text-slate-400">{formatDate(tr.transferDate)}</span>
                         </div>
-                        <div className="text-slate-400 text-[11px]">
-                          Buyruq №: <span className="font-mono text-slate-200">{tr.orderNumber}</span> • Sababi: {tr.reason || 'Kadrlar rotatsiyasi'}
+                        <div className="text-slate-600 dark:text-slate-400 text-[11px]">
+                          Buyruq №: <span className="font-mono font-bold text-slate-900 dark:text-slate-200">{tr.orderNumber}</span> • Sababi: {tr.reason || 'Kadrlar rotatsiyasi'}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-8 text-center space-y-2">
-                      <ArrowLeftRight className="h-8 w-8 text-slate-600 mx-auto" />
-                      <p className="text-slate-400">Xodim boshqa bo'limga ko'chirilmagan</p>
-                      <p className="text-slate-600 text-[11px]">Joriy bo'lim: <span className="text-slate-400">{employee.currentDepartment?.name}</span></p>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-8 text-center space-y-2">
+                      <ArrowLeftRight className="h-8 w-8 text-slate-400 dark:text-slate-600 mx-auto" />
+                      <p className="text-slate-600 dark:text-slate-400 font-medium">Xodim boshqa bo'limga ko'chirilmagan</p>
+                      <p className="text-slate-500 dark:text-slate-500 text-[11px]">Joriy bo'lim: <span className="text-slate-700 dark:text-slate-300 font-semibold">{employee.currentDepartment?.name}</span></p>
                     </div>
                   )}
                 </div>
@@ -1898,13 +1900,13 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               {/* ── Tab 3: Leaves & Attendance (Ta'til va Davomat Tarixi) ── */}
               {activeTab === 'leaves' && (
                 <div className="space-y-5 text-xs">
-                  <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-slate-200 text-sm flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-indigo-400" />
+                      <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         Ta'til va Davomat Tarixi Logi
                       </h4>
-                      <p className="text-[11px] text-slate-400">Rasmiy O'zbekiston HR qonunchiligi bo'yicha hisobot va davomat filtri</p>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400">Rasmiy O'zbekiston HR qonunchiligi bo'yicha hisobot va davomat filtri</p>
                     </div>
                     <button 
                       onClick={handleDownloadAttendancePDF} 
@@ -1916,14 +1918,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   </div>
 
                   {/* Filter Bar */}
-                  <div className="glass-card rounded-xl p-3 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                  <div className="bg-slate-50 dark:bg-slate-800/80 rounded-xl p-3 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2">
-                      <Filter className="w-3.5 h-3.5 text-indigo-400" />
-                      <span className="font-semibold text-slate-300">Kategoriya:</span>
+                      <Filter className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">Kategoriya:</span>
                       <select
                         value={leaveCategoryFilter}
                         onChange={(e) => setLeaveCategoryFilter(e.target.value)}
-                        className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded-lg focus:outline-none focus:border-indigo-500"
+                        className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1 rounded-lg focus:outline-none focus:border-blue-500"
                       >
                         <option value="ALL">Barchasi</option>
                         <option value="MT">Mehnat ta'tili</option>
@@ -1935,24 +1937,24 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-slate-400">Sanadan:</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">Sanadan:</span>
                       <input
                         type="date"
                         value={leaveDateFrom}
                         onChange={(e) => setLeaveDateFrom(e.target.value)}
-                        className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded-lg focus:outline-none"
+                        className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded-lg focus:outline-none"
                       />
-                      <span className="text-slate-400">Sanagacha:</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">Sanagacha:</span>
                       <input
                         type="date"
                         value={leaveDateTo}
                         onChange={(e) => setLeaveDateTo(e.target.value)}
-                        className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded-lg focus:outline-none"
+                        className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded-lg focus:outline-none"
                       />
                       {(leaveDateFrom || leaveDateTo || leaveCategoryFilter !== 'ALL') && (
                         <button
                           onClick={() => { setLeaveCategoryFilter('ALL'); setLeaveDateFrom(''); setLeaveDateTo(''); }}
-                          className="text-[11px] text-indigo-400 hover:underline px-1 font-medium"
+                          className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline px-1 font-bold"
                         >
                           Tozalash
                         </button>
@@ -1963,16 +1965,16 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   {/* 5 Metric Cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                     {[
-                      { label: 'Mehnat ta\'tili', value: `${mtTotal} kun`, sub: 'Mehnat ta\'tili', color: 'from-blue-600/20 to-blue-900/10 border-blue-500/30 text-blue-300' },
-                      { label: 'Vaqtincha mehnatka layoqatsizlik', value: `${blTotal} kun`, sub: 'Vaqtincha mehnatka layoqatsizlik', color: 'from-rose-600/20 to-rose-900/10 border-rose-500/30 text-rose-300' },
-                      { label: 'O\'z hisobidan ta\'til', value: `${bsTotal} kun`, sub: 'O\'z hisobidan ta\'til', color: 'from-amber-600/20 to-amber-900/10 border-amber-500/30 text-amber-300' },
-                      { label: 'Administrativ ta\'til', value: `${adminTotal} kun`, sub: 'Administrativ ta\'til', color: 'from-purple-600/20 to-purple-900/10 border-purple-500/30 text-purple-300' },
-                      { label: 'Kechikish / soatli ruxsatnoma', value: `${lateTotalHours} soat`, sub: 'Kechikish / soatli ruxsatnoma', color: 'from-red-600/20 to-red-900/10 border-red-500/30 text-red-400' },
+                      { label: 'Mehnat ta\'tili', value: `${mtTotal} kun`, sub: 'Mehnat ta\'tili', color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300' },
+                      { label: 'Vaqtincha mehnatka layoqatsizlik', value: `${blTotal} kun`, sub: 'Vaqtincha mehnatka layoqatsizlik', color: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300' },
+                      { label: 'O\'z hisobidan ta\'til', value: `${bsTotal} kun`, sub: 'O\'z hisobidan ta\'til', color: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300' },
+                      { label: 'Administrativ ta\'til', value: `${adminTotal} kun`, sub: 'Administrativ ta\'til', color: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300' },
+                      { label: 'Kechikish / soatli ruxsatnoma', value: `${lateTotalHours} soat`, sub: 'Kechikish / soatli ruxsatnoma', color: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400' },
                     ].map(({ label, value, sub, color }) => (
-                      <div key={label} className={`rounded-xl bg-gradient-to-br ${color} border p-3 text-center space-y-1`}>
-                        <div className="text-lg font-extrabold text-white">{value}</div>
-                        <div className="text-[10px] font-bold leading-tight">{label}</div>
-                        <div className="text-[9px] text-slate-400 opacity-80">{sub}</div>
+                      <div key={label} className={`rounded-xl ${color} border p-3 text-center space-y-1`}>
+                        <div className="text-lg font-extrabold text-slate-900 dark:text-white">{value}</div>
+                        <div className="text-[10px] font-bold leading-tight text-slate-800 dark:text-slate-200">{label}</div>
+                        <div className="text-[9px] text-slate-600 dark:text-slate-400">{sub}</div>
                       </div>
                     ))}
                   </div>
@@ -1981,33 +1983,33 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   <div className="space-y-2 pt-2">
                     {filteredLeaves.length > 0 ? (
                       filteredLeaves.map((lv: any) => (
-                        <div key={lv.id} className="glass-card rounded-xl p-3.5 flex items-center justify-between border border-slate-800 hover:border-slate-700 transition">
+                        <div key={lv.id} className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3.5 flex items-center justify-between border border-slate-200 dark:border-slate-700 hover:border-blue-500 transition">
                           <div className="flex items-center gap-3">
-                            <span className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border ${leaveTypeStyles[lv.type] || 'bg-slate-700 text-slate-300 border-slate-600'}`}>
+                            <span className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border ${leaveTypeStyles[lv.type] || 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-600'}`}>
                               {lv.type}
                             </span>
                             <div>
-                              <div className="font-semibold text-slate-200">
+                              <div className="font-semibold text-slate-900 dark:text-slate-100">
                                 {formatDate(lv.startDate)} — {formatDate(lv.endDate)}
-                                <span className="ml-2 text-slate-400 font-normal">({lv.totalDays || 1} kun)</span>
+                                <span className="ml-2 text-slate-600 dark:text-slate-400 font-normal">({lv.totalDays || 1} kun)</span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[10px] text-indigo-300 font-medium">{leaveTypeFull[lv.type] || lv.type}</span>
-                                {lv.reason && <span className="text-[10px] text-slate-500">• {lv.reason}</span>}
+                                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">{leaveTypeFull[lv.type] || lv.type}</span>
+                                {lv.reason && <span className="text-[10px] text-slate-600 dark:text-slate-400">• {lv.reason}</span>}
                               </div>
                             </div>
                           </div>
                           {lv.hoursLate && (
-                            <span className="font-mono text-rose-400 font-bold text-xs bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded-lg">
+                            <span className="font-mono text-rose-600 dark:text-rose-400 font-bold text-xs bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 px-2 py-1 rounded-lg">
                               +{lv.hoursLate}h kechikish
                             </span>
                           )}
                         </div>
                       ))
                     ) : (
-                      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-8 text-center space-y-2">
-                        <Calendar className="h-8 w-8 text-slate-600 mx-auto" />
-                        <p className="text-slate-400 text-xs">Tanlangan filtr bo'yicha ta'til yoki davomat ma'lumotlari topilmadi</p>
+                      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-8 text-center space-y-2">
+                        <Calendar className="h-8 w-8 text-slate-400 dark:text-slate-600 mx-auto" />
+                        <p className="text-slate-600 dark:text-slate-400 text-xs font-medium">Tanlangan filtr bo'yicha ta'til yoki davomat ma'lumotlari topilmadi</p>
                       </div>
                     )}
                   </div>
@@ -2018,42 +2020,42 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               {activeTab === 'discipline_rewards' && (
                 <div className="space-y-6 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-[11px]">Intizomiy choralar va mukofotlar logi</span>
-                    <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Demo Ma'lumotlar</span>
+                    <span className="text-slate-600 dark:text-slate-400 text-[11px]">Intizomiy choralar va mukofotlar logi</span>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">Demo Ma'lumotlar</span>
                   </div>
 
                   {/* Disciplinary Actions Section with [+] Button & Inline Pencils */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-bold text-rose-400 flex items-center gap-2">
+                      <h4 className="font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
                         <ShieldAlert className="h-4 w-4" /> Intizomiy Jazo Choralari va Hayfsanlar
                       </h4>
                       <button
                         onClick={() => setShowNewDisciplineForm((prev) => !prev)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-rose-500/10 text-rose-300 border border-rose-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-rose-500/20 transition cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-rose-100 dark:hover:bg-rose-500/20 transition cursor-pointer"
                         title="Yangi intizomiy chora qo'shish"
                       >
-                        <Plus className="w-3.5 h-3.5 text-rose-400" />
+                        <Plus className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                         <span>Qo'shish</span>
                       </button>
                     </div>
 
                     {/* New Discipline Inline Form */}
                     {showNewDisciplineForm && (
-                      <div className="glass-card rounded-xl p-4 border border-rose-500/40 bg-rose-950/20 space-y-3 mb-3 animate-fadeIn">
-                        <div className="flex justify-between items-center border-b border-rose-500/20 pb-2">
-                          <span className="font-bold text-rose-300 text-xs">Yangi Intizomiy Chora Kiritish</span>
-                          <button onClick={() => setShowNewDisciplineForm(false)} className="text-slate-400 hover:text-white">
+                      <div className="rounded-xl p-4 border border-rose-200 dark:border-rose-500/40 bg-rose-50/50 dark:bg-rose-950/20 space-y-3 mb-3 animate-fadeIn">
+                        <div className="flex justify-between items-center border-b border-rose-200 dark:border-rose-500/20 pb-2">
+                          <span className="font-bold text-rose-700 dark:text-rose-300 text-xs">Yangi Intizomiy Chora Kiritish</span>
+                          <button onClick={() => setShowNewDisciplineForm(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Jazo Turi</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Jazo Turi</label>
                             <select
                               value={newDisciplineData.type}
                               onChange={(e) => setNewDisciplineData({ ...newDisciplineData, type: e.target.value })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
                             >
                               <option value="Hayfsan">Hayfsan</option>
                               <option value="Jarima">Jarima (Oylikdan ushlanma)</option>
@@ -2062,46 +2064,46 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Buyruq №</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Buyruq №</label>
                             <input
                               type="text"
                               value={newDisciplineData.orderNumber}
                               onChange={(e) => setNewDisciplineData({ ...newDisciplineData, orderNumber: e.target.value })}
                               placeholder="HJ-0085/2026"
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500 font-mono"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500 font-mono"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-[10px] text-slate-400 block mb-1">Sababi / Izoh (Notes)</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Sababi / Izoh (Notes)</label>
                             <input
                               type="text"
                               value={newDisciplineData.notes}
                               onChange={(e) => setNewDisciplineData({ ...newDisciplineData, notes: e.target.value })}
                               placeholder="Mehnat intizomini buzganlik uchun..."
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Berilgan Sana</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Berilgan Sana</label>
                             <input
                               type="date"
                               value={newDisciplineData.startDate}
                               onChange={(e) => setNewDisciplineData({ ...newDisciplineData, startDate: e.target.value })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Amal Qilish Muddati (Tugash Sanasi)</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Amal Qilish Muddati (Tugash Sanasi)</label>
                             <input
                               type="date"
                               value={newDisciplineData.expiryDate}
                               onChange={(e) => setNewDisciplineData({ ...newDisciplineData, expiryDate: e.target.value })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-rose-500"
                             />
                           </div>
                         </div>
-                        <div className="flex justify-end gap-2 pt-2 border-t border-rose-500/20">
-                          <button onClick={() => setShowNewDisciplineForm(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs">
+                        <div className="flex justify-end gap-2 pt-2 border-t border-rose-200 dark:border-rose-500/20">
+                          <button onClick={() => setShowNewDisciplineForm(false)} className="px-3 py-1.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">
                             Bekor qilish
                           </button>
                           <button
@@ -2122,14 +2124,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                         {disciplinaryList.map((d: any) => {
                           const isExpired = d.expired || (d.expiryDate && new Date(d.expiryDate) < new Date());
                           return (
-                            <div key={d.id} className={`glass-card rounded-xl p-3.5 border flex justify-between items-start ${isExpired ? 'border-slate-700/50 bg-slate-800/20 opacity-70' : 'border-rose-500/30 bg-rose-500/5'}`}>
+                            <div key={d.id} className={`rounded-xl p-3.5 border flex justify-between items-start ${isExpired ? 'border-slate-200 dark:border-slate-700/50 bg-slate-100/50 dark:bg-slate-800/20' : 'border-rose-200 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-500/5'}`}>
                               {editingDisciplineId === d.id ? (
                                 <div className="w-full space-y-3">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <select
                                       value={editDisciplineData.type}
                                       onChange={(e) => setEditDisciplineData({ ...editDisciplineData, type: e.target.value })}
-                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                      className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded"
                                     >
                                       <option value="Hayfsan">Hayfsan</option>
                                       <option value="Jarima">Jarima (Oylikdan ushlanma)</option>
@@ -2140,31 +2142,31 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                       type="text"
                                       value={editDisciplineData.orderNumber}
                                       onChange={(e) => setEditDisciplineData({ ...editDisciplineData, orderNumber: e.target.value })}
-                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                      className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded font-mono"
                                       placeholder="Buyruq №"
                                     />
                                     <input
                                       type="text"
                                       value={editDisciplineData.notes}
                                       onChange={(e) => setEditDisciplineData({ ...editDisciplineData, notes: e.target.value })}
-                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded md:col-span-2"
+                                      className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded md:col-span-2"
                                       placeholder="Izoh / Sababi"
                                     />
                                     <input
                                       type="date"
                                       value={editDisciplineData.startDate}
                                       onChange={(e) => setEditDisciplineData({ ...editDisciplineData, startDate: e.target.value })}
-                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                      className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded"
                                     />
                                     <input
                                       type="date"
                                       value={editDisciplineData.expiryDate}
                                       onChange={(e) => setEditDisciplineData({ ...editDisciplineData, expiryDate: e.target.value })}
-                                      className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                      className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded"
                                     />
                                   </div>
                                   <div className="flex justify-end gap-2 pt-1">
-                                    <button onClick={() => setEditingDisciplineId(null)} className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-xs">
+                                    <button onClick={() => setEditingDisciplineId(null)} className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs">
                                       Bekor qilish
                                     </button>
                                     <button
@@ -2181,22 +2183,22 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                 <>
                                   <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                      <span className={`font-bold ${isExpired ? 'text-slate-400' : 'text-rose-300'}`}>{d.type}</span>
+                                      <span className={`font-bold ${isExpired ? 'text-slate-500 dark:text-slate-400' : 'text-rose-600 dark:text-rose-300'}`}>{d.type}</span>
                                       {isExpired ? (
-                                        <span className="text-[10px] bg-slate-700 text-slate-400 px-2 py-0.5 rounded-full font-semibold">Muddati o'tgan</span>
+                                        <span className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold">Muddati o'tgan</span>
                                       ) : (
-                                        <span className="text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-full font-semibold">Faol</span>
+                                        <span className="text-[10px] bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 px-2 py-0.5 rounded-full font-semibold">Faol</span>
                                       )}
                                     </div>
-                                    <p className="text-slate-400 text-[11px]">{d.notes}</p>
-                                    <p className="text-slate-600 font-mono text-[10px]">Buyruq №: {d.orderNumber}</p>
+                                    <p className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{d.notes}</p>
+                                    <p className="text-slate-600 dark:text-slate-400 font-mono text-[10px]">Buyruq №: {d.orderNumber}</p>
                                   </div>
                                   <div className="flex items-center gap-3 shrink-0 ml-4">
-                                    <div className="text-right font-mono text-[11px] text-slate-400">
+                                    <div className="text-right font-mono text-[11px] text-slate-600 dark:text-slate-400">
                                       <div>Berilgan: {formatDate(d.startDate)}</div>
                                       <div>Muddati: {formatDate(d.expiryDate)}</div>
                                     </div>
-                                    <div className="flex items-center gap-1 pl-2 border-l border-slate-800">
+                                    <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-700">
                                       <button
                                         onClick={() => {
                                           setEditingDisciplineId(d.id);
@@ -2208,14 +2210,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                             expiryDate: d.expiryDate || '',
                                           });
                                         }}
-                                        className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                        className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors rounded cursor-pointer"
                                         title="Tahrirlash"
                                       >
                                         <Pencil className="w-3.5 h-3.5" />
                                       </button>
                                       <button
                                         onClick={() => handleDeleteDiscipline(d.id)}
-                                        className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                        className="p-1 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors rounded cursor-pointer"
                                         title="O'chirish"
                                       >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -2229,10 +2231,10 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                         })}
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6 text-center">
-                        <CheckCircle2 className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                        <p className="text-emerald-400 font-semibold">Intizomiy jazolar mavjud emas</p>
-                        <p className="text-slate-500 text-[11px] mt-1">Xodim intizom qoidalarini to'liq bajargan</p>
+                      <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/5 p-6 text-center">
+                        <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                        <p className="text-emerald-700 dark:text-emerald-400 font-bold">Intizomiy jazolar mavjud emas</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-[11px] mt-1 font-medium">Xodim intizom qoidalarini to'liq bajargan</p>
                       </div>
                     )}
                   </div>
@@ -2240,35 +2242,35 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   {/* Rewards Section with [+] Button & Inline Pencils */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-bold text-emerald-400 flex items-center gap-2">
+                      <h4 className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                         <Gift className="h-4 w-4" /> Mukofotlar va Moddiy Yordam Logi
                       </h4>
                       <button
                         onClick={() => setShowNewRewardForm((prev) => !prev)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-emerald-500/20 transition cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20 px-2.5 py-1 text-[11px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition cursor-pointer"
                         title="Yangi mukofot qo'shish"
                       >
-                        <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                        <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         <span>Qo'shish</span>
                       </button>
                     </div>
 
                     {/* New Reward Inline Form */}
                     {showNewRewardForm && (
-                      <div className="glass-card rounded-xl p-4 border border-emerald-500/40 bg-emerald-950/20 space-y-3 mb-3 animate-fadeIn">
-                        <div className="flex justify-between items-center border-b border-emerald-500/20 pb-2">
-                          <span className="font-bold text-emerald-300 text-xs">Yangi Mukofot Yozuvini Kiritish</span>
-                          <button onClick={() => setShowNewRewardForm(false)} className="text-slate-400 hover:text-white">
+                      <div className="rounded-xl p-4 border border-emerald-200 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-3 mb-3 animate-fadeIn">
+                        <div className="flex justify-between items-center border-b border-emerald-200 dark:border-emerald-500/20 pb-2">
+                          <span className="font-bold text-emerald-700 dark:text-emerald-300 text-xs">Yangi Mukofot Yozuvini Kiritish</span>
+                          <button onClick={() => setShowNewRewardForm(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Mukofot Turi</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Mukofot Turi</label>
                             <select
                               value={newRewardData.type}
                               onChange={(e) => setNewRewardData({ ...newRewardData, type: e.target.value })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
                             >
                               <option value="Moddiy Rag'batlantirish">Moddiy Rag'batlantirish</option>
                               <option value="Faxriy Yorliq">Faxriy Yorliq</option>
@@ -2277,47 +2279,47 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Buyruq №</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Buyruq №</label>
                             <input
                               type="text"
                               value={newRewardData.orderNumber}
                               onChange={(e) => setNewRewardData({ ...newRewardData, orderNumber: e.target.value })}
                               placeholder="B-0412/2026"
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500 font-mono"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500 font-mono"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="text-[10px] text-slate-400 block mb-1">Sababi / Sababiy asos</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Sababi / Sababiy asos</label>
                             <input
                               type="text"
                               value={newRewardData.reason}
                               onChange={(e) => setNewRewardData({ ...newRewardData, reason: e.target.value })}
                               placeholder="Yaxshi mehnat ko'rsatkichlari uchun..."
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Summasi (so'm)</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Summasi (so'm)</label>
                             <input
                               type="number"
                               value={newRewardData.amount}
                               onChange={(e) => setNewRewardData({ ...newRewardData, amount: Number(e.target.value) || 0 })}
                               placeholder="1500000"
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500 font-mono"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500 font-mono"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 block mb-1">Buyruq Sanasi</label>
+                            <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-1">Buyruq Sanasi</label>
                             <input
                               type="date"
                               value={newRewardData.orderDate}
                               onChange={(e) => setNewRewardData({ ...newRewardData, orderDate: e.target.value })}
-                              className="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
+                              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-500"
                             />
                           </div>
                         </div>
-                        <div className="flex justify-end gap-2 pt-2 border-t border-emerald-500/20">
-                          <button onClick={() => setShowNewRewardForm(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300 text-xs">
+                        <div className="flex justify-end gap-2 pt-2 border-t border-emerald-200 dark:border-emerald-500/20">
+                          <button onClick={() => setShowNewRewardForm(false)} className="px-3 py-1.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium">
                             Bekor qilish
                           </button>
                           <button
@@ -2335,14 +2337,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                     {/* Rewards List with Inline Pencils */}
                     <div className="space-y-2">
                       {rewardsList.map((r: any) => (
-                        <div key={r.id} className="glass-card rounded-xl p-3.5 border border-emerald-500/30 bg-emerald-500/5 flex justify-between items-start">
+                        <div key={r.id} className="rounded-xl p-3.5 border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-500/5 flex justify-between items-start">
                           {editingRewardId === r.id ? (
                             <div className="w-full space-y-3">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <select
                                   value={editRewardData.type}
                                   onChange={(e) => setEditRewardData({ ...editRewardData, type: e.target.value })}
-                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded"
                                 >
                                   <option value="Moddiy Rag'batlantirish">Moddiy Rag'batlantirish</option>
                                   <option value="Faxriy Yorliq">Faxriy Yorliq</option>
@@ -2353,32 +2355,32 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                   type="text"
                                   value={editRewardData.orderNumber}
                                   onChange={(e) => setEditRewardData({ ...editRewardData, orderNumber: e.target.value })}
-                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded font-mono"
                                   placeholder="Buyruq №"
                                 />
                                 <input
                                   type="text"
                                   value={editRewardData.reason}
                                   onChange={(e) => setEditRewardData({ ...editRewardData, reason: e.target.value })}
-                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded md:col-span-2"
+                                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded md:col-span-2"
                                   placeholder="Sababi"
                                 />
                                 <input
                                   type="number"
                                   value={editRewardData.amount}
                                   onChange={(e) => setEditRewardData({ ...editRewardData, amount: Number(e.target.value) || 0 })}
-                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded font-mono"
+                                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded font-mono"
                                   placeholder="Summasi"
                                 />
                                 <input
                                   type="date"
                                   value={editRewardData.orderDate}
                                   onChange={(e) => setEditRewardData({ ...editRewardData, orderDate: e.target.value })}
-                                  className="bg-slate-950 border border-slate-700 text-slate-200 text-xs px-2 py-1 rounded"
+                                  className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2 py-1 rounded"
                                 />
                               </div>
                               <div className="flex justify-end gap-2 pt-1">
-                                <button onClick={() => setEditingRewardId(null)} className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-xs">
+                                <button onClick={() => setEditingRewardId(null)} className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs">
                                   Bekor qilish
                                 </button>
                                 <button
@@ -2395,23 +2397,23 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <Star className="h-3.5 w-3.5 text-amber-400" />
-                                  <span className="font-bold text-emerald-300">{r.type}</span>
+                                  <Star className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+                                  <span className="font-bold text-emerald-700 dark:text-emerald-300">{r.type}</span>
                                 </div>
-                                <p className="text-slate-400 text-[11px] max-w-xs">{r.reason}</p>
-                                <p className="text-slate-600 font-mono text-[10px]">Buyruq №: {r.orderNumber}</p>
+                                <p className="text-slate-700 dark:text-slate-300 text-[11px] font-medium max-w-xs">{r.reason}</p>
+                                <p className="text-slate-600 dark:text-slate-400 font-mono text-[10px]">Buyruq №: {r.orderNumber}</p>
                               </div>
                               <div className="flex items-center gap-3 shrink-0 ml-4">
                                 <div className="text-right">
                                   {r.amount > 0 && (
-                                    <div className="font-bold text-emerald-400 text-sm">{formatCurrency(r.amount)}</div>
+                                    <div className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">{formatCurrency(r.amount)}</div>
                                   )}
                                   {r.amount === 0 && (
-                                    <div className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">Faxriy yorliq</div>
+                                    <div className="text-[10px] bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 px-2 py-0.5 rounded-full font-bold">Faxriy yorliq</div>
                                   )}
-                                  <span className="font-mono text-[10px] text-slate-400">{formatDate(r.orderDate)}</span>
+                                  <span className="font-mono text-[10px] text-slate-600 dark:text-slate-400">{formatDate(r.orderDate)}</span>
                                 </div>
-                                <div className="flex items-center gap-1 pl-2 border-l border-slate-800">
+                                <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-700">
                                   <button
                                     onClick={() => {
                                       setEditingRewardId(r.id);
@@ -2423,14 +2425,14 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                         orderDate: r.orderDate || '',
                                       });
                                     }}
-                                    className="p-1 text-slate-400 hover:text-indigo-400 transition-colors rounded cursor-pointer"
+                                    className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors rounded cursor-pointer"
                                     title="Tahrirlash"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteReward(r.id)}
-                                    className="p-1 text-slate-400 hover:text-rose-400 transition-colors rounded cursor-pointer"
+                                    className="p-1 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors rounded cursor-pointer"
                                     title="O'chirish"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -2451,73 +2453,73 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
               {activeTab === 'permits' && (
                 <div className="space-y-6 text-xs">
                   {/* Container Main Header */}
-                  <div className="border-b border-slate-800 pb-3">
-                    <h4 className="font-bold text-slate-200 flex items-center gap-2 text-sm">
-                      <Award className="h-4 w-4 text-amber-400" />
+                  <div className="border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 text-sm">
+                      <Award className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                       Sertifikatlar, Guvohnomalar va Ruxsatnomalar
                     </h4>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Xodimmizning kasbiy sertifikatlari, shaxsiy va xizmat guvohnomalari hamda korxona ichki ruxsatnomalari</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Xodimmizning kasbiy sertifikatlari, shaxsiy va xizmat guvohnomalari hamda korxona ichki ruxsatnomalari</p>
                   </div>
 
                   {/* ──────────────── 1-SUBSECTION: SERTIFIKATLAR ──────────────── */}
-                  <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <h5 className="font-bold text-blue-400 flex items-center gap-2 text-xs">
+                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                      <h5 className="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 text-xs">
                         <span>Sertifikatlar</span>
                         <button
                           type="button"
                           onClick={handleAddSertifikat}
-                          className="p-1 text-blue-400 hover:bg-blue-500/20 rounded transition cursor-pointer"
+                          className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded transition cursor-pointer"
                           title="Yangi Sertifikat qo'shish"
                         >
-                          <Plus className="w-4 h-4 text-blue-500 hover:bg-blue-50/10 rounded p-0.5 cursor-pointer" />
+                          <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400 rounded p-0.5 cursor-pointer" />
                         </button>
                       </h5>
-                      <span className="text-[10px] text-slate-500 font-mono">{sertifikatList.length} ta yozuv</span>
+                      <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">{sertifikatList.length} ta yozuv</span>
                     </div>
 
                     <div className="space-y-2">
                       {sertifikatList.map((item) => (
-                        <div key={item.id} className="glass-card rounded-xl p-3 border border-slate-800 bg-slate-950/40">
+                        <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm">
                           {editingSertId === item.id ? (
                             <div className="space-y-2">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Sertifikat Nomi</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Sertifikat Nomi</label>
                                   <input
                                     type="text"
                                     value={editSertData.title}
                                     onChange={(e) => setEditSertData({ ...editSertData, title: e.target.value })}
                                     placeholder="Masalan: ISO 9001 Auditor..."
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Seriya / Raqami</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Seriya / Raqami</label>
                                   <input
                                     type="text"
                                     value={editSertData.certificateNo}
                                     onChange={(e) => setEditSertData({ ...editSertData, certificateNo: e.target.value })}
                                     placeholder="ISO-AUD-8831"
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Berilgan Sana</label>
                                   <input
                                     type="date"
                                     value={editSertData.issueDate}
                                     onChange={(e) => setEditSertData({ ...editSertData, issueDate: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Amal Qilish Muddati (Ixtiyoriy)</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Amal Qilish Muddati (Ixtiyoriy)</label>
                                   <input
                                     type="date"
                                     value={editSertData.expiryDate}
                                     onChange={(e) => setEditSertData({ ...editSertData, expiryDate: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
                               </div>
@@ -2525,7 +2527,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => setEditingSertId(null)}
-                                  className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[11px]"
+                                  className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-[11px]"
                                 >
                                   Bekor
                                 </button>
@@ -2543,23 +2545,23 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <div className="flex items-center justify-between gap-3">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 flex-1">
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Sertifikat Nomi</span>
-                                  <span className="font-semibold text-slate-200">{item.title || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Sertifikat Nomi</span>
+                                  <span className="font-semibold text-slate-900 dark:text-slate-100">{item.title || '—'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Seriya / Raqami</span>
-                                  <span className="font-mono text-indigo-300">{item.certificateNo || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Seriya / Raqami</span>
+                                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{item.certificateNo || '—'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Berilgan Sana</span>
-                                  <span className="font-mono text-slate-300">{formatDate(item.issueDate)}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Berilgan Sana</span>
+                                  <span className="font-mono text-slate-800 dark:text-slate-200">{formatDate(item.issueDate)}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Amal Qilish Muddati</span>
-                                  <span className="font-mono text-slate-300">{item.expiryDate ? formatDate(item.expiryDate) : 'Muddatsiz'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Amal Qilish Muddati</span>
+                                  <span className="font-mono text-slate-800 dark:text-slate-200">{item.expiryDate ? formatDate(item.expiryDate) : 'Muddatsiz'}</span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-800 pl-2">
+                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-200 dark:border-slate-700 pl-2">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -2571,15 +2573,15 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                       expiryDate: item.expiryDate || '',
                                     });
                                   }}
-                                  className="p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer"
+                                  className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition cursor-pointer"
                                   title="Tahrirlash"
                                 >
-                                  ✏️
+                                  <Pencil className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteSertifikat(item.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                                  className="p-1 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
                                   title="O'chirish"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2593,65 +2595,65 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   </div>
 
                   {/* ──────────────── 2-SUBSECTION: GUVOHNOMALAR ──────────────── */}
-                  <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <h5 className="font-bold text-indigo-400 flex items-center gap-2 text-xs">
+                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                      <h5 className="font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2 text-xs">
                         <span>Guvohnomalar</span>
                         <button
                           type="button"
                           onClick={handleAddGuvohnoma}
-                          className="p-1 text-indigo-400 hover:bg-indigo-500/20 rounded transition cursor-pointer"
+                          className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 rounded transition cursor-pointer"
                           title="Yangi Guvohnoma qo'shish"
                         >
-                          <Plus className="w-4 h-4 text-blue-500 hover:bg-blue-50/10 rounded p-0.5 cursor-pointer" />
+                          <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400 rounded p-0.5 cursor-pointer" />
                         </button>
                       </h5>
-                      <span className="text-[10px] text-slate-500 font-mono">{guvohnomaList.length} ta yozuv</span>
+                      <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">{guvohnomaList.length} ta yozuv</span>
                     </div>
 
                     <div className="space-y-2">
                       {guvohnomaList.map((item) => (
-                        <div key={item.id} className="glass-card rounded-xl p-3 border border-slate-800 bg-slate-950/40">
+                        <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm">
                           {editingGuvId === item.id ? (
                             <div className="space-y-2">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Guvohnoma Turi / Nomi</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Guvohnoma Turi / Nomi</label>
                                   <input
                                     type="text"
                                     value={editGuvData.title}
                                     onChange={(e) => setEditGuvData({ ...editGuvData, title: e.target.value })}
                                     placeholder="Haydovchilik / Harbiy..."
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Guvohnoma №</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Guvohnoma №</label>
                                   <input
                                     type="text"
                                     value={editGuvData.documentNo}
                                     onChange={(e) => setEditGuvData({ ...editGuvData, documentNo: e.target.value })}
                                     placeholder="UZ-2341-DL-BC"
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500 font-mono"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500 font-mono"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Berilgan Sana</label>
                                   <input
                                     type="date"
                                     value={editGuvData.issueDate}
                                     onChange={(e) => setEditGuvData({ ...editGuvData, issueDate: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Bergan Tashkilot</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Bergan Tashkilot</label>
                                   <input
                                     type="text"
                                     value={editGuvData.issuedBy}
                                     onChange={(e) => setEditGuvData({ ...editGuvData, issuedBy: e.target.value })}
                                     placeholder="Toshkent Sh. YHXBB..."
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-blue-500"
                                   />
                                 </div>
                               </div>
@@ -2659,7 +2661,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => setEditingGuvId(null)}
-                                  className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[11px]"
+                                  className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-[11px]"
                                 >
                                   Bekor
                                 </button>
@@ -2677,23 +2679,23 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <div className="flex items-center justify-between gap-3">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 flex-1">
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Guvohnoma Turi / Nomi</span>
-                                  <span className="font-semibold text-slate-200">{item.title || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Guvohnoma Turi / Nomi</span>
+                                  <span className="font-semibold text-slate-900 dark:text-slate-100">{item.title || '—'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Guvohnoma №</span>
-                                  <span className="font-mono text-indigo-300">{item.documentNo || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Guvohnoma №</span>
+                                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{item.documentNo || '—'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Berilgan Sana</span>
-                                  <span className="font-mono text-slate-300">{formatDate(item.issueDate)}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Berilgan Sana</span>
+                                  <span className="font-mono text-slate-800 dark:text-slate-200">{formatDate(item.issueDate)}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Bergan Tashkilot</span>
-                                  <span className="text-slate-300">{item.issuedBy || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Bergan Tashkilot</span>
+                                  <span className="text-slate-800 dark:text-slate-200">{item.issuedBy || '—'}</span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-800 pl-2">
+                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-200 dark:border-slate-700 pl-2">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -2705,15 +2707,15 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                       issuedBy: item.issuedBy || '',
                                     });
                                   }}
-                                  className="p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer"
+                                  className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition cursor-pointer"
                                   title="Tahrirlash"
                                 >
-                                  ✏️
+                                  <Pencil className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteGuvohnoma(item.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                                  className="p-1 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
                                   title="O'chirish"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -2727,63 +2729,63 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                   </div>
 
                   {/* ──────────────── 3-SUBSECTION: RUXSATNOMALAR ──────────────── */}
-                  <div className="glass-panel rounded-2xl p-4 border border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                      <h5 className="font-bold text-amber-400 flex items-center gap-2 text-xs">
+                  <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
+                      <h5 className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-2 text-xs">
                         <span>Ruxsatnomalar</span>
                         <button
                           type="button"
                           onClick={handleAddRuxsatnoma}
-                          className="p-1 text-amber-400 hover:bg-amber-500/20 rounded transition cursor-pointer"
+                          className="p-1 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 rounded transition cursor-pointer"
                           title="Yangi Ruxsatnoma qo'shish"
                         >
-                          <Plus className="w-4 h-4 text-blue-500 hover:bg-blue-50/10 rounded p-0.5 cursor-pointer" />
+                          <Plus className="w-4 h-4 text-amber-600 dark:text-amber-400 rounded p-0.5 cursor-pointer" />
                         </button>
                       </h5>
-                      <span className="text-[10px] text-slate-500 font-mono">{ruxsatnomaList.length} ta yozuv</span>
+                      <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">{ruxsatnomaList.length} ta yozuv</span>
                     </div>
 
                     <div className="space-y-2">
                       {ruxsatnomaList.map((item) => (
-                        <div key={item.id} className="glass-card rounded-xl p-3 border border-slate-800 bg-slate-950/40">
+                        <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm">
                           {editingRuxId === item.id ? (
                             <div className="space-y-2">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Ruxsatnoma Turi</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Ruxsatnoma Turi</label>
                                   <input
                                     type="text"
                                     value={editRuxData.title}
                                     onChange={(e) => setEditRuxData({ ...editRuxData, title: e.target.value })}
                                     placeholder="Telefon ishlatish ruxsatnomasi..."
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Buyruq / Ruxsatnoma №</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Buyruq / Ruxsatnoma №</label>
                                   <input
                                     type="text"
                                     value={editRuxData.permitNo}
                                     onChange={(e) => setEditRuxData({ ...editRuxData, permitNo: e.target.value })}
                                     placeholder="RUX-2026-004"
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500 font-mono"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500 font-mono"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Berilgan Sana</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Berilgan Sana</label>
                                   <input
                                     type="date"
                                     value={editRuxData.issueDate}
                                     onChange={(e) => setEditRuxData({ ...editRuxData, issueDate: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-slate-400 block mb-0.5">Status</label>
+                                  <label className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold block mb-0.5">Status</label>
                                   <select
                                     value={editRuxData.status}
                                     onChange={(e) => setEditRuxData({ ...editRuxData, status: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-amber-500"
                                   >
                                     <option value="Faol">Faol</option>
                                     <option value="Muddati O'tgan">Muddati O'tgan</option>
@@ -2794,7 +2796,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => setEditingRuxId(null)}
-                                  className="px-2.5 py-1 bg-slate-800 text-slate-300 rounded text-[11px]"
+                                  className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-[11px]"
                                 >
                                   Bekor
                                 </button>
@@ -2812,27 +2814,27 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                             <div className="flex items-center justify-between gap-3">
                               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 flex-1">
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Ruxsatnoma Turi</span>
-                                  <span className="font-semibold text-slate-200">{item.title || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Ruxsatnoma Turi</span>
+                                  <span className="font-semibold text-slate-900 dark:text-slate-100">{item.title || '—'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Buyruq / Ruxsatnoma №</span>
-                                  <span className="font-mono text-amber-300">{item.permitNo || '—'}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Buyruq / Ruxsatnoma №</span>
+                                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400">{item.permitNo || '—'}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Berilgan Sana</span>
-                                  <span className="font-mono text-slate-300">{formatDate(item.issueDate)}</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Berilgan Sana</span>
+                                  <span className="font-mono text-slate-800 dark:text-slate-200">{formatDate(item.issueDate)}</span>
                                 </div>
                                 <div>
-                                  <span className="text-[10px] text-slate-500 block">Status</span>
+                                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-semibold">Status</span>
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                    item.status === 'Faol' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                    item.status === 'Faol' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20'
                                   }`}>
                                     {item.status || 'Faol'}
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-800 pl-2">
+                              <div className="flex items-center gap-1 shrink-0 border-l border-slate-200 dark:border-slate-700 pl-2">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -2844,15 +2846,15 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                                       status: item.status || 'Faol',
                                     });
                                   }}
-                                  className="p-1 text-slate-400 hover:text-indigo-400 transition cursor-pointer"
+                                  className="p-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition cursor-pointer"
                                   title="Tahrirlash"
                                 >
-                                  ✏️
+                                  <Pencil className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteRuxsatnoma(item.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                                  className="p-1 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
                                   title="O'chirish"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />

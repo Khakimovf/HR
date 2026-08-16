@@ -253,32 +253,32 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-2xl rounded-2xl glass-panel border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/60">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-100 dark:bg-slate-800/90">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600/20 text-amber-400 border border-amber-500/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-600/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30 font-bold">
               <Settings className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Bo'lim va Lavozim Sozlamalari</h3>
-              <p className="text-xs text-slate-400">Tashkiliy ierarxiya, lavozimlar va shtat kvotalarini boshqarish</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Bo'lim va Lavozim Sozlamalari</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Tashkiliy ierarxiya, lavozimlar va shtat kvotalarini boshqarish</p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+          <button onClick={onClose} className="rounded-xl p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex border-b border-slate-800 bg-slate-950/40 px-6 pt-3 gap-2 flex-wrap">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 px-6 pt-3 gap-2 flex-wrap">
           <button
             onClick={() => setActiveTab('create')}
             className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold border-b-2 transition ${
               activeTab === 'create'
-                ? 'border-indigo-500 text-indigo-400 bg-indigo-500/10 rounded-t-xl'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-blue-600 text-blue-700 dark:text-indigo-400 bg-blue-50 dark:bg-indigo-500/10 rounded-t-xl'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <PlusCircle className="h-4 w-4" />
@@ -289,8 +289,8 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
             onClick={() => setActiveTab('positions')}
             className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold border-b-2 transition ${
               activeTab === 'positions'
-                ? 'border-purple-500 text-purple-400 bg-purple-500/10 rounded-t-xl'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-purple-600 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 rounded-t-xl'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <Briefcase className="h-4 w-4" />
@@ -301,8 +301,8 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
             onClick={() => setActiveTab('quota')}
             className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold border-b-2 transition ${
               activeTab === 'quota'
-                ? 'border-amber-500 text-amber-400 bg-amber-500/10 rounded-t-xl'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-amber-600 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-t-xl'
+                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
             <TrendingUp className="h-4 w-4" />
@@ -314,10 +314,10 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
         <div className="flex-1 overflow-y-auto p-6">
           {/* TAB A: Create Department */}
           {activeTab === 'create' && (
-            <form onSubmit={handleCreateDepartment} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateDepartment} className="space-y-4 text-xs font-medium">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                     Bo'lim Nomi: *
                   </label>
                   <input
@@ -325,13 +325,13 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Masalan: Logistika va Ekspeditziya Bo'limi..."
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                     Bo'lim Kodi (Ixtiyoriy - Auto-generate):
                   </label>
                   <input
@@ -339,24 +339,24 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="Avto-yaratiladi (masalan: DEPT-842)"
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 font-mono focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                     Yuqori Bo'lim (Parent Structure):
                   </label>
                   <select
                     value={parentId}
                     onChange={(e) => setParentId(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none"
                   >
                     <option value="">-- Yuqori Bo'limni Tanlang (Direksiya) --</option>
                     {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
+                      <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                         {d.code ? `[${d.code}] ` : ''}{d.name}
                       </option>
                     ))}
@@ -364,7 +364,7 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                     Boshlang'ich Shtat Limiti:
                   </label>
                   <input
@@ -372,27 +372,27 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                     min={1}
                     value={initialLimit}
                     onChange={(e) => setInitialLimit(Number(e.target.value))}
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 font-mono focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 font-mono font-bold focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                   Buyruq Raqami (Order №):
                 </label>
                 <input
                   type="text"
                   value={createOrderNo}
                   onChange={(e) => setCreateOrderNo(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 font-mono focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 font-mono focus:border-blue-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                   Izoh / Bo'lim vazifasi:
                 </label>
                 <textarea
@@ -400,22 +400,22 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Bo'lim tashkil etilish maqsadi..."
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl bg-slate-800 px-4 py-2 font-semibold text-slate-300 hover:bg-slate-700"
+                  className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2 font-bold text-white shadow-sm disabled:opacity-50 transition"
                 >
                   {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
                   <span>Yangi Bo'limni Saqlash</span>
@@ -426,19 +426,19 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
 
           {/* TAB B: Position Management & Reporting Escalation */}
           {activeTab === 'positions' && (
-            <div className="space-y-5 text-xs">
+            <div className="space-y-5 text-xs font-medium">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                   Lavozimlar Boshqariladigan Bo'limni Tanlang:
                 </label>
                 <select
                   value={posDeptId}
                   onChange={(e) => setPosDeptId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none"
                 >
                   <option value="">-- Bo'limni Tanlang --</option>
                   {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
+                    <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                       {d.code ? `[${d.code}] ` : ''}{d.name} ({d._count?.employees ?? 0} xodim)
                     </option>
                   ))}
@@ -447,10 +447,10 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
 
               {/* Add / Edit Position Form */}
               {posDeptId && (
-                <form onSubmit={handleSavePosition} className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4 space-y-3">
+                <form onSubmit={handleSavePosition} className="rounded-xl border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-500/5 p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-purple-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                      <Briefcase className="h-4 w-4 text-purple-400" />
+                    <span className="font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                       {editingPosId ? 'Lavozimni Tahrirlash' : 'Yangi Lavozim Qo\'shish'}
                     </span>
                     {editingPosId && (
@@ -460,7 +460,7 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                           setEditingPosId(null);
                           setPosTitle('');
                         }}
-                        className="text-[10px] text-rose-400 hover:underline"
+                        className="text-[10px] text-rose-600 dark:text-rose-400 font-bold hover:underline"
                       >
                         Bekor qilish
                       </button>
@@ -469,7 +469,7 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-2">
-                      <label className="block text-slate-300 font-semibold mb-1">
+                      <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                         Lavozim Nomi (masalan: "Seksiya Boshlig'i", "Ekspeditor"):
                       </label>
                       <input
@@ -477,13 +477,13 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                         value={posTitle}
                         onChange={(e) => setPosTitle(e.target.value)}
                         placeholder="Ekspeditor, Bo'linma Boshlig'i..."
-                        className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                        className="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none font-medium"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-slate-300 font-semibold mb-1">
+                      <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                         Shtat Kvota Limiti:
                       </label>
                       <input
@@ -491,20 +491,20 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                         min={1}
                         value={posQuota}
                         onChange={(e) => setPosQuota(Number(e.target.value))}
-                        className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 font-mono font-bold text-purple-300 focus:border-indigo-500 focus:outline-none"
+                        className="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-purple-700 dark:text-purple-300 font-mono font-bold focus:border-blue-500 focus:outline-none"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-slate-300 font-semibold mb-1">
+                    <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                       Hisobot Beradigan Rahbar Lavozim (Eskalatsiya):
                     </label>
                     <select
                       value={posReportsTo}
                       onChange={(e) => setPosReportsTo(e.target.value)}
-                      className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                      className="w-full rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none font-medium"
                     >
                       <option value="">-- Rahbar Lavozimi Yo'q (Bo'lim Boshlig'i) --</option>
                       {deptPositions
@@ -521,7 +521,7 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2 font-bold text-white shadow-lg shadow-purple-600/30 hover:bg-purple-500 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-700 px-5 py-2 font-bold text-white shadow-sm disabled:opacity-50 transition"
                     >
                       {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       <span>{editingPosId ? 'Lavozimni Yangilash' : 'Lavozimni Qo\'shish'}</span>
@@ -533,12 +533,12 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
               {/* Positions List */}
               {posDeptId && (
                 <div className="space-y-2">
-                  <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[11px]">
+                  <h4 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px]">
                     Bo'limdagi Mavjud Lavozimlar ({deptPositions.length} ta):
                   </h4>
 
                   {deptPositions.length === 0 ? (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-800 text-center text-slate-500">
+                    <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-800 text-center text-slate-500 font-medium">
                       Ushbu bo'limda hali lavozimlar kiritilmagan. Yuqoridagi formadan qo'shing.
                     </div>
                   ) : (
@@ -549,18 +549,18 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                         return (
                           <div
                             key={p.id}
-                            className={`p-3 rounded-xl border flex items-center justify-between transition ${
+                            className={`p-3 rounded-xl border flex items-center justify-between transition shadow-sm ${
                               isFull
-                                ? 'border-rose-500/30 bg-rose-500/5'
-                                : 'border-slate-800 bg-slate-900/60'
+                                ? 'border-rose-300 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/5'
+                                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60'
                             }`}
                           >
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-100">{p.title}</span>
+                                <span className="font-bold text-slate-900 dark:text-slate-100">{p.title}</span>
                               </div>
                               {p.reportsToPosition && (
-                                <p className="text-[10px] text-purple-400 flex items-center gap-1 mt-0.5">
+                                <p className="text-[10px] text-purple-700 dark:text-purple-400 font-bold flex items-center gap-1 mt-0.5">
                                   <GitBranch className="h-3 w-3" />
                                   Eskalatsiya: {p.reportsToPosition.title}
                                 </p>
@@ -570,15 +570,15 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                             <div className="flex items-center gap-2">
                               <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md border ${
                                 isFull
-                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300 border-rose-300 dark:border-rose-500/30'
+                                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30'
                               }`}>
                                 {filled} / {p.quotaLimit} shtat
                               </span>
                               <button
                                 type="button"
                                 onClick={() => startEditPosition(p)}
-                                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
                                 title="Tahrirlash"
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
@@ -596,20 +596,20 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
 
           {/* TAB C: Quota Adjustment */}
           {activeTab === 'quota' && (
-            <form onSubmit={handleUpdateQuota} className="space-y-4 text-xs">
+            <form onSubmit={handleUpdateQuota} className="space-y-4 text-xs font-medium">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                   Shtat Limiti Oshiriladigan Bo'limni Tanlang:
                 </label>
                 <select
                   value={targetDeptId}
                   onChange={(e) => setTargetDeptId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none"
                   required
                 >
                   <option value="">-- Bo'limni Tanlang --</option>
                   {departments.map((d) => (
-                    <option key={d.id} value={d.id}>
+                    <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">
                       {d.code ? `[${d.code}] ` : ''}{d.name}
                     </option>
                   ))}
@@ -618,22 +618,22 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
 
               {/* Current Status Preview */}
               {targetDept && (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
+                <div className="rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-amber-300">{targetDept.name}</span>
-                    <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-500/30">
+                    <span className="font-bold text-amber-800 dark:text-amber-300">{targetDept.name}</span>
+                    <span className="font-mono text-xs font-bold text-amber-900 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-500/30">
                       Amaldagi ishchilar: {targetDept._count?.employees ?? 0} kishi
                     </span>
                   </div>
-                  <div className="text-xs text-slate-300">
-                    Joriy Limit: <strong className="text-white font-mono">{targetDept.staffLimit ?? Math.ceil((targetDept._count?.employees ?? 0) * 1.12) + 2} ta</strong>
+                  <div className="text-xs text-slate-800 dark:text-slate-300 font-medium">
+                    Joriy Limit: <strong className="text-slate-900 dark:text-white font-mono font-bold">{targetDept.staffLimit ?? Math.ceil((targetDept._count?.employees ?? 0) * 1.12) + 2} ta</strong>
                   </div>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                     Yangi Shtat Limiti (Quota Count):
                   </label>
                   <input
@@ -641,50 +641,50 @@ export const DepartmentConfigModal: React.FC<DepartmentConfigModalProps> = ({
                     min={1}
                     value={newQuotaLimit}
                     onChange={(e) => setNewQuotaLimit(Number(e.target.value))}
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 font-mono font-bold text-indigo-400 focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-blue-700 dark:text-indigo-400 font-mono font-bold focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">
+                  <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                     Buyruq Raqami (Audit Order №):
                   </label>
                   <input
                     type="text"
                     value={quotaOrderNo}
                     onChange={(e) => setQuotaOrderNo(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 font-mono focus:border-indigo-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 font-mono focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-900 dark:text-slate-100 font-bold mb-1">
                   Shtat Kengaytirish Asosi / Sababi:
                 </label>
                 <textarea
                   rows={2}
                   value={quotaReason}
                   onChange={(e) => setQuotaReason(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-700 p-2.5 text-slate-100 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 p-2.5 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none"
                   required
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl bg-slate-800 px-4 py-2 font-semibold text-slate-300 hover:bg-slate-700"
+                  className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !targetDeptId}
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2 font-bold text-white shadow-lg shadow-amber-600/30 hover:bg-amber-500 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 px-5 py-2 font-bold text-white shadow-sm disabled:opacity-50 transition"
                 >
                   {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
                   <span>Shtat Limitini Oshirishni Tasdiqlash</span>

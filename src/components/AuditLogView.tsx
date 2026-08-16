@@ -31,17 +31,35 @@ import {
   Shield,
   FileCheck,
   LayoutGrid,
+  Megaphone,
+  Edit,
+  Trash2,
+  Sparkles,
+  AlertTriangle,
+  Wrench,
+  Layers,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { AnnouncementCreateModal } from './AnnouncementCreateModal';
+import { AnnouncementDetailModal, AnnouncementType } from './AnnouncementDetailModal';
 
 // ─── Action color map ─────────────────────────────────────────────────────────
 
 function getActionColor(action: string): string {
-  if (action.includes('tahrirlandi') || action.includes('yangilandi')) return 'text-amber-300 bg-amber-500/10 border-amber-500/20';
-  if (action.includes("qo'shildi") || action.includes('yaratildi'))   return 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20';
-  if (action.includes("bekor") || action.includes("o'chirildi"))      return 'text-rose-300 bg-rose-500/10 border-rose-500/20';
-  if (action.includes('kirdi') || action.includes('chiqdi'))           return 'text-indigo-300 bg-indigo-500/10 border-indigo-500/20';
-  return 'text-slate-300 bg-slate-700/40 border-slate-700';
+  if (action.includes('tahrirlandi') || action.includes('yangilandi') || action.includes('UPDATE')) {
+    return 'bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 font-bold';
+  }
+  if (action.includes("qo'shildi") || action.includes('yaratildi') || action.includes('CREATE')) {
+    return 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-bold';
+  }
+  if (action.includes("o'chirildi") || action.includes('bekor') || action.includes('DELETE')) {
+    return 'bg-rose-100 dark:bg-rose-950/80 text-rose-900 dark:text-rose-300 border border-rose-300 dark:border-rose-800 font-bold';
+  }
+  if (action.includes('Tizimga kirdi') || action.includes('LOGIN')) {
+    return 'bg-blue-100 dark:bg-blue-950/80 text-blue-900 dark:text-blue-300 border border-blue-300 dark:border-blue-800 font-bold';
+  }
+  return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold';
 }
 
 // ─── Role Badges ──────────────────────────────────────────────────────────────
@@ -49,33 +67,230 @@ function getActionColor(action: string): string {
 function RoleBadge({ role }: { role: string }) {
   if (role === 'SUPER_ADMIN') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-        <Crown className="h-3 w-3 text-amber-400" /> SUPER_ADMIN
+      <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-full">
+        <Crown className="h-3 w-3 text-amber-600 dark:text-amber-400" /> SUPER_ADMIN
       </span>
     );
   }
   if (role === 'EXECUTIVE_DIRECTOR') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">
-        <Briefcase className="h-3 w-3 text-purple-400" /> EXECUTIVE_DIRECTOR
+      <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-purple-800 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-2 py-0.5 rounded-full">
+        <Briefcase className="h-3 w-3 text-purple-600 dark:text-purple-400" /> EXECUTIVE
       </span>
     );
   }
   if (role === 'AUDITOR' || role === 'VIEWER_ONLY') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30">
-        <Eye className="h-3 w-3 text-teal-400" /> AUDITOR
+      <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2 py-0.5 rounded-full">
+        <Eye className="h-3 w-3 text-teal-600 dark:text-teal-400" /> AUDITOR
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-      <Building2 className="h-3 w-3 text-indigo-400" /> HR_OFFICER
+    <span className="inline-flex items-center gap-1 font-extrabold text-[10px] text-blue-800 dark:text-indigo-300 bg-blue-100 dark:bg-indigo-950/80 border border-blue-300 dark:border-indigo-800 px-2 py-0.5 rounded-full">
+      <Building className="h-3 w-3 text-blue-600 dark:text-indigo-400" /> HR_OFFICER
     </span>
   );
 }
 
-// ─── 3-Tab Dedicated Role & Member Management Modal ─────────────────────────────
+// ─── Announcement Admin Panel Component ────────────────────────────────────────
+
+const AnnouncementAdminPanel: React.FC = () => {
+  const { t, language } = useLanguage();
+  const [announcements, setAnnouncements] = useState<AnnouncementType[]>([]);
+  const [loading, setLoading]             = useState(true);
+
+  const [isCreateOpen, setIsCreateOpen]   = useState(false);
+  const [editingItem, setEditingItem]     = useState<AnnouncementType | null>(null);
+  const [viewingItem, setViewingItem]     = useState<AnnouncementType | null>(null);
+
+  const fetchAnnouncements = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/announcements?all=true');
+      const data = await res.json();
+      if (data.success) {
+        setAnnouncements(data.announcements || []);
+      }
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm(language === 'kr' ? '이 공지사항을 삭제하시겠습니까?' : "Ushbu e'lonni o'chirishni tasdiqlaysizmi?")) return;
+    try {
+      await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
+      fetchAnnouncements();
+    } catch {}
+  };
+
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'FEATURE':
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">🚀 {t('announcements.cat_feature', 'Yangi Imkoniyat')}</span>;
+      case 'UPDATE':
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">🔄 {t('announcements.cat_update', "Modul O'zgarishi")}</span>;
+      case 'IMPORTANT':
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800">⚠️ {t('announcements.cat_important', 'Muhim E\'lon')}</span>;
+      case 'MAINTENANCE':
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">🛠️ {t('announcements.cat_maintenance', 'Texnik Ishlar')}</span>;
+      default:
+        return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">{category}</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Top Toolbar */}
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4">
+        <div>
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <Megaphone className="h-4 w-4 text-blue-600 dark:text-indigo-400" />
+            {t('announcements.manage_tab', "📢 Tizim E'lonlari Boshqaruvi")}
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
+            {language === 'kr' ? '시스템 공지사항, 모듈 업데이트 및 점검 안내 등록/관리' : "Foydalanuvchilar dashboardida ko'rinadigan tizim yangilanishlari va e'lonlar markazi"}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchAnnouncements}
+            className="p-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => { setEditingItem(null); setIsCreateOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{t('announcements.add_new', "+ Yangi E'lon Qo'shish")}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center p-12 gap-2">
+            <Loader2 className="h-5 w-5 text-blue-600 dark:text-indigo-400 animate-spin" />
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-bold">{language === 'kr' ? '공지사항을 불러오는 중입니다...' : 'Yuklanmoqda...'}</span>
+          </div>
+        ) : announcements.length === 0 ? (
+          <div className="p-12 text-center space-y-2">
+            <Megaphone className="h-10 w-10 text-slate-400 mx-auto" />
+            <p className="text-slate-600 dark:text-slate-400 font-medium">{language === 'kr' ? '등록된 공지사항이 없습니다.' : "Chop etilgan e'lonlar mavjud emas"}</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] border-b border-slate-300 dark:border-slate-700 tracking-wider">
+                <tr>
+                  <th className="px-4 py-3.5 text-left">Sana</th>
+                  <th className="px-4 py-3.5 text-left">Sarlavha (UZ / KR)</th>
+                  <th className="px-4 py-3.5 text-left">Kategoriya</th>
+                  <th className="px-4 py-3.5 text-left">Tegishli Modul</th>
+                  <th className="px-4 py-3.5 text-center">Status</th>
+                  <th className="px-4 py-3.5 text-right">Harakatlar</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                {announcements.map((item) => {
+                  return (
+                    <tr key={item.id} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-slate-700 dark:text-slate-300 text-xs">
+                        {formatDate(item.createdAt || item.created_at || new Date().toISOString())}
+                      </td>
+
+                      <td className="px-4 py-3 max-w-[280px]">
+                        <div
+                          onClick={() => setViewingItem(item)}
+                          className="font-bold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-indigo-400 cursor-pointer truncate"
+                        >
+                          {item.title_uz}
+                        </div>
+                        <div className="text-[10px] text-slate-500 truncate font-medium">{item.title_kr}</div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {getCategoryBadge(item.category)}
+                      </td>
+
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-bold">
+                        <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px]">
+                          <Layers className="h-3 w-3 text-blue-600" />
+                          {item.affectedModule}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          item.is_published
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700'
+                        }`}>
+                          {item.is_published ? t('announcements.published', 'Chop etildi') : t('announcements.draft', 'Qoralama')}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setViewingItem(item)}
+                            className="p-1 text-slate-500 hover:text-blue-600 transition cursor-pointer"
+                            title={t('common.view', 'Ko\'rish')}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => { setEditingItem(item); setIsCreateOpen(true); }}
+                            className="p-1 text-slate-500 hover:text-amber-600 transition cursor-pointer"
+                            title={t('common.edit', 'Tahrirlash')}
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1 text-slate-500 hover:text-rose-600 transition cursor-pointer"
+                            title={t('common.delete', 'O\'chirish')}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Creation/Edit Modal */}
+      <AnnouncementCreateModal
+        isOpen={isCreateOpen}
+        onClose={() => { setIsCreateOpen(false); setEditingItem(null); }}
+        onSuccess={fetchAnnouncements}
+        editingAnnouncement={editingItem}
+      />
+
+      {/* Detail Modal */}
+      <AnnouncementDetailModal
+        announcement={viewingItem}
+        isOpen={Boolean(viewingItem)}
+        onClose={() => setViewingItem(null)}
+      />
+    </div>
+  );
+};
+
+// ─── RoleAndMemberModal Component ──────────────────────────────────────────────
 
 const RoleAndMemberModal: React.FC<{
   user: any;
@@ -83,243 +298,189 @@ const RoleAndMemberModal: React.FC<{
   onClose: () => void;
   onSuccess: () => void;
 }> = ({ user, departments, onClose, onSuccess }) => {
-  const [activeTab, setActiveTab] = useState<'role_status' | 'modules' | 'scoping'>('role_status');
-
-  // Tab 1 state
-  const [role, setRole]         = useState<string>(user.role || 'HR_OFFICER');
-  const [isActive, setIsActive] = useState<boolean>(user.isActive ?? true);
-  const [newPassword, setNewPassword] = useState<string>('');
-
-  // System Modules state (dynamically fetched from DB)
-  const [systemModules, setSystemModules] = useState<any[]>([]);
-  const [allowedModuleKeys, setAllowedModuleKeys] = useState<string[]>(
-    user.moduleAccess?.map((m: any) => m.moduleKey) || user.allowedModuleKeys || []
-  );
-
-  // Tab 3 Department Scoping state
+  const [activeTab, setActiveTab]         = useState<'role' | 'modules' | 'scoping'>('role');
+  const [role, setRole]                   = useState(user.role || 'HR_OFFICER');
+  const [newPassword, setNewPassword]     = useState('');
   const [selectedDeptIds, setSelectedDeptIds] = useState<string[]>(
-    user.departmentAccess?.map((d: any) => d.id) || user.assignedDepartmentIds || []
-  );
-  const [deptSearch, setDeptSearch] = useState<string>('');
-
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState('');
-
-  // Fetch System Modules dynamically
-  useEffect(() => {
-    fetch('/api/modules')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setSystemModules(data.modules || []);
-        }
-      });
-  }, []);
-
-  const filteredDepts = departments.filter((d) =>
-    d.name.toLowerCase().includes(deptSearch.toLowerCase()) ||
-    (d.code && d.code.toLowerCase().includes(deptSearch.toLowerCase()))
+    user.departmentAccess?.map((d: any) => d.id || d.departmentId) || []
   );
 
-  // Module toggle handlers
+  const ALL_MODULE_KEYS = [
+    'workforce', 'departments', 'arizalar', 'kpi', 'svodka',
+    'analytics', 'transfers', 'discipline', 'davomat', 'hse', 'import', 'audit'
+  ];
+
+  const [allowedModuleKeys, setAllowedModuleKeys] = useState<string[]>(
+    user.moduleAccess?.map((m: any) => m.moduleKey) || ['workforce', 'davomat', 'transfers']
+  );
+
+  const [deptSearch, setDeptSearch] = useState('');
+  const [saving, setSaving]         = useState(false);
+  const [error, setError]           = useState('');
+
+  const systemModules = [
+    { key: 'workforce', title: 'Xodimlar Bazasi' },
+    { key: 'departments', title: "Bo'limlar Ierarxiyasi" },
+    { key: 'arizalar', title: 'Arizalar & Hujjatlar' },
+    { key: 'kpi', title: 'KPI & Samaradorlik' },
+    { key: 'svodka', title: 'Ijroiy Svodka' },
+    { key: 'analytics', title: 'Rahbariyat Analitikasi' },
+    { key: 'transfers', title: "Bo'limlararo Ko'chish Tarixi" },
+    { key: 'discipline', title: 'Intizom & Mukofotlar' },
+    { key: 'davomat', title: "Davomat & Ta'tillar" },
+    { key: 'hse', title: "Med-ko'rik & Xavfsizlik (HSE)" },
+    { key: 'import', title: 'Ommaviy Fayllarni Yuklash' },
+    { key: 'audit', title: 'Tizim Auditi' },
+  ];
+
   const toggleModule = (key: string) => {
     setAllowedModuleKeys((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
-  const selectAllModules = () => setAllowedModuleKeys(systemModules.map((m) => m.key));
+
+  const selectAllModules = () => setAllowedModuleKeys(ALL_MODULE_KEYS);
   const clearAllModules  = () => setAllowedModuleKeys([]);
 
-  // Department toggle handlers
   const toggleDept = (id: string) => {
     setSelectedDeptIds((prev) =>
       prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
     );
   };
+
   const selectAllDepts = () => setSelectedDeptIds(departments.map((d) => d.id));
   const clearAllDepts  = () => setSelectedDeptIds([]);
+
+  const filteredDepts = departments.filter((d) =>
+    d.name.toLowerCase().includes(deptSearch.toLowerCase())
+  );
 
   const handleSave = async () => {
     setSaving(true);
     setError('');
 
-    const payload: any = {
-      id: user.id,
-      role,
-      isActive,
-      assignedDepartmentIds: selectedDeptIds,
-      allowedModuleKeys: allowedModuleKeys,
-    };
+    try {
+      const res = await fetch(`/api/auth/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role,
+          newPassword: newPassword || undefined,
+          assignedDepartmentIds: selectedDeptIds,
+          allowedModuleKeys,
+        }),
+      });
 
-    if (newPassword && newPassword.trim().length >= 4) {
-      payload.password = newPassword.trim();
-    }
-
-    const res = await fetch('/api/auth/users', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-    setSaving(false);
-
-    if (data.success) {
-      onSuccess();
-      onClose();
-    } else {
-      setError(data.error || 'Saqlashda xatolik yuz berdi');
+      const data = await res.json();
+      if (data.success) {
+        onSuccess();
+        onClose();
+      } else {
+        setError(data.error || 'Saqlashda xatolik yuz berdi');
+      }
+    } catch {
+      setError('Tarmoq xatoligi yuz berdi');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/90">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50 dark:bg-slate-900">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-              <SlidersHorizontal className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
+              <SlidersHorizontal className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-base">2D Matrix Rollar va Huquqlarni Boshqarish</h3>
-              <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-                <span className="font-mono text-indigo-400 font-bold">{user.tabelNumber || 'TB-1000'}</span>
-                <span>•</span>
-                <span className="font-semibold text-slate-200">{user.fullName}</span>
-                <span>•</span>
-                <span>{user.position || 'HR Mutaxassis'}</span>
-              </div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Rollar va 2D Ruxsatlarni Boshqarish: {user.fullName}
+              </h3>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                @{user.username} • {user.position}
+              </p>
             </div>
           </div>
-          <button onClick={onClose}><X className="h-5 w-5 text-slate-400 hover:text-white" /></button>
-        </div>
-
-        {/* 3 Modal Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-950/40">
-          <button
-            onClick={() => setActiveTab('role_status')}
-            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-              activeTab === 'role_status'
-                ? 'bg-indigo-600/20 text-indigo-300 border-b-2 border-indigo-500'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-            }`}
-          >
-            <Shield className="h-3.5 w-3.5" /> Tab 1: Rol & Holat
-          </button>
-
-          <button
-            onClick={() => setActiveTab('modules')}
-            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-              activeTab === 'modules'
-                ? 'bg-indigo-600/20 text-indigo-300 border-b-2 border-indigo-500'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-            }`}
-          >
-            <LayoutGrid className="h-3.5 w-3.5" /> Tab 2: Menyu Modullari ({allowedModuleKeys.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab('scoping')}
-            className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-              activeTab === 'scoping'
-                ? 'bg-indigo-600/20 text-indigo-300 border-b-2 border-indigo-500'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
-            }`}
-          >
-            <Building className="h-3.5 w-3.5" /> Tab 3: Bo'limlar Scope ({selectedDeptIds.length})
+          <button onClick={onClose} className="rounded-xl p-2 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4 text-xs max-h-[70vh] overflow-y-auto">
-          {/* TAB 1: Role & Active Status */}
-          {activeTab === 'role_status' && (
-            <div className="space-y-5">
+        {/* Tab Switcher */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/40 p-1 text-xs">
+          {[
+            { id: 'role', label: "1. Tizim Roli & Parol" },
+            { id: 'modules', label: "2. Menyu Modullari Ruxsati" },
+            { id: 'scoping', label: "3. Biriktirilgan Sexlar Scope" },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id as any)}
+              className={`flex-1 py-2 font-bold rounded-lg transition ${
+                activeTab === t.id
+                  ? 'bg-white dark:bg-slate-800 text-indigo-900 dark:text-white shadow-sm font-extrabold'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800/60'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {activeTab === 'role' && (
+            <div className="space-y-4 text-xs">
               <div>
-                <label className="text-slate-400 font-semibold mb-2 block uppercase text-[10px] tracking-wider">
-                  Asosiy Tizim Roli (Primary System Role) *
-                </label>
-                <div className="grid grid-cols-2 gap-3">
+                <label className="text-slate-700 dark:text-slate-300 font-bold mb-2 block">Tizimdagi Roli (System Role)</label>
+                <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'SUPER_ADMIN', label: '👑 SUPER_ADMIN', desc: 'Barcha bo\'limlar va modullarga to\'liq ruxsat' },
-                    { id: 'EXECUTIVE_DIRECTOR', label: '💼 EXECUTIVE_DIRECTOR', desc: 'Kompaniya bo\'yicha ko\'rish & PDF Svodkalar' },
-                    { id: 'HR_OFFICER', label: '🏢 HR_OFFICER', desc: 'Tanlangan modullar va sexlarda tahrirlash' },
-                    { id: 'AUDITOR', label: '🔍 AUDITOR', desc: 'Xavfsizlik va muvofiqlik auditori (Faqat ko\'rish)' },
-                  ].map((r) => {
-                    const isSelected = role === r.id;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setRole(r.id)}
-                        className={`p-3.5 rounded-xl border text-left transition ${
-                          isSelected
-                            ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-lg font-bold'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="text-xs font-extrabold flex items-center justify-between">
-                          <span>{r.label}</span>
-                          {isSelected && <Check className="h-4 w-4 text-indigo-400" />}
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-normal mt-1 leading-relaxed">{r.desc}</div>
-                      </button>
-                    );
-                  })}
+                    { id: 'SUPER_ADMIN', label: '👑 SUPER_ADMIN', desc: 'Barcha bo\'limlarga to\'liq tahrirlash' },
+                    { id: 'EXECUTIVE_DIRECTOR', label: '💼 EXECUTIVE', desc: 'Kompaniya bo\'yicha ko\'rish & hisobotlar' },
+                    { id: 'HR_OFFICER', label: '🏢 HR_OFFICER', desc: 'Biriktirilgan bo\'limlarda tahrirlash' },
+                    { id: 'AUDITOR', label: '🔍 AUDITOR', desc: 'Muvofiqlik va HSE bo\'yicha auditor' },
+                  ].map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setRole(r.id)}
+                      className={`p-3 rounded-xl border text-left transition ${
+                        role === r.id
+                          ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 text-indigo-900 dark:text-white font-bold shadow-sm'
+                          : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="font-extrabold">{r.label}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{r.desc}</div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800">
-                <div>
-                  <label className="text-slate-400 font-semibold mb-1.5 block">Akkaunt Holati (Status)</label>
-                  <button
-                    type="button"
-                    onClick={() => setIsActive(!isActive)}
-                    className={`w-full flex items-center justify-between rounded-xl px-4 py-2.5 border font-semibold text-xs transition ${
-                      isActive
-                        ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                        : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      {isActive ? <UserCheck className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
-                      {isActive ? 'Faol Akkaunt (Active)' : 'Bloklangan (Blocked)'}
-                    </span>
-                    <span className="text-[10px] font-bold underline">{isActive ? 'Bloklash' : 'Faollashtirish'}</span>
-                  </button>
-                </div>
-
-                <div>
-                  <label className="text-slate-400 font-semibold mb-1.5 block">Parolni Yangilash (Ixtiyoriy)</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Yangi parol kiriting..."
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
-                  />
-                </div>
+              <div>
+                <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Parolni O'zgartirish (Ixtiyoriy)</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Yangi parol..."
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
               </div>
             </div>
           )}
 
-          {/* TAB 2: Menyu va Modullar Ruxsati */}
           {activeTab === 'modules' && (
-            <div className="space-y-4">
+            <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-white">Sidebar Menyu Modullari Ruxsati</h4>
-                  <p className="text-[11px] text-slate-400">Xodim uchun ochiladigan va tahrirlashga ruxsat berilgan modullar</p>
-                </div>
+                <span className="font-bold text-slate-800 dark:text-slate-200">Sidebar Menyu Modullari Ruxsati</span>
                 <div className="flex gap-2">
-                  <button onClick={selectAllModules} className="text-[11px] font-bold text-indigo-400 hover:underline">Barchasini Tanlash</button>
-                  <span className="text-slate-600">•</span>
-                  <button onClick={clearAllModules} className="text-[11px] font-bold text-rose-400 hover:underline">Tozalash</button>
+                  <button onClick={selectAllModules} className="text-[10px] font-bold text-indigo-600 hover:underline">Barchasini Tanlash</button>
+                  <span>•</span>
+                  <button onClick={clearAllModules} className="text-[10px] font-bold text-rose-600 hover:underline">Tozalash</button>
                 </div>
               </div>
-
-              {/* Dynamic Module Checklist */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-slate-800 rounded-xl p-3 bg-slate-950/40">
+              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50 dark:bg-slate-950/40">
                 {systemModules.map((m) => {
                   const isAllowed = allowedModuleKeys.includes(m.key);
                   return (
@@ -327,21 +488,12 @@ const RoleAndMemberModal: React.FC<{
                       key={m.key}
                       type="button"
                       onClick={() => toggleModule(m.key)}
-                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition ${
-                        isAllowed
-                          ? 'bg-indigo-600/20 border-indigo-500/40 text-white font-semibold'
-                          : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
+                      className={`flex items-center gap-2 p-2.5 rounded-xl border text-left text-xs transition ${
+                        isAllowed ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-400 text-indigo-900 dark:text-white font-bold' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600'
                       }`}
                     >
-                      {isAllowed ? (
-                        <CheckSquare className="h-4 w-4 text-indigo-400 shrink-0" />
-                      ) : (
-                        <Square className="h-4 w-4 text-slate-600 shrink-0" />
-                      )}
-                      <div className="min-w-0">
-                        <div className="text-xs truncate">{m.title}</div>
-                        <div className="font-mono text-[9px] text-slate-500">Key: {m.key}</div>
-                      </div>
+                      {isAllowed ? <CheckSquare className="h-4 w-4 text-indigo-600 shrink-0" /> : <Square className="h-4 w-4 text-slate-400 shrink-0" />}
+                      <span className="truncate font-bold">{m.title}</span>
                     </button>
                   );
                 })}
@@ -349,89 +501,44 @@ const RoleAndMemberModal: React.FC<{
             </div>
           )}
 
-          {/* TAB 3: Department Scope */}
           {activeTab === 'scoping' && (
-            <div className="space-y-3">
-              {role === 'SUPER_ADMIN' ? (
-                <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-amber-300 text-xs flex items-center gap-3">
-                  <Crown className="h-6 w-6 shrink-0" />
-                  <div>
-                    <strong>SUPER_ADMIN rolidagi foydalanuvchi!</strong><br />
-                    Tizim barcha 50+ bo'limlarga avtomatik to'liq tahrirlash ruxsatini beradi.
-                  </div>
+            <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-800 dark:text-slate-200">Biriktirilgan Sexlar ({selectedDeptIds.length} / {departments.length})</span>
+                <div className="flex gap-2">
+                  <button onClick={selectAllDepts} className="text-[10px] font-bold text-indigo-600 hover:underline">Barchasi</button>
+                  <span>•</span>
+                  <button onClick={clearAllDepts} className="text-[10px] font-bold text-rose-600 hover:underline">Tozalash</button>
                 </div>
-              ) : role === 'EXECUTIVE_DIRECTOR' || role === 'AUDITOR' ? (
-                <div className="rounded-xl bg-purple-500/10 border border-purple-500/30 p-4 text-purple-300 text-xs flex items-center gap-3">
-                  <Lock className="h-6 w-6 shrink-0" />
-                  <div>
-                    <strong>Faqat Ko'rish (Read-Only) roli!</strong><br />
-                    Tizim barcha bo'lim ma'lumotlarini ko'rish va hisobotlarni yuklab olish ruxsatini beradi.
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between">
-                    <label className="text-slate-400 font-semibold">
-                      Tahrirlash Uchun Biriktirilgan Bo'limlar (<span className="text-indigo-400 font-bold">{selectedDeptIds.length} / {departments.length}</span>)
-                    </label>
-                    <div className="flex gap-2">
-                      <button onClick={selectAllDepts} className="text-[11px] font-bold text-indigo-400 hover:underline">Barchasini Tanlash</button>
-                      <span className="text-slate-600">•</span>
-                      <button onClick={clearAllDepts} className="text-[11px] font-bold text-rose-400 hover:underline">Tozalash</button>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
-                    <input
-                      value={deptSearch}
-                      onChange={(e) => setDeptSearch(e.target.value)}
-                      placeholder="Bo'lim nomi bo'yicha..."
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-8 pr-3 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto border border-slate-800 rounded-xl p-2 bg-slate-950/40">
-                    {filteredDepts.map((d) => {
-                      const isSelected = selectedDeptIds.includes(d.id);
-                      return (
-                        <button
-                          key={d.id}
-                          type="button"
-                          onClick={() => toggleDept(d.id)}
-                          className={`flex items-center gap-2 p-2.5 rounded-xl border text-left text-[11px] transition ${
-                            isSelected ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 font-semibold' : 'text-slate-400 bg-slate-950 border-slate-800 hover:border-slate-700'
-                          }`}
-                        >
-                          {isSelected ? <CheckSquare className="h-4 w-4 text-indigo-400 shrink-0" /> : <Square className="h-4 w-4 text-slate-600 shrink-0" />}
-                          <span className="truncate">{d.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50 dark:bg-slate-950/40">
+                {filteredDepts.map((d) => {
+                  const isSelected = selectedDeptIds.includes(d.id);
+                  return (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() => toggleDept(d.id)}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-left text-[11px] font-bold transition ${
+                        isSelected ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-300 border border-indigo-400 font-bold' : 'text-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {isSelected ? <CheckSquare className="h-3.5 w-3.5 text-indigo-600 shrink-0" /> : <Square className="h-3.5 w-3.5 text-slate-400 shrink-0" />}
+                      <span className="truncate">{d.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {error && (
-            <div className="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 flex items-center gap-2">
-              <XCircle className="h-4 w-4 shrink-0" /> {error}
-            </div>
-          )}
+          {error && <div className="text-rose-600 font-bold text-xs p-2 bg-rose-50 rounded-xl">{error}</div>}
 
-          {/* Footer controls */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-            <button onClick={onClose} className="rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700">
-              Bekor qilish
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40"
-            >
+          <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+            <button onClick={onClose} className="rounded-xl bg-slate-200 dark:bg-slate-800 px-4 py-2 font-bold text-slate-800 dark:text-slate-300">Bekor</button>
+            <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 text-white px-6 py-2.5 font-bold shadow-sm cursor-pointer">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-              Saqlash va Ruxsatlarni Yangilash
+              Saqlash
             </button>
           </div>
         </div>
@@ -440,7 +547,7 @@ const RoleAndMemberModal: React.FC<{
   );
 };
 
-// ─── User Registration Modal ───────────────────────────────────────────────────
+// ─── User Register Modal & Panel (Kept intact) ─────────────────────────────────
 
 const UserRegisterModal: React.FC<{
   departments: any[];
@@ -506,99 +613,96 @@ const UserRegisterModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-900/90">
-          <h3 className="font-bold text-white text-sm flex items-center gap-2">
-            <UserIcon className="h-4 w-4 text-indigo-400" /> Yangi Foydalanuvchi Ro'yxatdan O'tkazish
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-slate-50 dark:bg-slate-900/90">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+            <UserIcon className="h-4 w-4 text-blue-600 dark:text-indigo-400" /> Yangi Foydalanuvchi Ro'yxatdan O'tkazish
           </h3>
-          <button onClick={onClose}><X className="h-4 w-4 text-slate-400 hover:text-white" /></button>
+          <button onClick={onClose}><X className="h-4 w-4 text-slate-500 hover:text-slate-900 dark:hover:text-white" /></button>
         </div>
 
         <div className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
-          {/* Identity Info */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
-              <label className="text-slate-400 font-semibold mb-1 block">F.I.O. (To'liq Ismi) *</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">F.I.O. (To'liq Ismi) *</label>
               <input
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 placeholder="Jasur Rahimov"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-slate-400 font-semibold mb-1 block">Tabel № *</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Tabel № *</label>
               <input
                 value={form.tabelNumber}
                 onChange={(e) => setForm({ ...form, tabelNumber: e.target.value })}
                 placeholder="TB-1010"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 font-mono focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-400 font-semibold mb-1 block">Lavozimi (Job Title) *</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Lavozimi (Job Title) *</label>
               <input
                 value={form.position}
                 onChange={(e) => setForm({ ...form, position: e.target.value })}
                 placeholder="Kadrlar bo'limi inspektori"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-slate-400 font-semibold mb-1 block">Asosiy Ish Bo'limi (Home Dept)</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Asosiy Ish Bo'limi (Home Dept)</label>
               <select
                 value={form.userDepartmentId}
                 onChange={(e) => setForm({ ...form, userDepartmentId: e.target.value })}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
               >
-                <option value="">-- Bo'limni Tanlang --</option>
+                <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">-- Bo'limni Tanlang --</option>
                 {departments.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
+                  <option key={d.id} value={d.id} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100">{d.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Account Credentials */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-slate-400 font-semibold mb-1 block">Username (Login) *</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Username (Login) *</label>
               <input
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 placeholder="j.rahimov"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-slate-400 font-semibold mb-1 block">Xizmat Email *</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Xizmat Email *</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="j.rahimov@enterprise-hr.uz"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-slate-400 font-semibold mb-1 block">Vaqtinchalik Parol *</label>
+              <label className="text-slate-700 dark:text-slate-300 font-bold mb-1 block">Vaqtinchalik Parol *</label>
               <input
                 type="password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Role Selection */}
           <div>
-            <label className="text-slate-400 font-semibold mb-2 block">Tizimdagi Roli (System Role) *</label>
+            <label className="text-slate-700 dark:text-slate-300 font-bold mb-2 block">Tizimdagi Roli (System Role) *</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
                 { id: 'SUPER_ADMIN', label: '👑 SUPER_ADMIN', desc: 'Barcha bo\'limlarga to\'liq tahrirlash' },
@@ -614,76 +718,23 @@ const UserRegisterModal: React.FC<{
                     onClick={() => setForm({ ...form, role: r.id })}
                     className={`p-3 rounded-xl border text-left transition ${
                       isSelected
-                        ? 'bg-indigo-600/30 border-indigo-500 text-white shadow-lg'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 text-indigo-900 dark:text-white font-bold shadow-sm'
+                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    <div className="font-bold text-[11px]">{r.label}</div>
-                    <div className="text-[9px] text-slate-500 mt-1 leading-tight">{r.desc}</div>
+                    <div className="font-extrabold text-[11px]">{r.label}</div>
+                    <div className="text-[9px] text-slate-600 dark:text-slate-400 mt-1 leading-tight">{r.desc}</div>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Department Selection (for HR_OFFICER) */}
-          {form.role === 'HR_OFFICER' && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-slate-400 font-semibold">
-                  Tahrirlash Uchun Biriktiriladigan Bo'limlar ({form.assignedDepartmentIds.length} / {departments.length})
-                </label>
-                <div className="flex gap-2">
-                  <button onClick={selectAll} className="text-[10px] font-semibold text-indigo-400 hover:underline">Barchasini Tanlash</button>
-                  <span className="text-slate-600">•</span>
-                  <button onClick={clearAll} className="text-[10px] font-semibold text-rose-400 hover:underline">Tozalash</button>
-                </div>
-              </div>
+          {error && <div className="text-rose-600 font-bold text-xs p-2 bg-rose-50 rounded-xl">{error}</div>}
 
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
-                <input
-                  value={deptSearch}
-                  onChange={(e) => setDeptSearch(e.target.value)}
-                  placeholder="Bo'lim nomi bo'yicha..."
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-8 pr-3 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-slate-800 rounded-xl p-2 bg-slate-950/40">
-                {filteredDepts.map((d) => {
-                  const isSelected = form.assignedDepartmentIds.includes(d.id);
-                  return (
-                    <button
-                      key={d.id}
-                      type="button"
-                      onClick={() => toggleDept(d.id)}
-                      className={`flex items-center gap-2 p-2 rounded-lg text-left text-[11px] transition ${
-                        isSelected ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40' : 'text-slate-400 hover:bg-slate-800'
-                      }`}
-                    >
-                      {isSelected ? <CheckSquare className="h-3.5 w-3.5 text-indigo-400" /> : <Square className="h-3.5 w-3.5 text-slate-600" />}
-                      <span className="truncate">{d.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/30 rounded-xl p-3 flex items-center gap-2">
-              <XCircle className="h-4 w-4 shrink-0" /> {error}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between pt-3 border-t border-slate-800">
-            <button onClick={onClose} className="rounded-xl bg-slate-800 px-4 py-2 font-semibold text-slate-300">Bekor</button>
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 font-bold text-white shadow-lg hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40"
-            >
+          <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+            <button onClick={onClose} className="rounded-xl bg-slate-200 dark:bg-slate-800 px-4 py-2 font-bold text-slate-800 dark:text-slate-300">Bekor</button>
+            <button onClick={handleSubmit} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 text-white px-6 py-2.5 font-bold shadow-sm cursor-pointer">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Ro'yxatdan O'tkazish
             </button>
@@ -693,8 +744,6 @@ const UserRegisterModal: React.FC<{
     </div>
   );
 };
-
-// ─── HR User Management Panel ─────────────────────────────────────────────────
 
 const HrUserPanel: React.FC<{ departments: any[]; onOpenAddEmployee?: () => void }> = ({ departments, onOpenAddEmployee }) => {
   const [users, setUsers]             = useState<any[]>([]);
@@ -714,53 +763,52 @@ const HrUserPanel: React.FC<{ departments: any[]; onOpenAddEmployee?: () => void
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-            <UserIcon className="h-4 w-4 text-indigo-400" /> Tizim Foydalanuvchilari va 2D Ruxsatlar Matrix (RBAC)
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <UserIcon className="h-4 w-4 text-blue-600 dark:text-indigo-400" /> Tizim Foydalanuvchilari va 2D Ruxsatlar Matrix (RBAC)
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">Ro'yxatga olingan foydalanuvchilar, menyu modullari va sexlar ruxsatlari ({users.length} ta)</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">Ro'yxatga olingan foydalanuvchilar ({users.length} ta)</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowRegModal(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Yangi Foydalanuvchi Qo'shish</span>
+            <span>+ Yangi Foydalanuvchi Qo'shish</span>
           </button>
 
           {onOpenAddEmployee && (
             <button
               onClick={onOpenAddEmployee}
-              className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             >
               <UserCheck className="w-4 h-4" />
-              <span>Yangi Xodim Qo'shish</span>
+              <span>+ Yangi Xodim Qo'shish</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center p-12 gap-2"><Loader2 className="h-5 w-5 text-indigo-400 animate-spin" /><span className="text-xs text-slate-400">Yuklanmoqda...</span></div>
+          <div className="flex items-center justify-center p-12 gap-2"><Loader2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400 animate-spin" /><span className="text-xs text-slate-600 dark:text-slate-400 font-bold">Yuklanmoqda...</span></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-slate-900/80 text-slate-400 font-semibold uppercase text-[10px] border-b border-slate-800 tracking-wide">
+              <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] border-b border-slate-300 dark:border-slate-700 tracking-wider">
                 <tr>
-                  <th className="px-4 py-3 text-left">Tabel №</th>
-                  <th className="px-4 py-3 text-left">F.I.O. & Lavozimi</th>
-                  <th className="px-4 py-3 text-left">Username & Email</th>
-                  <th className="px-4 py-3 text-left">Tizim Roli</th>
-                  <th className="px-4 py-3 text-left">Biriktirilgan Bo'limlar</th>
-                  <th className="px-4 py-3 text-center">Holati</th>
-                  <th className="px-4 py-3 text-right">Amallar</th>
+                  <th className="px-4 py-3.5 text-left">Tabel №</th>
+                  <th className="px-4 py-3.5 text-left">F.I.O. & Lavozimi</th>
+                  <th className="px-4 py-3.5 text-left">Username & Email</th>
+                  <th className="px-4 py-3.5 text-left">Tizim Roli</th>
+                  <th className="px-4 py-3.5 text-left">Biriktirilgan Bo'limlar</th>
+                  <th className="px-4 py-3.5 text-center">Holati</th>
+                  <th className="px-4 py-3.5 text-right">Amallar</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                 {users.map((u) => {
                   const deptAccess = u.departmentAccess || [];
                   const isSuperAdmin = u.role === 'SUPER_ADMIN';
@@ -768,52 +816,47 @@ const HrUserPanel: React.FC<{ departments: any[]; onOpenAddEmployee?: () => void
                   const isAuditor    = u.role === 'AUDITOR' || u.role === 'VIEWER_ONLY';
 
                   return (
-                    <tr key={u.id} className="hover:bg-slate-800/25 transition-colors">
-                      {/* Tabel № */}
-                      <td className="px-4 py-3 font-mono font-bold text-indigo-400 text-xs">
+                    <tr key={u.id} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-4 py-3 font-mono font-bold text-blue-700 dark:text-indigo-400 text-xs">
                         {u.tabelNumber || 'TB-1000'}
                       </td>
 
-                      {/* Name & Position */}
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-white">{u.fullName}</div>
-                        <div className="text-[11px] text-slate-400 font-medium">{u.position || 'HR Mutaxassis'}</div>
+                        <div className="font-bold text-slate-900 dark:text-slate-100">{u.fullName}</div>
+                        <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{u.position || 'HR Mutaxassis'}</div>
                       </td>
 
-                      {/* Username & Email */}
                       <td className="px-4 py-3">
-                        <div className="font-mono text-[11px] text-indigo-300">@{u.username}</div>
-                        <div className="font-mono text-[10px] text-slate-500">{u.email || '—'}</div>
+                        <div className="font-mono text-[11px] text-blue-700 dark:text-indigo-300 font-bold">@{u.username}</div>
+                        <div className="font-mono text-[10px] text-slate-500 font-medium">{u.email || '—'}</div>
                       </td>
 
-                      {/* Role Badge */}
                       <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
 
-                      {/* Assigned Departments */}
                       <td className="px-4 py-3 max-w-[240px]">
                         {isSuperAdmin ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
-                            <Crown className="h-2.5 w-2.5" /> Barcha 50+ Bo'limlar
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800 px-2 py-0.5 rounded-md">
+                            <Crown className="h-2.5 w-2.5 text-amber-600 dark:text-amber-400" /> Barcha 50+ Bo'limlar
                           </span>
                         ) : isExecutive ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
-                            <Briefcase className="h-2.5 w-2.5" /> Barcha Bo'limlar (Faqat Ko'rish)
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-2 py-0.5 rounded-md">
+                            <Briefcase className="h-2.5 w-2.5 text-purple-600 dark:text-purple-400" /> Barcha Bo'limlar (Faqat Ko'rish)
                           </span>
                         ) : isAuditor ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-teal-300 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded-md">
-                            <Eye className="h-2.5 w-2.5" /> Audit (Faqat Ko'rish)
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/80 border border-teal-300 dark:border-teal-800 px-2 py-0.5 rounded-md">
+                            <Eye className="h-2.5 w-2.5 text-teal-600 dark:text-teal-400" /> Audit (Faqat Ko'rish)
                           </span>
                         ) : deptAccess.length === 0 ? (
-                          <span className="text-[10px] text-rose-400 font-semibold">Biriktirilmagan</span>
+                          <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">Biriktirilmagan</span>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {deptAccess.slice(0, 2).map((d: any) => (
-                              <span key={d.id} className="inline-block text-[9px] font-medium bg-slate-800 text-indigo-300 border border-slate-700 px-1.5 py-0.5 rounded">
+                              <span key={d.id} className="inline-block text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-blue-700 dark:text-indigo-300 border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 rounded">
                                 {d.name}
                               </span>
                             ))}
                             {deptAccess.length > 2 && (
-                              <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                              <span className="text-[9px] font-bold text-blue-700 dark:text-indigo-400 bg-blue-50 dark:bg-indigo-950/80 border border-blue-200 dark:border-indigo-800 px-1.5 py-0.5 rounded">
                                 +{deptAccess.length - 2} ta
                               </span>
                             )}
@@ -821,21 +864,19 @@ const HrUserPanel: React.FC<{ departments: any[]; onOpenAddEmployee?: () => void
                         )}
                       </td>
 
-                      {/* Status */}
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          u.isActive ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                          u.isActive ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-800'
                         }`}>
                           {u.isActive ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
                           {u.isActive ? 'Faol' : 'Bloklangan'}
                         </span>
                       </td>
 
-                      {/* Actions */}
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setManageUser(u)}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-indigo-500/40 bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 transition shadow-sm"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-indigo-300 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition shadow-sm cursor-pointer"
                         >
                           <SlidersHorizontal className="h-3.5 w-3.5" /> Rollar va Huquqlarni Boshqarish
                         </button>
@@ -877,7 +918,8 @@ interface AuditLogViewProps {
 }
 
 export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], onOpenAddEmployee }) => {
-  const [activeSection, setActiveSection] = useState<'logs' | 'users'>('logs');
+  const { t, language } = useLanguage();
+  const [activeSection, setActiveSection] = useState<'logs' | 'announcements' | 'users'>('logs');
   const [logs, setLogs]         = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
@@ -911,133 +953,138 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], on
   const hasFilters = search || actionFilter !== 'ALL' || dateFrom || dateTo;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <h2 className="text-2xl font-extrabold text-white flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
-              <ShieldAlert className="h-5 w-5 text-slate-200" />
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-slate-700 dark:bg-slate-800 text-white flex items-center justify-center shadow-sm">
+              <ShieldAlert className="h-5 w-5 text-white" />
             </div>
-            Tizim Auditi va Loglar
+            {language === 'kr' ? '시스템 감사 및 공지사항 관리' : 'Tizim Auditi va E\'lonlar Markazi'}
           </h2>
-          <p className="text-sm text-slate-400 mt-1">HR amallarining to'liq audit logi va 2D ruxsatlar boshqaruvi (RBAC)</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
+            {language === 'kr' ? '인사 시스템 감사 로그, 시스템 공지사항 및 2D RBAC 권한 관리' : "HR amallarining to'liq audit logi, tizim e'lonlari va 2D ruxsatlar boshqaruvi (RBAC)"}
+          </p>
         </div>
       </div>
 
       {/* Section Tabs */}
-      <div className="flex rounded-xl border border-slate-800 overflow-hidden">
+      <div className="flex rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 p-1 shadow-sm">
         {[
-          { id: 'logs',  label: 'Audit Loglari', icon: Activity },
-          { id: 'users', label: 'HR Foydalanuvchilar & RBAC', icon: UserIcon },
+          { id: 'logs',  label: language === 'kr' ? '감사 로그' : 'Audit Loglari', icon: Activity },
+          { id: 'announcements', label: t('announcements.manage_tab', "📢 Tizim E'lonlari Boshqaruvi"), icon: Megaphone },
+          { id: 'users', label: language === 'kr' ? 'HR 사용자 & RBAC' : 'HR Foydalanuvchilar & RBAC', icon: UserIcon },
         ].map((s) => {
           const Icon = s.icon;
           return (
             <button
               key={s.id}
               onClick={() => setActiveSection(s.id as any)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-all ${
-                activeSection === s.id ? 'bg-slate-700/50 text-white' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                activeSection === s.id
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm font-extrabold'
+                  : 'text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
               }`}
             >
-              <Icon className="h-3.5 w-3.5" />{s.label}
+              <Icon className="h-4 w-4 text-blue-600 dark:text-indigo-400" />{s.label}
             </button>
           );
         })}
       </div>
 
-      {/* ── Audit Logs Section ── */}
+      {/* ── Section 1: Audit Logs ── */}
       {activeSection === 'logs' && (
         <div className="space-y-4">
-          <div className="glass-panel rounded-xl border border-slate-800 p-3 flex flex-wrap items-center gap-3">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-48">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <input
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 placeholder="HR xodim nomi, amal turi yoki bo'lim..."
-                className="w-full rounded-xl border border-slate-700 bg-slate-900/60 pl-8 pr-3 py-2 text-xs text-slate-200 focus:border-slate-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 pl-8 pr-3 py-2 text-xs font-bold placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
               />
             </div>
             <select
               value={actionFilter}
               onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-              className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-300 focus:border-slate-500 focus:outline-none"
+              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition cursor-pointer"
             >
-              <option value="ALL">Barcha amallar</option>
-              {uniqueActions.map((a) => <option key={a} value={a}>{a}</option>)}
+              <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Barcha amallar</option>
+              {uniqueActions.map((a) => <option key={a} value={a} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">{a}</option>)}
             </select>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
-              className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-300 focus:outline-none"
+              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
             />
-            <span className="text-slate-600 text-xs">—</span>
+            <span className="text-slate-400 font-bold text-xs">—</span>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
-              className="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-300 focus:outline-none"
+              className="rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-xs font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
             />
-            <button onClick={fetchLogs} className="rounded-xl p-2 border border-slate-700 text-slate-400 hover:bg-slate-800">
+            <button onClick={fetchLogs} className="rounded-lg p-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
             {hasFilters && (
-              <button onClick={resetFilters} className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300">
+              <button onClick={resetFilters} className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline cursor-pointer">
                 <XCircle className="h-3.5 w-3.5" /> Tozalash
               </button>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Jami:</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-700/40 text-slate-300 font-bold text-xs">{logs.length} ta yozuv</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Jami:</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold text-xs">{logs.length} ta yozuv</span>
           </div>
 
-          <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center p-12 gap-3">
-                <Loader2 className="h-5 w-5 text-slate-400 animate-spin" />
-                <span className="text-slate-400 text-sm">Loglar yuklanmoqda...</span>
+                <Loader2 className="h-5 w-5 text-slate-500 animate-spin" />
+                <span className="text-slate-600 dark:text-slate-400 text-sm font-bold">Loglar yuklanmoqda...</span>
               </div>
             ) : logs.length === 0 ? (
               <div className="p-12 text-center space-y-2">
-                <Activity className="h-10 w-10 text-slate-700 mx-auto" />
-                <p className="text-slate-400">Audit loglari topilmadi</p>
+                <Activity className="h-10 w-10 text-slate-400 mx-auto" />
+                <p className="text-slate-600 dark:text-slate-400 font-medium">Audit loglari topilmadi</p>
               </div>
             ) : (
               <>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
-                    <thead className="bg-slate-900/80 text-slate-400 font-semibold uppercase text-[10px] border-b border-slate-800 tracking-wide">
+                    <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold uppercase text-[10px] border-b border-slate-300 dark:border-slate-700 tracking-wider">
                       <tr>
-                        <th className="px-4 py-3 text-left">Vaqt</th>
-                        <th className="px-4 py-3 text-left">HR Xodim</th>
-                        <th className="px-4 py-3 text-left">Amal</th>
-                        <th className="px-4 py-3 text-left">Maqsad Bo'lim</th>
-                        <th className="px-4 py-3 text-left">IP Manzil</th>
-                        <th className="px-4 py-3 text-left">Qo'shimcha</th>
+                        <th className="px-4 py-3.5 text-left">Vaqt</th>
+                        <th className="px-4 py-3.5 text-left">HR Xodim</th>
+                        <th className="px-4 py-3.5 text-left">Amal</th>
+                        <th className="px-4 py-3.5 text-left">Maqsad Bo'lim</th>
+                        <th className="px-4 py-3.5 text-left">IP Manzil</th>
+                        <th className="px-4 py-3.5 text-left">Qo'shimcha</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-900">
                       {pagedLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-800/25 transition-colors">
-                          <td className="px-4 py-3 font-mono text-slate-500 whitespace-nowrap">
+                        <tr key={log.id} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="px-4 py-3 font-mono text-slate-700 dark:text-slate-300 font-semibold whitespace-nowrap">
                             {new Date(log.createdAt).toLocaleString('uz-UZ', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="font-semibold text-white text-[11px]">{log.hrName}</div>
-                            {log.hrUser && <div className="font-mono text-[10px] text-indigo-400">@{log.hrUser.username}</div>}
+                            <div className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">{log.hrName}</div>
+                            {log.hrUser && <div className="font-mono text-[10px] text-blue-700 dark:text-indigo-400 font-bold">@{log.hrUser.username}</div>}
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-semibold border ${getActionColor(log.action)}`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold ${getActionColor(log.action)}`}>
                               {log.action}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-400">{log.departmentName || '—'}</td>
-                          <td className="px-4 py-3 font-mono text-slate-600">{log.ipAddress || '—'}</td>
-                          <td className="px-4 py-3 text-slate-500 max-w-[180px] truncate">
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-medium">{log.departmentName || '—'}</td>
+                          <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400 font-medium">{log.ipAddress || '—'}</td>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300 text-xs font-mono max-w-[180px] truncate">
                             {log.metadata ? (() => { try { const m = JSON.parse(log.metadata); return Object.entries(m).map(([k,v]) => `${k}: ${v}`).join(' · '); } catch { return log.metadata; } })() : '—'}
                           </td>
                         </tr>
@@ -1046,17 +1093,17 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], on
                   </table>
                 </div>
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800 bg-slate-900/40">
-                    <span className="text-[11px] text-slate-500">{logs.length} yozuvdan {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE, logs.length)} ko'rsatilmoqda</span>
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
+                    <span className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{logs.length} yozuvdan {(page-1)*PAGE_SIZE+1}–{Math.min(page*PAGE_SIZE, logs.length)} ko'rsatilmoqda</span>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-30">
+                      <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1} className="rounded-lg p-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer">
                         <ChevronLeft className="h-4 w-4" />
                       </button>
                       {Array.from({length: totalPages}, (_, i) => i+1).filter(p => Math.abs(p-page) <= 2).map(p => (
                         <button key={p} onClick={() => setPage(p)}
-                          className={`w-7 h-7 rounded-lg text-xs font-semibold ${p===page ? 'bg-slate-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>{p}</button>
+                          className={`w-7 h-7 rounded-lg text-xs font-bold cursor-pointer ${p===page ? 'bg-slate-800 dark:bg-slate-700 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}>{p}</button>
                       ))}
-                      <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-30">
+                      <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages} className="rounded-lg p-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer">
                         <ChevronRight className="h-4 w-4" />
                       </button>
                     </div>
@@ -1068,20 +1115,14 @@ export const AuditLogView: React.FC<AuditLogViewProps> = ({ departments = [], on
         </div>
       )}
 
-      {/* ── HR Users & RBAC Section ── */}
-      {activeSection === 'users' && <HrUserPanel departments={departments} onOpenAddEmployee={onOpenAddEmployee} />}
+      {/* ── Section 2: Announcements Admin Control Panel ── */}
+      {activeSection === 'announcements' && (
+        <AnnouncementAdminPanel />
+      )}
 
+      {/* ── Section 3: HR Users & RBAC ── */}
       {activeSection === 'users' && (
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-900/30 to-purple-900/20 border border-indigo-500/20 p-4 flex items-start gap-3">
-          <ShieldAlert className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
-          <div>
-            <div className="font-semibold text-indigo-300 text-sm">2D Matrix Rollar va Ruxsatlar Tizimi (RBAC 2D Matrix)</div>
-            <p className="text-slate-400 text-xs mt-1 leading-relaxed">
-              <strong className="text-indigo-300">1-O'lchov (Sidebar Modullar):</strong> Tab 2 orqali xodimga qaysi menyular ochilishi belgilab beriladi (masalan: <em>Xodimlar Baza</em> va <em>Davomat</em> berilib, <em>KPI Dvigateli</em> taqiqlanishi mumkin).<br />
-              <strong className="text-amber-300">2-O'lchov (Bo'lim Scoping):</strong> Tab 3 orqali xodimmiz ruxsat berilgan modullar ichida faqat qaysi zavod sexlarini tahrirlay olishi belgilanadi.
-            </p>
-          </div>
-        </div>
+        <HrUserPanel departments={departments} onOpenAddEmployee={onOpenAddEmployee} />
       )}
     </div>
   );
