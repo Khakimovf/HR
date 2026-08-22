@@ -309,7 +309,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
                 Ommaviy Excel / CSV Ma'lumotlarni Yuklash Tizimi
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                1-Tugma bilan 1500+ xodimlarni, bo'limlarni hamda HSE yozuvlarini bazaga integratsiya qilish
+                1-Tugma bilan xodimlarni, bo'limlarni hamda HSE yozuvlarini bazaga integratsiya qilish
               </p>
             </div>
           </div>
@@ -337,7 +337,7 @@ export const BulkImportModal: React.FC<BulkImportModalProps> = ({
           {/* Import Category Tabs */}
           <div className="flex rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/80 p-1 shadow-sm">
             {[
-              { id: 'EMPLOYEES', label: "Xodimlar Bazasi (1500+ Workers)", icon: Users },
+              { id: 'EMPLOYEES', label: "Xodimlar Bazasi (Workers)", icon: Users },
               { id: 'DEPARTMENTS', label: "Tashkiliy Bo'limlar Ierarxiyasi", icon: Building2 },
               { id: 'HSE', label: "Med-Ko'rik va Xavfsizlik Shablonlari", icon: Stethoscope },
             ].map((tab) => {

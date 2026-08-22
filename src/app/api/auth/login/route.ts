@@ -1,6 +1,23 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, parseUserRecord } from '@/lib/rbac';
+import {
+  createSessionToken,
+  SESSION_COOKIE,
+  sessionCookieOptions,
+} from '@/lib/auth-token';
+
+function isDemoLoginAllowed(): boolean {
+  return process.env.ALLOW_DEMO_LOGIN === 'true';
+}
+
+function buildAuthResponse(user: ReturnType<typeof parseUserRecord>) {
+  return createSessionToken(user).then((token) => {
+    const response = NextResponse.json({ success: true, user });
+    response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+    return response;
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -15,7 +32,6 @@ export async function POST(req: Request) {
 
     const cleanUsername = username.trim().toLowerCase();
 
-    // STATIC FALLBACK ADMIN SESSION (Netlify / Unseeded DB Safe)
     const fallbackAdminSession = {
       id: 'fallback-super-admin-id',
       fullName: 'Alisher Botirovich Karimov (Super Admin)',
@@ -39,58 +55,45 @@ export async function POST(req: Request) {
         'import',
         'audit',
       ],
-      assignedDepartmentIds: [],
+      assignedDepartmentIds: [] as string[],
     };
 
-    // Instant static bypass check for Admin / Admin123 (or admin/admin)
     if (
-      (cleanUsername === 'admin' && (password === 'Admin123' || password === 'admin' || password === 'admin123'))
+      isDemoLoginAllowed() &&
+      cleanUsername === 'admin' &&
+      (password === 'Admin123' || password === 'admin' || password === 'admin123')
     ) {
-      return NextResponse.json({ success: true, user: fallbackAdminSession });
+      return buildAuthResponse(fallbackAdminSession as any);
     }
 
-    try {
-      // 1. Try User model in Database
-      let user = await prisma.user.findUnique({
-        where: { username: cleanUsername },
-        include: {
-          departmentAccess: {
-            select: { departmentId: true },
-          },
+    let user = await prisma.user.findUnique({
+      where: { username: cleanUsername },
+      include: {
+        departmentAccess: {
+          select: { departmentId: true },
         },
+        userDepartment: { select: { name: true } },
+        moduleAccess: { select: { moduleKey: true, canEdit: true } },
+      },
+    });
+
+    if (!user) {
+      const legacyUser = await prisma.hrUser.findUnique({
+        where: { username: cleanUsername },
       });
-
-      // 2. Fallback to HrUser model in Database
-      if (!user) {
-        const legacyUser = await prisma.hrUser.findUnique({
-          where: { username: cleanUsername },
-        });
-        if (legacyUser && legacyUser.isActive) {
-          const valid = await verifyPassword(password, legacyUser.passwordHash);
-          if (valid) {
-            return NextResponse.json({ success: true, user: parseUserRecord(legacyUser) });
-          }
-        }
-      }
-
-      if (user && user.isActive) {
-        const valid = await verifyPassword(password, user.passwordHash);
+      if (legacyUser && legacyUser.isActive) {
+        const valid = await verifyPassword(password, legacyUser.passwordHash);
         if (valid) {
-          const session = parseUserRecord(user);
-          return NextResponse.json({ success: true, user: session });
+          return buildAuthResponse(parseUserRecord(legacyUser));
         }
-      }
-    } catch (dbError) {
-      console.warn('Database connection warning in login API, using fallback:', dbError);
-      // DB connection failed on Netlify, fallback if admin
-      if (cleanUsername === 'admin') {
-        return NextResponse.json({ success: true, user: fallbackAdminSession });
       }
     }
 
-    // If username is admin, provide fallback
-    if (cleanUsername === 'admin' && (password === 'Admin123' || password === 'admin' || password === 'admin123')) {
-      return NextResponse.json({ success: true, user: fallbackAdminSession });
+    if (user && user.isActive) {
+      const valid = await verifyPassword(password, user.passwordHash);
+      if (valid) {
+        return buildAuthResponse(parseUserRecord(user));
+      }
     }
 
     return NextResponse.json(

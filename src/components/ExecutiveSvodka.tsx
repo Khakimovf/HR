@@ -16,47 +16,14 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-// ─── Demo Fallback Employee Data for 8 Metrics ────────────────────────────────
-
-const MOCK_ALL_EMPLOYEES_UZ = [
-  { id: '1', tabelNumber: 'TB-1001', fullName: "Ergashev Diyorbek Alisherovich", position: "Bosh Texnolog-Muhandis", departmentName: "Ishlab Chiqarish Sehi #1", status: 'ACTIVE', hasWarning: false, leaveType: null, isLate: false },
-  { id: '2', tabelNumber: 'TB-1002', fullName: "Karimov Sherzod Umidovich", position: "KARA Operator-Haydovchi", departmentName: "Logistika va Omborxona", status: 'ON_LEAVE', hasWarning: false, leaveType: 'MEHNAT_TATILI', isLate: false },
-  { id: '3', tabelNumber: 'TB-1003', fullName: "Qodirova Malika Jasurbek qizi", position: "Yetakchi HR Nazoratchi", departmentName: "Kadrlar Boshqarmasi", status: 'ACTIVE', hasWarning: true, leaveType: null, isLate: false },
-  { id: '4', tabelNumber: 'TB-1004', fullName: "Sultonov Rustam Xamroevich", position: "Mexanik-Sozlovchi Usta", departmentName: "Ta'mirlash Sehi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'LAYOQATSIZLIK', isLate: false },
-  { id: '5', tabelNumber: 'TB-1005', fullName: "Xoliqov Bobur Mirzo", position: "Sifat Nazorati Inspektori", departmentName: "Laboratoriya va OTK", status: 'ACTIVE', hasWarning: false, leaveType: null, isLate: true },
-  { id: '6', tabelNumber: 'TB-1006', fullName: "Narzullaeva Gulnoza Sanjarovna", position: "Buxgalter-Hisobchi", departmentName: "Moliya Bo'limi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'OZ_HISOBIDAN', isLate: false },
-  { id: '7', tabelNumber: 'TB-1007', fullName: "Sobirov Otabek Anvarovich", position: "Elektr-Montajchi", departmentName: "Energetika Xizmati", status: 'ON_LEAVE', hasWarning: false, leaveType: 'ADMINISTRATIV', isLate: false },
-  { id: '8', tabelNumber: 'TB-1008', fullName: "Toshpulatov Sardor Baxtiyorovich", position: "Kran Mashinisti", departmentName: "Og'ir Yuk Sehi", status: 'ON_LEAVE', hasWarning: false, leaveType: 'OQISH_TATILI', isLate: false },
-  { id: '9', tabelNumber: 'TB-1009', fullName: "Mirzaev Akmal Jaxongirovich", position: "Payvandchi Master", departmentName: "Payvandlash Sehi", status: 'ACTIVE', hasWarning: true, leaveType: null, isLate: false },
-  { id: '10', tabelNumber: 'TB-1010', fullName: "Yusupova Feruza Ilxomovna", position: "Tabelchi Operatori", departmentName: "Kadrlar Boshqarmasi", status: 'ACTIVE', hasWarning: false, leaveType: 'KECHIKISH_RUXSATNOMA', isLate: true },
-];
-
-const MOCK_ALL_EMPLOYEES_KR = [
-  { id: '1', tabelNumber: 'TB-1001', fullName: "에르가셰프 디요르베크", position: "수석 공정 엔지니어", departmentName: "제1생산공장", status: 'ACTIVE', hasWarning: false, leaveType: null, isLate: false },
-  { id: '2', tabelNumber: 'TB-1002', fullName: "카리모프 셰르조드", position: "지게차 운전원", departmentName: "물류 및 자재창고", status: 'ON_LEAVE', hasWarning: false, leaveType: 'MEHNAT_TATILI', isLate: false },
-  { id: '3', tabelNumber: 'TB-1003', fullName: "코디로바 말리카", position: "인사 감사 담당자", departmentName: "인사총무본부", status: 'ACTIVE', hasWarning: true, leaveType: null, isLate: false },
-  { id: '4', tabelNumber: 'TB-1004', fullName: "술토노프 루스탐", position: "정비 및 보수 반장", departmentName: "설비보수공장", status: 'ON_LEAVE', hasWarning: false, leaveType: 'LAYOQATSIZLIK', isLate: false },
-  { id: '5', tabelNumber: 'TB-1005', fullName: "콜리코프 보부르", position: "품질 검사원", departmentName: "품질보증(QC) labs", status: 'ACTIVE', hasWarning: false, leaveType: null, isLate: true },
-  { id: '6', tabelNumber: 'TB-1006', fullName: "나르줄라예바 굴노자", position: "회계 담당자", departmentName: "재무기획팀", status: 'ON_LEAVE', hasWarning: false, leaveType: 'OZ_HISOBIDAN', isLate: false },
-  { id: '7', tabelNumber: 'TB-1007', fullName: "소비로프 오타베크", position: "전기 기술자", departmentName: "동력정비팀", status: 'ON_LEAVE', hasWarning: false, leaveType: 'ADMINISTRATIV', isLate: false },
-  { id: '8', tabelNumber: 'TB-1008', fullName: "토슈풀라토프 사르도르", position: "크레인 조종원", departmentName: "중공업사업부", status: 'ON_LEAVE', hasWarning: false, leaveType: 'OQISH_TATILI', isLate: false },
-  { id: '9', tabelNumber: 'TB-1009', fullName: "미르자예프 악말", position: "용접 수석 마스터", departmentName: "용접공장", status: 'ACTIVE', hasWarning: true, leaveType: null, isLate: false },
-  { id: '10', tabelNumber: 'TB-1010', fullName: "유수포바 페루자", position: "근태 관리원", departmentName: "인사총무본부", status: 'ACTIVE', hasWarning: false, leaveType: 'KECHIKISH_RUXSATNOMA', isLate: true },
-];
-
 export const ExecutiveSvodka: React.FC = () => {
   const { t, language } = useLanguage();
 
   const [svodkaData, setSvodkaData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 8 Active Metric Filter Keys: 'ALL' | 'MEHNAT_TATILI' | 'LAYOQATSIZLIK' | 'OZ_HISOBIDAN' | 'OQISH_TATILI' | 'ADMINISTRATIV' | 'KECHIKISH_RUXSATNOMA' | 'INTIZOMIY_HAYFSAN'
   const [activeFilterKey, setActiveFilterKey] = useState<string>('ALL');
-  const [employeeList, setEmployeeList] = useState<any[]>(language === 'kr' ? MOCK_ALL_EMPLOYEES_KR : MOCK_ALL_EMPLOYEES_UZ);
-
-  useEffect(() => {
-    setEmployeeList(language === 'kr' ? MOCK_ALL_EMPLOYEES_KR : MOCK_ALL_EMPLOYEES_UZ);
-  }, [language]);
+  const [employeeList, setEmployeeList] = useState<any[]>([]);
 
   useEffect(() => {
     setLoading(true);
@@ -86,6 +53,8 @@ export const ExecutiveSvodka: React.FC = () => {
           };
         });
         setEmployeeList(mapped);
+      } else {
+        setEmployeeList([]);
       }
     }).finally(() => setLoading(false));
   }, []);

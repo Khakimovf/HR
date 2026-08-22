@@ -285,7 +285,7 @@ export const ImportHubView: React.FC = () => {
               Ommaviy Fayllarni Yuklash va Integratsiya Markazi
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
-              1500+ Xodimlarni, 70+ bo'limlar hamda HSE yo'riqnomalarini markaziy boshqaruv sahifasidan yuklash
+              Xodimlar, bo'limlar hamda HSE yo'riqnomalarini markaziy boshqaruv sahifasidan yuklash
             </p>
           </div>
         </div>
@@ -305,7 +305,7 @@ export const ImportHubView: React.FC = () => {
           {
             id: 'EMPLOYEES',
             title: "1. Xodimlarni Ommaviy Yuklash",
-            subtitle: "1500+ Ishchilar bazasi, tabel № va lavozimlar",
+            subtitle: "Ishchilar bazasi, tabel № va lavozimlar",
             icon: Users,
             color: "bg-blue-600 text-white",
           },

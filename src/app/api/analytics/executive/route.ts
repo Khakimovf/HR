@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       });
     }
 
-    const [departments, employees, leaves, medicals, permits] = await Promise.all([
+    const [departments, employees, leaves, medicals, permits, kpiEvaluations] = await Promise.all([
       prisma.department.findMany({
         select: { id: true, name: true, code: true, staffLimit: true },
       }),
@@ -69,6 +69,10 @@ export async function GET(req: Request) {
           status: true,
           expiryDate: true,
         },
+      }),
+      prisma.kpiEvaluation.findMany({
+        select: { period: true, totalScore: true, employeeId: true, departmentId: true },
+        orderBy: { period: 'desc' },
       }),
     ]);
 
@@ -183,24 +187,6 @@ export async function GET(req: Request) {
             else if (lType.includes('STUDY')) statusCategory = 'STUDY_LEAVE';
             else if (lType.includes('ADMINISTRATIVE')) statusCategory = 'ADMINISTRATIVE_LEAVE';
             else if (lType.includes('LATE') || lType.includes('PERMIT')) statusCategory = 'LATE_PERMIT';
-          } else {
-            // Distribute sample leaves deterministically across roster for rich demonstration if no leaves exist
-            if (idx % 7 === 1) {
-              statusCategory = 'VACATION';
-              statusStartDate = '2026-08-01';
-              statusEndDate = '2026-08-20';
-              returnDate = '2026-08-21 (Mexnat ta\'tili)';
-            } else if (idx % 7 === 3) {
-              statusCategory = 'SICK_LEAVE';
-              statusStartDate = '2026-08-10';
-              statusEndDate = '2026-08-18';
-              returnDate = '2026-08-19 (B/L Varaqasi)';
-            } else if (idx % 7 === 5) {
-              statusCategory = 'UNPAID_LEAVE';
-              statusStartDate = '2026-08-12';
-              statusEndDate = '2026-08-16';
-              returnDate = '2026-08-17 (O\'z hisobidan)';
-            }
           }
 
           statusCounts[statusCategory] += 1;
@@ -240,6 +226,29 @@ export async function GET(req: Request) {
           Math.min(100, Number((100 - activePenaltiesCount * 15).toFixed(1)))
         );
 
+        const deptTurnoverRate =
+          activeDeptEmps.length + offboardedDeptEmps.length > 0
+            ? Number(
+                (
+                  (offboardedDeptEmps.length /
+                    (activeDeptEmps.length + offboardedDeptEmps.length)) *
+                  100
+                ).toFixed(1)
+              )
+            : 0;
+        const deptPeriod = now.toISOString().slice(0, 7);
+        const deptKpiEvals = kpiEvaluations.filter(
+          (k) => k.departmentId === departmentId && k.period === deptPeriod
+        );
+        const deptAvgKpiScore =
+          deptKpiEvals.length > 0
+            ? Number(
+                (
+                  deptKpiEvals.reduce((sum, k) => sum + k.totalScore, 0) / deptKpiEvals.length
+                ).toFixed(1)
+              )
+            : 0;
+
         selectedDepartmentDetails = {
           departmentId: deptObj.id,
           departmentName: deptObj.name,
@@ -268,8 +277,8 @@ export async function GET(req: Request) {
           positionVacancies,
           statusCounts,
           metrics: {
-            turnoverRate: 2.5,
-            avgKpiScore: 88.5,
+            turnoverRate: deptTurnoverRate,
+            avgKpiScore: deptAvgKpiScore,
             medicalCompliancePct: deptMedicalCompliancePct,
             activePenaltiesCount,
             healthScore,
@@ -505,13 +514,93 @@ export async function GET(req: Request) {
       });
     }
 
+    const leaveBreakdown = {
+      annualLeave: 0,
+      sickLeave: 0,
+      unpaidLeave: 0,
+      studyLeave: 0,
+    };
+    const onLeaveEmployeeIds = new Set<string>();
+
+    leaves.forEach((l) => {
+      if (!activeEmpIds.has(l.employeeId)) return;
+      const start = new Date(l.startDate);
+      const end = new Date(l.endDate);
+      if (start > now || end < now) return;
+
+      onLeaveEmployeeIds.add(l.employeeId);
+      const lType = (l.type || '').toUpperCase();
+      if (lType.includes('VACATION') || lType.includes('MEHNAT') || lType === 'MT') {
+        leaveBreakdown.annualLeave += 1;
+      } else if (lType.includes('SICK') || lType.includes('BL') || lType.includes('LAYOQATSIZ') || lType.includes('KASALLIK')) {
+        leaveBreakdown.sickLeave += 1;
+      } else if (lType.includes('UNPAID') || lType.includes('BS') || lType.includes('OZ_HISOB')) {
+        leaveBreakdown.unpaidLeave += 1;
+      } else if (lType.includes('STUDY') || lType.includes('OQISH')) {
+        leaveBreakdown.studyLeave += 1;
+      }
+    });
+
+    const presentToday = Math.max(0, activeEmployees.length - onLeaveEmployeeIds.size);
+
+    const currentPeriod = now.toISOString().slice(0, 7);
+    const currentKpiEvals = kpiEvaluations.filter((k) => k.period === currentPeriod);
+    const kpiScoreAvg =
+      currentKpiEvals.length > 0
+        ? Number(
+            (
+              currentKpiEvals.reduce((sum, k) => sum + k.totalScore, 0) / currentKpiEvals.length
+            ).toFixed(1)
+          )
+        : 0;
+
+    const kpiByPeriod: Record<string, { sum: number; count: number }> = {};
+    kpiEvaluations.forEach((k) => {
+      if (!kpiByPeriod[k.period]) kpiByPeriod[k.period] = { sum: 0, count: 0 };
+      kpiByPeriod[k.period].sum += k.totalScore;
+      kpiByPeriod[k.period].count += 1;
+    });
+
+    const kpiTrendData = Object.entries(kpiByPeriod)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .slice(0, 6)
+      .reverse()
+      .map(([period, data]) => ({
+        month: period,
+        kpiScore: Number((data.sum / data.count).toFixed(1)),
+      }));
+
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const turnoverChartData = [...turnoverRates]
+      .sort((a, b) => b.offboardedCount - a.offboardedCount)
+      .slice(0, 8)
+      .map((d) => {
+        const deptEmps = employees.filter((e) => e.currentDepartmentId === d.departmentId);
+        const hires = deptEmps.filter(
+          (e) => e.hireDate && new Date(e.hireDate) >= thirtyDaysAgo && e.status !== 'OFFBOARDED'
+        ).length;
+        const shortName =
+          d.departmentName.length > 20 ? `${d.departmentName.slice(0, 20)}…` : d.departmentName;
+        return {
+          name: shortName,
+          hires,
+          terminations: d.offboardedCount,
+        };
+      });
+
     const payload = {
       departmentsList,
       selectedDepartmentDetails,
       summary: {
         totalWorkforce: activeEmployees.length,
+        presentToday,
+        leaveBreakdown,
         offboardedCount: offboardedEmployees.length,
         turnoverRateTotal: totalTurnoverRate,
+        turnoverRate: totalTurnoverRate,
+        kpiScoreAvg,
         sickLeaveDaysTotal: totalSickDaysCount,
         hseCompliancePct,
         permitCompliancePct,
@@ -530,6 +619,8 @@ export async function GET(req: Request) {
         },
       },
       smartInsights,
+      turnoverChartData,
+      kpiTrendData,
       headcountBudget,
       demographics: {
         pensionRiskCount,

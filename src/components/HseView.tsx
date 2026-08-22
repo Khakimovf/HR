@@ -358,7 +358,7 @@ export const HseView: React.FC<HseViewProps> = ({ departments = [], onOpenBulkMo
         />
         <StatCard
           label={t('hse.stat_coverage', "Faol Ruxsatnomalar Qamrovi %")}
-          value={activeTab === 'medical' ? `${medStats.passedPct || 94}%` : `${safetyStats.passedPct || 98}%`}
+          value={activeTab === 'medical' ? `${medStats.passedPct ?? 0}%` : `${safetyStats.passedPct ?? 0}%`}
           icon={UserCheck}
           colorClass="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400"
         />

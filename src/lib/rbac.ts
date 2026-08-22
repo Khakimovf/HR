@@ -116,9 +116,14 @@ export function canEditDept(
 }
 
 /**
- * Resolves user from request headers (x-hr-user-id)
+ * Resolves authenticated user from signed session cookie (set at login).
  */
 export async function resolveHrUser(req: Request): Promise<UserSession | null> {
+  const { getSessionFromRequest } = await import('./auth-token');
+  const session = await getSessionFromRequest(req);
+  if (session) return session;
+
+  // Legacy header fallback (middleware injects x-hr-user-id when cookie is valid)
   const userId = req.headers.get('x-hr-user-id');
   if (!userId) return null;
 
@@ -134,7 +139,6 @@ export async function resolveHrUser(req: Request): Promise<UserSession | null> {
 
     if (user) return parseUserRecord(user);
 
-    // Fallback to legacy HrUser table
     const legacyUser = await prisma.hrUser.findUnique({ where: { id: userId, isActive: true } });
     if (legacyUser) return parseUserRecord(legacyUser);
 

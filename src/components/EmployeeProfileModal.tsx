@@ -39,85 +39,6 @@ interface EmployeeProfileModalProps {
   onRefreshData?: () => void;
 }
 
-// ─── Demo Data Sources ─────────────────────────────────────────────────────────
-
-const MOCK_LEAVES = [
-  { id: 'l1', type: 'MT', startDate: '2026-06-01', endDate: '2026-06-28', totalDays: 28, reason: 'Mehnat ta\'tili', hoursLate: null },
-  { id: 'l2', type: 'BL', startDate: '2026-02-05', endDate: '2026-02-12', totalDays: 7, reason: 'Vaqtincha mehnatka layoqatsizlik varaqasi', hoursLate: null },
-  { id: 'l3', type: 'BS', startDate: '2026-04-10', endDate: '2026-04-11', totalDays: 2, reason: 'Oilaviy sabab — O\'z hisobidan ta\'til', hoursLate: null },
-  { id: 'l4', type: 'ADMIN', startDate: '2026-01-15', endDate: '2026-01-17', totalDays: 3, reason: 'Administrativ ta\'til', hoursLate: null },
-  { id: 'l5', type: 'KECH', startDate: '2026-05-14', endDate: '2026-05-14', totalDays: 1, reason: 'Kechikish / soatli ruxsatnoma (Transport muammosi)', hoursLate: 2.5 },
-  { id: 'l6', type: 'KECH', startDate: '2026-03-22', endDate: '2026-03-22', totalDays: 1, reason: 'Kechikish / soatli ruxsatnoma', hoursLate: 1.5 },
-  { id: 'l7', type: 'MT', startDate: '2025-07-01', endDate: '2025-07-26', totalDays: 26, reason: 'Mehnat ta\'tili', hoursLate: null },
-  { id: 'l8', type: 'BL', startDate: '2025-11-10', endDate: '2025-11-15', totalDays: 5, reason: 'Vaqtincha mehnatka layoqatsizlik varaqasi', hoursLate: null },
-];
-
-const MOCK_REWARDS = [
-  {
-    id: 'r1',
-    type: 'Moddiy Rag\'batlantirish',
-    orderNumber: 'B-0412/2024',
-    reason: 'Navro\'z bayrami munosabati bilan va yaxshi mehnat ko\'rsatkichlari uchun',
-    amount: 1500000,
-    orderDate: '2024-03-20',
-  },
-  {
-    id: 'r2',
-    type: 'Moddiy Rag\'batlantirish',
-    orderNumber: 'B-0890/2024',
-    reason: 'Mustaqillik bayrami munosabati bilan',
-    amount: 2000000,
-    orderDate: '2024-08-30',
-  },
-  {
-    id: 'r3',
-    type: 'Faxriy Yorliq',
-    orderNumber: 'FY-0031/2023',
-    reason: 'Yil davomida o\'rnak mehnat intizomi uchun',
-    amount: 0,
-    orderDate: '2023-12-28',
-  },
-];
-
-const MOCK_DISCIPLINARY: any[] = [
-  {
-    id: 'd1',
-    type: 'Hayfsan',
-    orderNumber: 'HJ-0085/2022',
-    notes: 'Mehnat intizomi qoidalarini buzganlik uchun og\'zaki hayfsan',
-    startDate: '2022-09-01',
-    expiryDate: '2023-09-01',
-    expired: true,
-  },
-];
-
-const DEMO_CERTIFICATES = [
-  {
-    id: 'cert_1',
-    title: "Haydovchilik Guvohnomasi (B, C Kategoriya)",
-    certificateNo: "UZ-2341-DL-BC",
-    issueDate: "2019-06-15",
-    expiryDate: "2029-06-14",
-    issuedBy: "Toshkent Sh. YHXBB",
-  },
-  {
-    id: 'cert_2',
-    title: "KARA Operatorlik Guvohnomasi",
-    certificateNo: "KARA-OP-4412",
-    issueDate: "2022-03-01",
-    expiryDate: "2027-03-01",
-    issuedBy: "Sanoat Xavfsizligi Davlat Qo'mitasi",
-  },
-  {
-    id: 'cert_3',
-    title: "ISO 9001:2015 Sifat Menejmenti Auditori",
-    certificateNo: "ISO-AUD-8831",
-    issueDate: "2023-10-10",
-    expiryDate: "",
-    issuedBy: "CERT International",
-  },
-];
-
 // ─── Single Unified 5-Section Employee PDF Generator ─────────────────────────
 
 function handleDownloadEmployeePDF(
@@ -477,8 +398,8 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   const [leaveDateTo, setLeaveDateTo] = useState<string>('');
 
   // Section 4 (Discipline & Rewards) Dynamic States
-  const [disciplinaryList, setDisciplinaryList] = useState<any[]>(MOCK_DISCIPLINARY);
-  const [rewardsList, setRewardsList] = useState<any[]>(MOCK_REWARDS);
+  const [disciplinaryList, setDisciplinaryList] = useState<any[]>([]);
+  const [rewardsList, setRewardsList] = useState<any[]>([]);
 
   const [showNewDisciplineForm, setShowNewDisciplineForm] = useState(false);
   const [newDisciplineData, setNewDisciplineData] = useState({ type: 'Hayfsan', notes: '', orderNumber: '', startDate: '', expiryDate: '' });
@@ -491,24 +412,15 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   const [editRewardData, setEditRewardData] = useState({ type: '', reason: '', orderNumber: '', amount: 0, orderDate: '' });
 
   // Section 5 (Sertifikatlar, Guvohnomalar va Ruxsatnomalar) Dynamic States
-  const [sertifikatList, setSertifikatList] = useState<any[]>([
-    { id: 's1', title: 'ISO 9001:2015 Sifat Menejmenti Auditori', certificateNo: 'ISO-AUD-8831', issueDate: '2023-10-10', expiryDate: '' },
-    { id: 's2', title: 'Sanoat Xavfsizligi Sertifikati', certificateNo: 'SX-2024-9901', issueDate: '2024-01-15', expiryDate: '2027-01-14' },
-  ]);
+  const [sertifikatList, setSertifikatList] = useState<any[]>([]);
   const [editingSertId, setEditingSertId] = useState<string | null>(null);
   const [editSertData, setEditSertData] = useState({ title: '', certificateNo: '', issueDate: '', expiryDate: '' });
 
-  const [guvohnomaList, setGuvohnomaList] = useState<any[]>([
-    { id: 'g1', title: 'Haydovchilik Guvohnomasi (B, C Kategoriya)', documentNo: 'UZ-2341-DL-BC', issueDate: '2019-06-15', issuedBy: 'Toshkent Sh. YHXBB' },
-    { id: 'g2', title: 'Harbiy Guvohnoma (Zahira)', documentNo: 'HG-99214', issueDate: '2018-05-20', issuedBy: 'Toshkent Mudofaa Bo\'limi' },
-  ]);
+  const [guvohnomaList, setGuvohnomaList] = useState<any[]>([]);
   const [editingGuvId, setEditingGuvId] = useState<string | null>(null);
   const [editGuvData, setEditGuvData] = useState({ title: '', documentNo: '', issueDate: '', issuedBy: '' });
 
-  const [ruxsatnomaList, setRuxsatnomaList] = useState<any[]>([
-    { id: 'r1', title: 'Korxonada Smartfon / Telefon Ishlatish Ruxsatnomasi', permitNo: 'RUX-2026-004', issueDate: '2026-01-10', status: 'Faol' },
-    { id: 'r2', title: 'Maxsus Texnika (Avtokara) Boshqarish Ruxsatnomasi', permitNo: 'KARA-OP-4412', issueDate: '2022-03-01', status: 'Faol' },
-  ]);
+  const [ruxsatnomaList, setRuxsatnomaList] = useState<any[]>([]);
   const [editingRuxId, setEditingRuxId] = useState<string | null>(null);
   const [editRuxData, setEditRuxData] = useState({ title: '', permitNo: '', issueDate: '', status: 'Faol' });
 
@@ -520,21 +432,11 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
       .then((data) => {
         if (data.success) {
           setEmployee(data.employee);
-          if (data.employee.disciplinaryActions && data.employee.disciplinaryActions.length > 0) {
-            setDisciplinaryList(data.employee.disciplinaryActions);
-          }
-          if (data.employee.rewards && data.employee.rewards.length > 0) {
-            setRewardsList(data.employee.rewards);
-          }
-          if (data.employee.certificates && data.employee.certificates.length > 0) {
-            setSertifikatList(data.employee.certificates);
-          }
-          if (data.employee.guvohnomas && data.employee.guvohnomas.length > 0) {
-            setGuvohnomaList(data.employee.guvohnomas);
-          }
-          if (data.employee.ruxsatnomas && data.employee.ruxsatnomas.length > 0) {
-            setRuxsatnomaList(data.employee.ruxsatnomas);
-          }
+          setDisciplinaryList(data.employee.disciplinaryActions || []);
+          setRewardsList(data.employee.rewards || []);
+          setSertifikatList(data.employee.certificates || []);
+          setGuvohnomaList(data.employee.guvohnomas || []);
+          setRuxsatnomaList(data.employee.ruxsatnomas || []);
         }
       })
       .finally(() => setLoading(false));
@@ -945,7 +847,7 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
   };
 
   const tenure = employee ? calculateTenure(employee.hireDate) : { formatted: '...' };
-  const leavesData = (employee?.leaves && employee.leaves.length > 0) ? employee.leaves : MOCK_LEAVES;
+  const leavesData = employee?.leaves || [];
 
   // Filter Leaves & Attendance History
   const filteredLeaves = leavesData.filter((lv: any) => {
@@ -2021,7 +1923,6 @@ export const EmployeeProfileModal: React.FC<EmployeeProfileModalProps> = ({
                 <div className="space-y-6 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-slate-600 dark:text-slate-400 text-[11px]">Intizomiy choralar va mukofotlar logi</span>
-                    <span className="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">Demo Ma'lumotlar</span>
                   </div>
 
                   {/* Disciplinary Actions Section with [+] Button & Inline Pencils */}

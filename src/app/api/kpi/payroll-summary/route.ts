@@ -38,8 +38,7 @@ export async function GET(req: Request) {
     const summaryRows = employees.map((emp) => {
       const baseSalary = emp.baseSalary || 4500000;
       const evaluation = emp.kpiEvaluations && emp.kpiEvaluations[0];
-      // Default mock score if un-evaluated for seamless preview
-      const kpiScore = evaluation ? evaluation.totalScore : 85.0;
+      const kpiScore = evaluation ? evaluation.totalScore : 0;
 
       // Enterprise Cut-off & Bonus Formula
       // IF KPI Score >= 50% THEN (20% * (KPI Score / 100)) ELSE 0%

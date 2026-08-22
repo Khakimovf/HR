@@ -17,7 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   onOpenSingleModal,
   activeTab,
-  totalEmployeesCount = 1500,
+  totalEmployeesCount = 0,
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -68,7 +68,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <p className="text-[11px] dark:text-slate-400 text-slate-500 font-medium">
-              {t('app.subtitle', "1500+ Xodimlar va Bo'limlarni Boshqarish Tizimi")}
+              {totalEmployeesCount > 0
+                ? (language === 'kr'
+                  ? `임직원 ${totalEmployeesCount.toLocaleString()}명 · 부서 통합 관리`
+                  : `${totalEmployeesCount.toLocaleString()} xodim · Bo'limlar boshqaruvi`)
+                : t('app.subtitle', "Xodimlar va Bo'limlarni Boshqarish Tizimi")}
             </p>
           </div>
         </div>

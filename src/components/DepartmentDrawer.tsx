@@ -58,14 +58,7 @@ interface DepartmentDrawerProps {
   onViewEmployees: (deptId: string, deptName: string) => void;
 }
 
-// Simulated dept heads for demo (in real app this would come from DB)
-const DEPT_HEADS: Record<string, { name: string; phone: string; email: string }> = {
-  'DIR-01': { name: 'Abdullayev Sherzod N.', phone: '+998 71 234-56-78', email: 's.abdullayev@enterprise.uz' },
-  'LOG-01': { name: 'Tursunov Bobur K.', phone: '+998 90 123-45-67', email: 'b.tursunov@enterprise.uz' },
-  'QC-01': { name: 'Nazarova Dilnoza R.', phone: '+998 93 321-54-76', email: 'd.nazarova@enterprise.uz' },
-  'HR-01': { name: 'Karimov Mansur O.', phone: '+998 97 456-78-90', email: 'm.karimov@enterprise.uz' },
-  'FIN-01': { name: 'Yusupova Malika T.', phone: '+998 94 567-89-01', email: 'm.yusupova@enterprise.uz' },
-};
+// Department head info comes from department props or API stats only.
 
 function StatCard({
   label,
@@ -128,13 +121,9 @@ export const DepartmentDrawer: React.FC<DepartmentDrawerProps> = ({
   }, [isOpen, department?.id, fetchStats]);
 
   // Simulated dept head lookup
-  const headInfo = department?.headName
-    ? null // if real headName prop is provided use it
-    : DEPT_HEADS[department?.code || ''] || null;
-
-  const headName = department?.headName || headInfo?.name || null;
-  const headPhone = headInfo?.phone || null;
-  const headEmail = headInfo?.email || null;
+  const headName = department?.headName || null;
+  const headPhone = null;
+  const headEmail = null;
 
   const empCount = stats?.totalEmployees ?? department?._count?.employees ?? 0;
   const staffLimit = department?.staffLimit ?? Math.ceil(empCount * 1.12) + 2;

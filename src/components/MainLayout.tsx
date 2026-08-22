@@ -22,8 +22,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   setActiveTab,
   onSearchChange,
   onOpenSingleModal,
-  employeeCount = 1500,
-  activeDisciplineCount = 6,
+  employeeCount = 0,
+  activeDisciplineCount = 0,
   activeLeaveCount = 0,
   hseAlertCount = 0,
 }) => {

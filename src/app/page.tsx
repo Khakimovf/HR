@@ -52,6 +52,7 @@ function HRDashboardInner() {
   const [rewardsList, setRewardsList] = useState<any[]>([]);
   const [activeLeaveCount, setActiveLeaveCount] = useState<number>(0);
   const [hseAlertCount, setHseAlertCount]       = useState<number>(0);
+  const [employeeCount, setEmployeeCount] = useState<number>(0);
 
   // Modals / drawers state
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
@@ -128,6 +129,14 @@ function HRDashboardInner() {
     fetchDisciplineAndRewards();
     fetchActiveLeaves();
     fetchHseAlerts();
+    fetch('/api/employees?limit=1')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setEmployeeCount(data.totalCount ?? data.pagination?.total ?? 0);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   /** Called from DepartmentDrawer CTA: navigate to workforce tab filtered by dept */
@@ -163,7 +172,7 @@ function HRDashboardInner() {
         setActiveTab={setActiveTab}
         onSearchChange={setSearchQuery}
         onOpenSingleModal={() => setIsSingleModalOpen(true)}
-        employeeCount={1500}
+        employeeCount={employeeCount}
         activeDisciplineCount={disciplinaryList.length}
         activeLeaveCount={activeLeaveCount}
         hseAlertCount={hseAlertCount}

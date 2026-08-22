@@ -216,10 +216,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen }) => {
               <span>🔑 Demo Kirish Ma'lumotlari (Credentials)</span>
             </p>
             <p className="text-slate-300 font-mono text-[11px]">
-              Login: <span className="text-blue-400 font-bold">Admin</span> | Parol: <span className="text-blue-400 font-bold">Admin123</span>
+              Login: <span className="text-blue-400 font-bold">admin</span> | Parol: <span className="text-blue-400 font-bold">admin123</span>
             </p>
             <p className="text-[10px] text-slate-500">
-              SUPER_ADMIN to'liq ruxsat huquqi bilan darhol sinab ko'rish mumkin
+              DB foydalanuvchilari (seed-admin) orqali kirish. API endi autentifikatsiyasiz ochiq emas.
             </p>
           </div>
 

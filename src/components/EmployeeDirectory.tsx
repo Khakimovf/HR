@@ -377,8 +377,8 @@ export const EmployeeDirectory: React.FC<EmployeeDirectoryProps> = ({
               </h2>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {language === 'kr'
-                  ? '1500+ 임직원, 52개 부서, 학력, 근속, 건강검진, 포상 및 인적 필터'
-                  : "1500+ Xodimlar, 52 ta bo'lim, Ta'lim, Staj, Med-ko'rik, Mukofotlar va Demografik filterlar"}
+                  ? '임직원, 부서, 학력, 근속, 건강검진, 포상 및 인적 필터'
+                  : "Xodimlar, bo'limlar, Ta'lim, Staj, Med-ko'rik, Mukofotlar va Demografik filterlar"}
               </p>
             </div>
           </div>

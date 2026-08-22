@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: "Enterprise HR Management & Analytics | Sanoat Korxonasi HR Tizimi",
-  description: "Enterprise HR Management, Department Tree, KPI Deduction Engine, Employee Cards, and Executive Reports for 1500+ employees.",
+  description: 'Enterprise HR Management, Department Tree, KPI Deduction Engine, Employee Cards, and Executive Reports.',
 };
 
 export default function RootLayout({

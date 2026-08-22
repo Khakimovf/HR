@@ -4,7 +4,7 @@ export const translations: Record<Language, Record<string, string>> = {
   uz: {
     // Brand & System Header
     'app.title': 'MANUFACTURING ENTERPRISE HR',
-    'app.subtitle': "1500+ Xodimlar va Bo'limlarni Boshqarish Tizimi",
+    'app.subtitle': "Xodimlar va Bo'limlarni Boshqarish Tizimi",
     'search.placeholder': "Qidiruv: Tabel №, Ism, Bo'lim yoki Guvohnoma turi...",
 
     // Authentication & Login Page (`login`)
@@ -501,7 +501,7 @@ export const translations: Record<Language, Record<string, string>> = {
   kr: {
     // Brand & System Header
     'app.title': '제조 기업 HR 관리 시스템',
-    'app.subtitle': '1500+ 임직원 및 부서통합 관리 시스템',
+    'app.subtitle': '임직원 및 부서통합 관리 시스템',
     'app.system_version': 'System v2.4 (엔터프라이즈)',
     'search.placeholder': '검색: 사번, 성명, 부서 또는 자격증 유형...',
 

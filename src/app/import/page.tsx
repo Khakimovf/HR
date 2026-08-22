@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 import { ImportHubView } from '@/components/ImportHubView';
@@ -10,6 +10,18 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 function ImportPageInner() {
   const { currentUser, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('import');
+  const [employeeCount, setEmployeeCount] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/employees?limit=1')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setEmployeeCount(data.totalCount ?? data.pagination?.total ?? 0);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (!isLoading && !currentUser) {
     return <LoginModal isOpen={true} />;
@@ -29,10 +41,10 @@ function ImportPageInner() {
         onSearchChange={() => {}}
         onOpenSingleModal={() => {}}
         activeTab={activeTab}
-        totalEmployeesCount={1500}
+        totalEmployeesCount={employeeCount}
       />
       <div className="flex flex-1">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} employeeCount={1500} />
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} employeeCount={employeeCount} />
         <main className="flex-1 p-6 overflow-y-auto max-w-[1600px] mx-auto w-full">
           <ImportHubView />
         </main>

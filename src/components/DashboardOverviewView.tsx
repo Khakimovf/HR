@@ -70,20 +70,24 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
 
   // Executive BI Control Tower State
   const [metrics, setMetrics] = useState({
-    totalStaff: 1520,
-    presentToday: 1385,
-    annualLeave: 42,
-    sickLeave: 18,
-    unpaidLeave: 12,
-    studyLeave: 5,
-    pendingAppsCount: 6,
-    expiringPermitsCount: 9,
-    turnoverRate: 3.4,
-    kpiScoreAvg: 92.8,
+    totalStaff: 0,
+    presentToday: 0,
+    annualLeave: 0,
+    sickLeave: 0,
+    unpaidLeave: 0,
+    studyLeave: 0,
+    pendingAppsCount: 0,
+    expiringPermitsCount: 0,
+    turnoverRate: 0,
+    kpiScoreAvg: 0,
+    totalVacancies: 0,
   });
 
   const [pendingRequests, setPendingRequests]   = useState<any[]>([]);
   const [departmentBudgets, setDepartmentBudgets] = useState<any[]>([]);
+  const [turnoverChartData, setTurnoverChartData] = useState<any[]>([]);
+  const [kpiTrendData, setKpiTrendData] = useState<any[]>([]);
+  const [smartInsights, setSmartInsights] = useState<Array<{ type: string; title: string; text: string }>>([]);
 
   // System Announcements State
   const [announcements, setAnnouncements]       = useState<AnnouncementType[]>([]);
@@ -112,22 +116,36 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
 
       if (analyticsData.success && analyticsData.data) {
         const d = analyticsData.data;
-        const total = d.summary?.totalWorkforce || 1520;
-        const sick = d.summary?.sickLeaveDaysTotal || 18;
-        const pendingCount = reqData.stats?.pending ?? (fetchedRequests.length || 6);
+        const summary = d.summary || {};
+        const leave = summary.leaveBreakdown || {};
+        const pendingCount = reqData.stats?.pending ?? fetchedRequests.length;
 
-        setMetrics((prev) => ({
-          ...prev,
-          totalStaff: total,
-          sickLeave: sick,
+        setMetrics({
+          totalStaff: summary.totalWorkforce ?? 0,
+          presentToday: summary.presentToday ?? 0,
+          annualLeave: leave.annualLeave ?? 0,
+          sickLeave: leave.sickLeave ?? 0,
+          unpaidLeave: leave.unpaidLeave ?? 0,
+          studyLeave: leave.studyLeave ?? 0,
           pendingAppsCount: pendingCount,
-          expiringPermitsCount: (d.complianceStats?.medicalExpired || 0) + (d.complianceStats?.permitExpired || 0) || 9,
-          turnoverRate: d.summary?.turnoverRate || 3.4,
-          kpiScoreAvg: d.summary?.kpiScoreAvg || 92.8,
-        }));
+          expiringPermitsCount:
+            (d.complianceStats?.medicalExpired ?? 0) + (d.complianceStats?.permitExpired ?? 0),
+          turnoverRate: summary.turnoverRate ?? summary.turnoverRateTotal ?? 0,
+          kpiScoreAvg: summary.kpiScoreAvg ?? 0,
+          totalVacancies: summary.totalVacancies ?? 0,
+        });
 
         if (Array.isArray(d.headcountBudget)) {
           setDepartmentBudgets(d.headcountBudget.slice(0, 8));
+        }
+        if (Array.isArray(d.turnoverChartData)) {
+          setTurnoverChartData(d.turnoverChartData);
+        }
+        if (Array.isArray(d.kpiTrendData)) {
+          setKpiTrendData(d.kpiTrendData);
+        }
+        if (Array.isArray(d.smartInsights)) {
+          setSmartInsights(d.smartInsights);
         }
       }
 
@@ -192,7 +210,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
   };
 
   // ─── DERIVED CALCULATIONS & CHARTS DATA ────────────────────────────────────
-  const presentPct = Math.round((metrics.presentToday / metrics.totalStaff) * 100) || 91;
+  const presentPct =
+    metrics.totalStaff > 0
+      ? Math.round((metrics.presentToday / metrics.totalStaff) * 100)
+      : 0;
   const totalActiveLeaves = metrics.annualLeave + metrics.sickLeave + metrics.unpaidLeave + metrics.studyLeave;
 
   // 1. Donut Chart Data (Attendance & Leaves Distribution)
@@ -204,74 +225,23 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
     { name: t('chart.study_leave', "O'qish ta'tili"), value: metrics.studyLeave, color: '#06b6d4' },
   ], [metrics, t]);
 
-  // 2. Turnover & Attrition Grouped Bar Chart Data (Top 8 Departments)
-  const turnoverChartData = useMemo(() => [
-    { name: language === 'kr' ? '프레스1공장' : 'Shtamplash #1', hires: 14, terminations: 3 },
-    { name: language === 'kr' ? '용접공장' : 'Payvandlash Sex', hires: 18, terminations: 7 },
-    { name: language === 'kr' ? '도장공장' : "Bo'yoqlash Sex", hires: 9, terminations: 2 },
-    { name: language === 'kr' ? '조립라인 A/B' : "Yig'uv Line A/B", hires: 22, terminations: 12 },
-    { name: language === 'kr' ? '물류/지게차' : 'Logistika & KARA', hires: 11, terminations: 1 },
-    { name: language === 'kr' ? '엔진공장' : 'Dvigatel Sexi', hires: 15, terminations: 4 },
-    { name: language === 'kr' ? '품질관리(QC)' : 'OTK & Sifat Nazorati', hires: 6, terminations: 1 },
-    { name: language === 'kr' ? '경영/HR' : "Ma'muriyat & HR", hires: 4, terminations: 0 },
-  ], [language]);
+  // 2. Turnover & Attrition Grouped Bar Chart Data (from API)
+  // turnoverChartData state
 
   // 3. Headcount Budget vs Actual Stacked Bar Chart Data
   const headcountChartData = useMemo(() => {
-    if (departmentBudgets.length > 0) {
-      return departmentBudgets.map((b) => ({
-        name: b.departmentName?.replace(" (Ishlab chiqarish)", "") || (language === 'kr' ? "부서" : "Bo'lim"),
-        actual: b.actual || 0,
-        vacancies: b.vacancies || 0,
-        planned: b.planned || 0,
-      }));
-    }
-    return [
-      { name: language === 'kr' ? '프레스공장' : 'Shtamplash Sexi', actual: 432, vacancies: 18, planned: 450 },
-      { name: language === 'kr' ? '주조메카닉' : 'Quyuv-Mexanika', actual: 265, vacancies: 15, planned: 280 },
-      { name: language === 'kr' ? '물류지게차' : 'Logistika & KARA', actual: 186, vacancies: 4, planned: 190 },
-      { name: language === 'kr' ? '품질검사' : 'Texnik Nazorat', actual: 115, vacancies: 5, planned: 120 },
-      { name: language === 'kr' ? '동력정비' : 'Energetika Sexi', actual: 152, vacancies: 8, planned: 160 },
-      { name: language === 'kr' ? '경영HR' : "Ma'muriyat & HR", actual: 58, vacancies: 2, planned: 60 },
-    ];
+    return departmentBudgets.map((b) => ({
+      name: b.departmentName?.replace(" (Ishlab chiqarish)", "") || (language === 'kr' ? '부서' : "Bo'lim"),
+      actual: b.actual ?? 0,
+      vacancies: b.vacancies ?? 0,
+      planned: b.planned ?? 0,
+    }));
   }, [departmentBudgets, language]);
 
-  // 4. Performance & Payroll Bonus 6-Month Trend Data
-  const trendPerformanceData = useMemo(() => [
-    { month: language === 'kr' ? '3월' : 'Mart', kpiScore: 88.5, bonusFundMln: 420 },
-    { month: language === 'kr' ? '4월' : 'Aprel', kpiScore: 89.2, bonusFundMln: 445 },
-    { month: language === 'kr' ? '5월' : 'May', kpiScore: 91.0, bonusFundMln: 460 },
-    { month: language === 'kr' ? '6월' : 'Iyun', kpiScore: 90.4, bonusFundMln: 455 },
-    { month: language === 'kr' ? '7월' : 'Iyul', kpiScore: 91.8, bonusFundMln: 480 },
-    { month: language === 'kr' ? '8월' : 'Avgust', kpiScore: 92.8, bonusFundMln: 495 },
-  ], [language]);
+  // 4. Performance KPI Trend Data (from API)
+  // kpiTrendData state
 
-  // Fallback pending requests for demonstration
-  const displayPendingRequests =
-    pendingRequests.length > 0
-      ? pendingRequests
-      : [
-          {
-            id: 'req-demo-1',
-            type: 'MEHNAT_TATILI',
-            employeeName: language === 'kr' ? '김철수 (대리)' : 'Ergashev Jamshid (Katta Usta)',
-            departmentName: language === 'kr' ? '프레스공장' : 'Shtamplash Sexi',
-            totalDays: 14,
-            startDate: '2026-08-20',
-            endDate: '2026-09-02',
-            requestDate: '2026-08-15',
-          },
-          {
-            id: 'req-demo-2',
-            type: 'SICK_LEAVE_BL',
-            employeeName: language === 'kr' ? '이영희 (엔지니어)' : 'Abdullayeva Malika (QC Injiniring)',
-            departmentName: language === 'kr' ? '품질관리' : 'OTK Nazorati',
-            totalDays: 5,
-            startDate: '2026-08-16',
-            endDate: '2026-08-21',
-            requestDate: '2026-08-16',
-          },
-        ];
+  const displayPendingRequests = pendingRequests;
 
   return (
     <div className="space-y-4 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen p-1 transition-colors">
@@ -326,8 +296,12 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             <div className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
               {metrics.totalStaff}
             </div>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
-              {language === 'kr' ? '↑ 전월 대비 +12명' : "↑ +12 ta o'sish (Oy)"}
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+              {metrics.totalVacancies > 0
+                ? (language === 'kr'
+                  ? `공석 ${metrics.totalVacancies}명`
+                  : `${metrics.totalVacancies} ta vakansiya`)
+                : (language === 'kr' ? 'DB 기준 실시간' : "Bazadan real vaqt")}
             </span>
           </div>
         </div>
@@ -366,8 +340,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             <div className="text-xl font-extrabold tracking-tight text-purple-700 dark:text-purple-400">
               {metrics.turnoverRate}%
             </div>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
-              {language === 'kr' ? '↓ 목표범위 내 (미만 5%)' : '↓ Me\'yorda (<5.0%)'}
+            <span className={`text-[10px] font-bold ${metrics.turnoverRate <= 5 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+              {metrics.turnoverRate <= 5
+                ? (language === 'kr' ? '목표 범위 내 (<5%)' : "Me'yorda (<5.0%)")
+                : (language === 'kr' ? '목표 초과 (>5%)' : "Maqsaddan yuqori (>5.0%)")}
             </span>
           </div>
         </div>
@@ -386,8 +362,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
             <div className="text-xl font-extrabold tracking-tight text-amber-700 dark:text-amber-400">
               {metrics.kpiScoreAvg}%
             </div>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
-              {language === 'kr' ? '↑ 연중 최고 +2.1%' : '↑ +2.1% Yillik Maksimum'}
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+              {metrics.kpiScoreAvg > 0
+                ? (language === 'kr' ? '당월 평균 KPI' : "Joriy oy o'rtacha KPI")
+                : (language === 'kr' ? '평가 데이터 없음' : "KPI baholari yo'q")}
             </span>
           </div>
         </div>
@@ -446,50 +424,37 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-          {/* High Risk Alert */}
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-start gap-3">
-            <div className="h-7 w-7 rounded-lg bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300 flex items-center justify-center font-bold shrink-0 mt-0.5">
-              🔴
+          {smartInsights.length === 0 ? (
+            <div className="md:col-span-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-400 font-semibold">
+              {language === 'kr'
+                ? '분석할 데이터가 충분하지 않습니다. DB 시드 후 다시 확인하세요.'
+                : "Tahlil qilish uchun yetarli ma'lumot yo'q. Bazani to'ldiring va qayta urinib ko'ring."}
             </div>
-            <div>
-              <div className="font-extrabold text-rose-900 dark:text-rose-300">{t('dash.high_risk', 'Yuqori xavf ogohlantirishlari')}</div>
-              <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5 leading-snug">
-                {language === 'kr'
-                  ? '조립 A/B 라인의 퇴사율이 +5.2% 상승했습니다. 근무 환경점검이 권장됩니다.'
-                  : "Yig'uv Line A/B sexida ishdan bo'shash sur'ati +5.2% ga yetdi. Mehnat sharoitlarini taftish qilish tavsiya etiladi."}
-              </p>
-            </div>
-          </div>
-
-          {/* Operational Warning */}
-          <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-            <div className="h-7 w-7 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold shrink-0 mt-0.5">
-              🟡
-            </div>
-            <div>
-              <div className="font-extrabold text-amber-900 dark:text-amber-300">{t('dash.op_warning', 'Operatsion ogohlantirishlar')}</div>
-              <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5 leading-snug">
-                {language === 'kr'
-                  ? `${metrics.expiringPermitsCount}명의 임직원 자격증 및 건강검진이 15일 이내 만료됩니다.`
-                  : `${metrics.expiringPermitsCount} ta xodimning majburiy HSE med-ko'riq hamda kran ruxsatnomasi 15 kunda tugamoqda.`}
-              </p>
-            </div>
-          </div>
-
-          {/* Positive Metric */}
-          <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-start gap-3">
-            <div className="h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold shrink-0 mt-0.5">
-              🟢
-            </div>
-            <div>
-              <div className="font-extrabold text-emerald-900 dark:text-emerald-300">{t('dash.top_kpi', 'Samaradorlik Lideri')}</div>
-              <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5 leading-snug">
-                {language === 'kr'
-                  ? '프레스1공장이 월간 KPI 96.4% 달성으로 전사 1위를 기록했습니다.'
-                  : "Shtamplash sexida oylik KPI bali 96.4% ko'rsatkichga erishdi va korxonada 1-o'rinni egalladi."}
-              </p>
-            </div>
-          </div>
+          ) : (
+            smartInsights.slice(0, 3).map((insight, idx) => {
+              const style =
+                insight.type === 'HIGH_RISK'
+                  ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-300'
+                  : insight.type === 'WARNING'
+                    ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300'
+                    : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300';
+              const icon =
+                insight.type === 'HIGH_RISK' ? '🔴' : insight.type === 'WARNING' ? '🟡' : '🟢';
+              return (
+                <div key={idx} className={`p-3.5 rounded-xl border flex items-start gap-3 ${style}`}>
+                  <div className="h-7 w-7 rounded-lg bg-white/60 dark:bg-black/20 flex items-center justify-center font-bold shrink-0 mt-0.5">
+                    {icon}
+                  </div>
+                  <div>
+                    <div className="font-extrabold">{insight.title}</div>
+                    <p className="text-[11px] text-slate-700 dark:text-slate-300 font-semibold mt-0.5 leading-snug">
+                      {insight.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -604,7 +569,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
           </div>
 
           <div className="h-[280px] w-full pt-2">
-            {mounted && (
+            {mounted && turnoverChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={turnoverChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#e2e8f0'} />
@@ -625,6 +590,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                   <Bar dataKey="terminations" name={t('chart.terminations', "Ishdan bo'shatilganlar")} fill="#f43f5e" radius={[6, 6, 0, 0]} maxBarSize={32} />
                 </BarChart>
               </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'kr' ? '부서별 이동 데이터 없음' : "Bo'limlar bo'yicha ma'lumot yo'q"}
+              </div>
             )}
           </div>
         </div>
@@ -732,7 +701,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
           </div>
 
           <div className="h-[230px] w-full pt-1">
-            {mounted && (
+            {mounted && headcountChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={headcountChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#e2e8f0'} />
@@ -752,6 +721,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                   <Bar dataKey="vacancies" name={t('chart.open_vacancies', 'Ochiq vakansiyalar (TO)')} stackId="a" fill="#f59e0b" radius={[6, 6, 0, 0]} maxBarSize={36} />
                 </BarChart>
               </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'kr' ? '정원 데이터 없음' : "Shtat rejasi ma'lumoti yo'q"}
+              </div>
             )}
           </div>
         </div>
@@ -783,9 +756,9 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
           </div>
 
           <div className="h-[230px] w-full pt-1">
-            {mounted && (
+            {mounted && kpiTrendData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendPerformanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={kpiTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="kpiColor" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
@@ -794,7 +767,7 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#e2e8f0'} />
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[70, 100]} tick={{ fontSize: 10, fill: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: isDarkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: isDarkMode ? '#0f172a' : '#ffffff',
@@ -807,6 +780,10 @@ export const DashboardOverviewView: React.FC<DashboardOverviewViewProps> = ({
                   <Area type="monotone" dataKey="kpiScore" name="O'rtacha KPI Bali (%)" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#kpiColor)" />
                 </AreaChart>
               </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'kr' ? 'KPI 추이 데이터 없음' : "KPI dinamikasi ma'lumoti yo'q"}
+              </div>
             )}
           </div>
         </div>
