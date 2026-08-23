@@ -71,23 +71,34 @@ async function main() {
   const realDepartmentIds = [...new Set(realEmployees.map(e => e.currentDepartmentId).filter(Boolean))];
 
   // ── STEP 2: Delete child records of fake employees ────────────────────────
-  console.log('\n🧹 Deleting child records of fake employees...');
-  const deleteResults = await Promise.all([
-    prisma.leaveApprovalStep.deleteMany({ where: { request: { employee: { id: { notIn: realEmployeeIds } } } } }),
-    prisma.leaveRequest.deleteMany({      where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.kpiCriterionScore.deleteMany({ where: { evaluation: { employeeId: { notIn: realEmployeeIds } } } }),
-    prisma.kpiEvaluation.deleteMany({     where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.kpiRecord.deleteMany({         where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.rewardFinancialAid.deleteMany({ where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.disciplinaryAction.deleteMany({ where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.leaveAttendance.deleteMany({   where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.departmentTransfer.deleteMany({ where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.permitLicense.deleteMany({     where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.education.deleteMany({         where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.medicalCheckup.deleteMany({    where: { employeeId: { notIn: realEmployeeIds } } }),
-    prisma.safetyBriefing.deleteMany({    where: { employeeId: { notIn: realEmployeeIds } } }),
-  ]);
-  const childTotal = deleteResults.reduce((sum, r) => sum + (r.count || 0), 0);
+  console.log('\n🧹 Deleting child records of fake employees (sequential to avoid deadlocks)...');
+  let childTotal = 0;
+  const d1  = await prisma.leaveApprovalStep.deleteMany({ where: { request: { employee: { id: { notIn: realEmployeeIds } } } } });
+  childTotal += d1.count;
+  const d2  = await prisma.leaveRequest.deleteMany({      where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d2.count;
+  const d3  = await prisma.kpiCriterionScore.deleteMany({ where: { evaluation: { employeeId: { notIn: realEmployeeIds } } } });
+  childTotal += d3.count;
+  const d4  = await prisma.kpiEvaluation.deleteMany({     where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d4.count;
+  const d5  = await prisma.kpiRecord.deleteMany({         where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d5.count;
+  const d6  = await prisma.rewardFinancialAid.deleteMany({ where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d6.count;
+  const d7  = await prisma.disciplinaryAction.deleteMany({ where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d7.count;
+  const d8  = await prisma.leaveAttendance.deleteMany({   where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d8.count;
+  const d9  = await prisma.departmentTransfer.deleteMany({ where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d9.count;
+  const d10 = await prisma.permitLicense.deleteMany({     where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d10.count;
+  const d11 = await prisma.education.deleteMany({         where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d11.count;
+  const d12 = await prisma.medicalCheckup.deleteMany({    where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d12.count;
+  const d13 = await prisma.safetyBriefing.deleteMany({    where: { employeeId: { notIn: realEmployeeIds } } });
+  childTotal += d13.count;
   console.log(`   ✓ Deleted ${childTotal} child records of fake employees.`);
 
   // ── STEP 3: Delete all fake (seeded) employees ────────────────────────────

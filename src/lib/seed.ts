@@ -1,3 +1,30 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 🚨 PRODUCTION GUARD — DO NOT REMOVE
+// This seed script wipes ALL data before re-seeding with fake/demo data.
+// It must NEVER run against the production database.
+// ─────────────────────────────────────────────────────────────────────────────
+const PROD_DB_INDICATORS = ['46.101.149.63', 'factoryerp.uz', 'hr_matrix_db'];
+const currentDbUrl = process.env.DATABASE_URL || '';
+const isProduction =
+  process.env.NODE_ENV === 'production' ||
+  PROD_DB_INDICATORS.some((indicator) => currentDbUrl.includes(indicator));
+
+if (isProduction) {
+  console.error('');
+  console.error('❌ SEED SCRIPT ABORTED — PRODUCTION ENVIRONMENT DETECTED');
+  console.error('');
+  console.error('   NODE_ENV  :', process.env.NODE_ENV || '(not set)');
+  console.error('   DATABASE  :', currentDbUrl.replace(/:\/\/.*@/, '://***:***@'));
+  console.error('');
+  console.error('   This seed script deletes ALL data before inserting demo data.');
+  console.error('   Running it on production would wipe your real employee records.');
+  console.error('');
+  console.error('   To seed a local/dev database, set DATABASE_URL to a local MySQL');
+  console.error('   instance and ensure NODE_ENV is not "production".');
+  console.error('');
+  process.exit(1);
+}
+
 import { PrismaClient } from '@prisma/client';
 import { hashPassword } from './rbac';
 import { APPROVAL_STEPS_CONFIG } from './leaveConfig';
