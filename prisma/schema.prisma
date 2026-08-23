@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -11,7 +11,7 @@ model Department {
   id               String               @id @default(uuid())
   code             String?
   name             String
-  description      String?
+  description      String?              @db.Text
   parentId         String?
   staffLimit       Int?
   parent           Department?          @relation("DeptHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
@@ -53,7 +53,7 @@ model Employee {
   status              String               @default("ACTIVE") // ACTIVE, ON_LEAVE, TRANSFERRED, OFFBOARDED
   phone               String?
   email               String?
-  address             String?
+  address             String?              @db.Text
   pinfl               String?
   passportNumber      String?
   avatarUrl           String?
@@ -75,8 +75,8 @@ model Employee {
   institutionName     String?
   fieldOfStudy        String?
   diplomaNumber       String?
-  foreignLanguages    String?
-  certifications      String?
+  foreignLanguages    String?              @db.Text
+  certifications      String?              @db.Text
 
   // Section 4: Family & Social Status
   maritalStatus       String?
@@ -85,10 +85,10 @@ model Employee {
   emergencyContactPhone String?
 
   // Section 5: Documents & Attached Digital Files
-  passportScanUrl     String?
-  diplomaScanUrl      String?
-  contractPdfUrl      String?
-  stirInpsPdfUrl      String?
+  passportScanUrl     String?              @db.Text
+  diplomaScanUrl      String?              @db.Text
+  contractPdfUrl      String?              @db.Text
+  stirInpsPdfUrl      String?              @db.Text
   
   educations          Education[]
   permits             PermitLicense[]
@@ -144,7 +144,7 @@ model DepartmentTransfer {
   toDepartment     Department @relation("ToDept", fields: [toDepartmentId], references: [id])
   transferDate     DateTime   @default(now())
   orderNumber      String
-  reason           String?
+  reason           String?    @db.Text
 }
 
 model LeaveAttendance {
@@ -162,7 +162,7 @@ model LeaveAttendance {
   endTime     String?  // "11:30" – for hourly permits
   hoursLate   Float?   // Legacy field kept for KPI compatibility
   orderNumber String?  // Buyruq / Ariza raqami
-  reason      String?
+  reason      String?  @db.Text
   // Status: ACTIVE (ongoing), COMPLETED, CANCELLED, APPROVED (legacy)
   status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
@@ -179,7 +179,7 @@ model DisciplinaryAction {
   startDate   DateTime
   expiryDate  DateTime
   status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
-  notes       String?
+  notes       String?  @db.Text
   createdAt   DateTime @default(now())
 }
 
@@ -189,7 +189,7 @@ model RewardFinancialAid {
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   type        String   // REWARD, FINANCIAL_AID, BONUS
   amount      Float
-  reason      String
+  reason      String   @db.Text
   orderNumber String
   orderDate   DateTime @default(now())
 }
@@ -240,7 +240,7 @@ model KpiEvaluation {
   departmentId String
   totalScore   Float               // 0 to 100
   status       String              // EXCELLENT, GOOD, AVERAGE, UNSATISFACTORY
-  notes        String?
+  notes        String?             @db.Text
   scores       KpiCriterionScore[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
@@ -316,7 +316,7 @@ model HrUser {
   passwordHash        String
   fullName            String
   role                String     @default("HR_STAFF")
-  assignedDepartments String?
+  assignedDepartments String?    @db.Text
   isActive            Boolean    @default(true)
   createdAt           DateTime   @default(now())
 }
@@ -335,7 +335,7 @@ model MedicalCheckup {
   status         String   @default("O'TGAN")
   clinicName     String?
   orderRef       String?
-  notes          String?
+  notes          String?  @db.Text
   createdAt      DateTime @default(now())
 
   @@index([employeeId, expiryDate])
@@ -354,7 +354,7 @@ model SafetyBriefing {
   validityDays    Int      @default(365)
   instructorName  String?
   protocolNumber  String?
-  notes           String?
+  notes           String?  @db.Text
   createdAt       DateTime @default(now())
 }
 
@@ -367,12 +367,12 @@ model AuditLog {
   hrName           String   // Snapshot of name at time of action
   action           String   // e.g. "Xodim ma'lumotlari tahrirlandi"
   targetEmployeeId String?
-  fieldChanged     String?
-  oldValue         String?
-  newValue         String?
+  fieldChanged     String?  @db.Text
+  oldValue         String?  @db.Text
+  newValue         String?  @db.Text
   departmentName   String?
   ipAddress        String?
-  metadata         String?  // JSON string for extra context
+  metadata         String?  @db.Text // JSON string for extra context
   createdAt        DateTime @default(now())
 
   @@index([targetEmployeeId, createdAt])
@@ -390,11 +390,11 @@ model LeaveRequest {
   startDate        DateTime
   endDate          DateTime
   totalDays        Int
-  reason           String
+  reason           String              @db.Text
   // Status: PENDING, APPROVED, REJECTED, CANCELLED
   status           String              @default("PENDING")
   currentStep      Int                 @default(1) // 1 to 6
-  rejectionComment  String?
+  rejectionComment  String?             @db.Text
   step3ApproverType String?             @default("TEXNIK_DIREKTOR") // TEXNIK_DIREKTOR or BOSHQARMA_BOSHLIGI
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -411,7 +411,7 @@ model LeaveApprovalStep {
   approverName String?
   // Status: PENDING, APPROVED, REJECTED
   status       String       @default("PENDING")
-  comment      String?
+  comment      String?      @db.Text
   actionDate   DateTime?
 }
 
@@ -419,8 +419,8 @@ model Announcement {
   id             String   @id @default(uuid())
   title_uz       String
   title_kr       String
-  content_uz     String
-  content_kr     String
+  content_uz     String   @db.Text
+  content_kr     String   @db.Text
   category       String   @default("UPDATE") // FEATURE, UPDATE, MAINTENANCE, IMPORTANT
   affectedModule String   @default("ALL")    // ALL, KPI, ATTENDANCE, APPLICATIONS, SAFETY, HIERARCHY
   priority       String   @default("MEDIUM") // HIGH, MEDIUM, LOW
