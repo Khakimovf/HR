@@ -10,8 +10,12 @@
     "db:push": "prisma db push",
     "db:seed": "tsx src/lib/seed.ts"
   },
+  "prisma": {
+    "seed": "tsx src/lib/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^5.10.2",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.0",
     "date-fns": "^3.3.1",
     "jose": "^6.2.10",
