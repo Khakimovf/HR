@@ -95,7 +95,29 @@ export function canUserEdit(
   moduleKey: string,
   employeeDepartmentId?: string | null | undefined
 ): boolean {
-  return true;
+  if (!currentUser) return false;
+
+  // SUPER_ADMIN has unrestricted write access to all modules and departments
+  if (currentUser.role === 'SUPER_ADMIN') return true;
+
+  // EXECUTIVE_DIRECTOR and AUDITOR are read-only roles — no edits allowed
+  if (
+    currentUser.role === 'EXECUTIVE_DIRECTOR' ||
+    currentUser.role === 'AUDITOR'
+  ) {
+    return false;
+  }
+
+  // HR_OFFICER: must have module-level access AND department-level scoping
+  const hasModule = currentUser.allowedModuleKeys.includes(moduleKey);
+  if (!hasModule) return false;
+
+  // If HR officer has no department restrictions (empty array = full factory access)
+  if (currentUser.assignedDepartmentIds.length === 0) return true;
+
+  // Otherwise, check that the target employee's department is in their scope
+  if (!employeeDepartmentId) return false;
+  return currentUser.assignedDepartmentIds.includes(employeeDepartmentId);
 }
 
 /**

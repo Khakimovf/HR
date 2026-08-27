@@ -1,64 +1,99 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { resolveHrUser } from '@/lib/rbac';
+import { parseUTCDate, parseUTCDateStart, parseUTCDateEnd } from '@/lib/date-utils';
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get('search')?.trim() || '';
-    const fromDeptId = searchParams.get('fromDeptId') || '';
-    const toDeptId = searchParams.get('toDeptId') || '';
-    const fromDate = searchParams.get('fromDate') || '';
-    const toDate = searchParams.get('toDate') || '';
+    const search      = searchParams.get('search')?.trim() || '';
+    const fromDeptId  = searchParams.get('fromDeptId') || '';
+    const toDeptId    = searchParams.get('toDeptId') || '';
+    const fromDate    = searchParams.get('fromDate') || '';
+    const toDate      = searchParams.get('toDate') || '';
 
-    const where: any = {};
+    // ── Server-side pagination ────────────────────────────────────────────
+    const page  = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '25', 10)));
+    const skip  = (page - 1) * limit;
 
-    if (fromDeptId) {
-      where.fromDepartmentId = fromDeptId;
-    }
+    const where: any = {
+      // Soft-delete filter
+      deletedAt: null,
+    };
 
-    if (toDeptId) {
-      where.toDepartmentId = toDeptId;
-    }
+    if (fromDeptId) where.fromDepartmentId = fromDeptId;
+    if (toDeptId)   where.toDepartmentId   = toDeptId;
 
     if (fromDate || toDate) {
       where.transferDate = {};
+      // UTC-safe date parsing — prevents 1-day timezone shifts
       if (fromDate) {
-        where.transferDate.gte = new Date(fromDate);
+        const start = parseUTCDateStart(fromDate);
+        if (start) where.transferDate.gte = start;
       }
       if (toDate) {
-        const e = new Date(toDate);
-        e.setHours(23, 59, 59, 999);
-        where.transferDate.lte = e;
+        const end = parseUTCDateEnd(toDate);
+        if (end) where.transferDate.lte = end;
       }
     }
 
     if (search) {
       where.OR = [
         { employee: { tabelNumber: { contains: search } } },
-        { employee: { firstName: { contains: search } } },
-        { employee: { lastName: { contains: search } } },
+        { employee: { firstName:   { contains: search } } },
+        { employee: { lastName:    { contains: search } } },
         { orderNumber: { contains: search } },
-        { reason: { contains: search } },
+        { reason:      { contains: search } },
       ];
     }
 
-    const transfers = await prisma.departmentTransfer.findMany({
-      where,
-      include: {
-        employee: {
-          include: {
-            positionRef: {
-              include: { reportsToPosition: true },
+    const [total, transfers] = await Promise.all([
+      prisma.departmentTransfer.count({ where }),
+      prisma.departmentTransfer.findMany({
+        where,
+        include: {
+          employee: {
+            select: {
+              id: true,
+              tabelNumber: true,
+              firstName: true,
+              lastName: true,
+              middleName: true,
+              position: true,
+              status: true,
+              positionRef: {
+                select: {
+                  id: true,
+                  title: true,
+                  reportsToPosition: { select: { id: true, title: true } },
+                },
+              },
             },
           },
+          fromDepartment: { select: { id: true, name: true, code: true } },
+          toDepartment:   { select: { id: true, name: true, code: true } },
         },
-        fromDepartment: true,
-        toDepartment: true,
-      },
-      orderBy: { transferDate: 'desc' },
-    });
+        orderBy: { transferDate: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
 
-    return NextResponse.json({ success: true, transfers });
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return NextResponse.json({
+      success: true,
+      transfers,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasPrev: page > 1,
+        hasNext: page < totalPages,
+      },
+    });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },
@@ -70,17 +105,29 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { employeeId, toDepartmentId, positionId, positionTitle, orderNumber, reason, transferDate, force } = body;
+    const {
+      employeeId,
+      toDepartmentId,
+      positionId,
+      positionTitle,
+      orderNumber,
+      reason,
+      transferDate,
+      force,
+    } = body;
 
     if (!employeeId || !toDepartmentId || !orderNumber) {
       return NextResponse.json(
-        { success: false, error: 'Xodim, nishon bo\'lim va buyruq raqami kiritilishi shart' },
+        { success: false, error: "Xodim, nishon bo'lim va buyruq raqami kiritilishi shart" },
         { status: 400 }
       );
     }
 
-    const employee = await prisma.employee.findUnique({
-      where: { id: employeeId },
+    // Resolve session for audit log
+    const session = await resolveHrUser(req);
+
+    const employee = await prisma.employee.findFirst({
+      where: { id: employeeId, deletedAt: null },
       include: { currentDepartment: true },
     });
 
@@ -93,7 +140,7 @@ export async function POST(req: Request) {
 
     const fromDepartmentId = employee.currentDepartmentId;
 
-    // Check target position if positionId provided
+    // ── Check target position quota ───────────────────────────────────────
     let targetPositionObj = null;
     if (positionId) {
       targetPositionObj = await prisma.position.findUnique({
@@ -103,7 +150,7 @@ export async function POST(req: Request) {
 
       if (targetPositionObj && !force) {
         const filled = targetPositionObj._count.employees;
-        const quota = targetPositionObj.quotaLimit;
+        const quota  = targetPositionObj.quotaLimit;
         if (filled >= quota) {
           return NextResponse.json(
             {
@@ -117,15 +164,15 @@ export async function POST(req: Request) {
       }
     }
 
-    // Capacity Check on Target Department
+    // ── Capacity Check on Target Department ───────────────────────────────
     const targetDept = await prisma.department.findUnique({
       where: { id: toDepartmentId },
       include: { _count: { select: { employees: true } } },
     });
 
     if (targetDept && !force) {
-      const activeCount = targetDept._count.employees;
-      const staffLimit = targetDept.staffLimit ?? Math.ceil(activeCount * 1.12) + 2;
+      const activeCount    = targetDept._count.employees;
+      const staffLimit     = targetDept.staffLimit ?? Math.ceil(activeCount * 1.12) + 2;
       const seatsAvailable = Math.max(0, staffLimit - activeCount);
 
       if (seatsAvailable <= 0 && !positionId) {
@@ -142,19 +189,24 @@ export async function POST(req: Request) {
 
     const newPositionTitle = positionTitle || targetPositionObj?.title || employee.position;
 
-    // Execute transaction: create transfer log & update employee department + position
-    const [transferRecord, updatedEmployee] = await prisma.$transaction([
-      prisma.departmentTransfer.create({
+    // UTC-safe parse of transferDate
+    const parsedTransferDate = parseUTCDate(transferDate) ?? new Date();
+
+    // ── Interactive transaction: transfer log + employee update + audit ────
+    // All three writes succeed or all three roll back together.
+    const { transferRecord, updatedEmployee } = await prisma.$transaction(async (tx) => {
+      const transferRecord = await tx.departmentTransfer.create({
         data: {
           employeeId,
           fromDepartmentId,
           toDepartmentId,
           orderNumber,
-          reason: reason || 'Kadrlar rotatsiyasi va ichki ko\'chirish',
-          transferDate: transferDate ? new Date(transferDate) : new Date(),
+          reason: reason || "Kadrlar rotatsiyasi va ichki ko'chirish",
+          transferDate: parsedTransferDate,
         },
-      }),
-      prisma.employee.update({
+      });
+
+      const updatedEmployee = await tx.employee.update({
         where: { id: employeeId },
         data: {
           currentDepartmentId: toDepartmentId,
@@ -162,12 +214,43 @@ export async function POST(req: Request) {
           positionId: positionId || null,
           status: 'ACTIVE',
         },
-      }),
-    ]);
+      });
+
+      // Write audit log inside the same transaction so it either all commits
+      // or all rolls back — no orphaned audit entries
+      await tx.auditLog.create({
+        data: {
+          hrUserId: session?.id || null,
+          hrName: session?.fullName || session?.username || 'HR Operator',
+          action: `Xodim [${employee.tabelNumber}] ${employee.lastName} ${employee.firstName} ko'chirildi: ${employee.currentDepartment?.name ?? fromDepartmentId} → ${targetDept?.name ?? toDepartmentId}`,
+          targetEmployeeId: employeeId,
+          fieldChanged: 'currentDepartmentId',
+          oldValue: fromDepartmentId,
+          newValue: toDepartmentId,
+          departmentName: targetDept?.name,
+          ipAddress:
+            req.headers.get('x-forwarded-for') ||
+            req.headers.get('x-real-ip') ||
+            '127.0.0.1',
+          metadata: JSON.stringify({
+            action: 'DEPARTMENT_TRANSFER',
+            orderNumber,
+            transferDate: parsedTransferDate.toISOString(),
+            fromDepartmentId,
+            toDepartmentId,
+            fromDepartmentName: employee.currentDepartment?.name,
+            toDepartmentName: targetDept?.name,
+            newPosition: newPositionTitle,
+          }),
+        },
+      });
+
+      return { transferRecord, updatedEmployee };
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Xodim boshqa bo\'lim va lavozimga muvaffaqiyatli ko\'chirildi',
+      message: "Xodim boshqa bo'lim va lavozimga muvaffaqiyatli ko'chirildi",
       transfer: transferRecord,
       employee: updatedEmployee,
     });

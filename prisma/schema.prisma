@@ -25,6 +25,11 @@ model Department {
   kpiTemplates     KpiTemplate[]
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
+  // Soft delete
+  deletedAt        DateTime?
+
+  @@index([parentId])
+  @@index([deletedAt])
 }
 
 model Position {
@@ -39,6 +44,11 @@ model Position {
   employees           Employee[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  // Soft delete
+  deletedAt           DateTime?
+
+  @@index([departmentId])
+  @@index([deletedAt])
 }
 
 model Employee {
@@ -89,7 +99,7 @@ model Employee {
   diplomaScanUrl      String?              @db.Text
   contractPdfUrl      String?              @db.Text
   stirInpsPdfUrl      String?              @db.Text
-  
+
   educations          Education[]
   permits             PermitLicense[]
   transfers           DepartmentTransfer[]
@@ -104,10 +114,14 @@ model Employee {
 
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  // Soft delete — set instead of hard deleting
+  deletedAt           DateTime?
 
   @@index([currentDepartmentId])
   @@index([status])
   @@index([hireDate])
+  @@index([deletedAt])
+  @@index([tabelNumber])
 }
 
 model Education {
@@ -118,6 +132,8 @@ model Education {
   institutionName String
   fieldOfStudy    String
   graduationYear  Int
+
+  @@index([employeeId])
 }
 
 model PermitLicense {
@@ -145,6 +161,14 @@ model DepartmentTransfer {
   transferDate     DateTime   @default(now())
   orderNumber      String
   reason           String?    @db.Text
+  // Soft delete
+  deletedAt        DateTime?
+
+  @@index([employeeId])
+  @@index([transferDate])
+  @@index([fromDepartmentId])
+  @@index([toDepartmentId])
+  @@index([deletedAt])
 }
 
 model LeaveAttendance {
@@ -166,8 +190,12 @@ model LeaveAttendance {
   // Status: ACTIVE (ongoing), COMPLETED, CANCELLED, APPROVED (legacy)
   status      String   @default("ACTIVE")
   createdAt   DateTime @default(now())
+  // Soft delete — prefer this over hard delete; set status=CANCELLED then deletedAt
+  deletedAt   DateTime?
 
   @@index([employeeId, status, startDate])
+  @@index([startDate, endDate])
+  @@index([deletedAt])
 }
 
 model DisciplinaryAction {
@@ -181,6 +209,11 @@ model DisciplinaryAction {
   status      String   @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
   notes       String?  @db.Text
   createdAt   DateTime @default(now())
+  // Soft delete
+  deletedAt   DateTime?
+
+  @@index([employeeId, status])
+  @@index([deletedAt])
 }
 
 model RewardFinancialAid {
@@ -192,6 +225,11 @@ model RewardFinancialAid {
   reason      String   @db.Text
   orderNumber String
   orderDate   DateTime @default(now())
+  // Soft delete
+  deletedAt   DateTime?
+
+  @@index([employeeId])
+  @@index([deletedAt])
 }
 
 model KpiRecord {
@@ -207,6 +245,8 @@ model KpiRecord {
   finalBonus          Float
   attendanceRate      Float
   createdAt           DateTime @default(now())
+
+  @@index([employeeId, month])
 }
 
 // ── Enterprise KPI Engine Models ───────────────────────────────────────────
@@ -220,6 +260,8 @@ model KpiTemplate {
   criteria     KpiCriterion[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+
+  @@index([departmentId])
 }
 
 model KpiCriterion {
@@ -230,6 +272,8 @@ model KpiCriterion {
   weight     Float
   target     String
   createdAt  DateTime    @default(now())
+
+  @@index([templateId])
 }
 
 model KpiEvaluation {
@@ -256,6 +300,8 @@ model KpiCriterionScore {
   criterionName String
   weight        Float
   score         Float         // 0 to 100
+
+  @@index([evaluationId])
 }
 
 // ── HR User (RBAC) ──────────────────────────────────────────────────────────
@@ -287,6 +333,7 @@ model UserDepartmentAccess {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, departmentId])
+  @@index([userId])
 }
 
 model SystemModule {
@@ -307,9 +354,11 @@ model UserModuleAccess {
   canEdit   Boolean      @default(true)
 
   @@unique([userId, moduleKey])
+  @@index([userId])
 }
 
 // Legacy HrUser model maintained for database compatibility
+// TODO: Migrate remaining sessions to User model and remove this
 model HrUser {
   id                  String     @id @default(uuid())
   username            String     @unique
@@ -356,6 +405,8 @@ model SafetyBriefing {
   protocolNumber  String?
   notes           String?  @db.Text
   createdAt       DateTime @default(now())
+
+  @@index([employeeId, expiryDate])
 }
 
 // ── Audit Log ───────────────────────────────────────────────────────────────
@@ -376,6 +427,8 @@ model AuditLog {
   createdAt        DateTime @default(now())
 
   @@index([targetEmployeeId, createdAt])
+  @@index([hrUserId, createdAt])
+  @@index([createdAt])
 }
 
 // ── Leave Request & 6-Step Approval Workflow ───────────────────────────────
@@ -399,6 +452,10 @@ model LeaveRequest {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   approvalSteps     LeaveApprovalStep[]
+
+  @@index([employeeId, status])
+  @@index([startDate, endDate])
+  @@index([status, currentStep])
 }
 
 model LeaveApprovalStep {
@@ -413,6 +470,8 @@ model LeaveApprovalStep {
   status       String       @default("PENDING")
   comment      String?      @db.Text
   actionDate   DateTime?
+
+  @@index([requestId, stepNumber])
 }
 
 model Announcement {
@@ -428,4 +487,6 @@ model Announcement {
   is_published   Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([is_published, createdAt])
 }

@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { resolveHrUser, writeAuditLog } from '@/lib/rbac';
 import { statsCache } from '@/lib/cache';
+import { parseUTCDate, toUTCDateString } from '@/lib/date-utils';
 
 function parseSafeDate(val: any): Date | null {
-  if (!val || typeof val !== 'string' || !val.trim()) return null;
-  const d = new Date(val);
-  return isNaN(d.getTime()) ? null : d;
+  return parseUTCDate(val);
 }
 
 function parseSafeInt(val: any): number | null {
@@ -26,8 +25,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const employee = await prisma.employee.findUnique({
-      where: { id: params.id },
+    // Soft-delete aware: only return employees that have not been deleted
+    const employee = await prisma.employee.findFirst({
+      where: { id: params.id, deletedAt: null },
       include: {
         currentDepartment: true,
         educations: true,
@@ -35,6 +35,7 @@ export async function GET(
           orderBy: { issueDate: 'desc' },
         },
         transfers: {
+          where: { deletedAt: null },
           include: {
             fromDepartment: true,
             toDepartment: true,
@@ -42,12 +43,15 @@ export async function GET(
           orderBy: { transferDate: 'desc' },
         },
         leaves: {
+          where: { deletedAt: null },
           orderBy: { startDate: 'desc' },
         },
         disciplinaryActions: {
+          where: { deletedAt: null },
           orderBy: { startDate: 'desc' },
         },
         rewards: {
+          where: { deletedAt: null },
           orderBy: { orderDate: 'desc' },
         },
         kpiRecords: {
@@ -81,9 +85,9 @@ export async function PUT(
     const body = await req.json();
     const { action, tabSection } = body;
 
-    // Check existing employee
-    const existingEmployee = await prisma.employee.findUnique({
-      where: { id: params.id },
+    // Soft-delete aware lookup
+    const existingEmployee = await prisma.employee.findFirst({
+      where: { id: params.id, deletedAt: null },
       include: { currentDepartment: true },
     });
 
@@ -97,22 +101,27 @@ export async function PUT(
     // Resolve user session for audit log
     const session = await resolveHrUser(req);
 
-    // Special Action: Offboard
+    // ── Special Action: Offboard ──────────────────────────────────────────
     if (action === 'OFFBOARD') {
-      const employee = await prisma.employee.update({
-        where: { id: params.id },
-        data: {
-          status: 'OFFBOARDED',
-        },
-      });
+      // Atomic: status update + audit log in one interactive transaction
+      const employee = await prisma.$transaction(async (tx) => {
+        const updated = await tx.employee.update({
+          where: { id: params.id },
+          data: { status: 'OFFBOARDED' },
+        });
 
-      await writeAuditLog({
-        hrUserId: session?.id,
-        hrName: session?.fullName || session?.username || 'HR Operator',
-        action: `User ${session?.username || 'HR'} updated Offboard Status for Employee ${employee.lastName} ${employee.firstName} (Tabel #${employee.tabelNumber})`,
-        targetEmployeeId: employee.id,
-        departmentName: existingEmployee.currentDepartment?.name,
-        metadata: { action: 'OFFBOARD' },
+        await tx.auditLog.create({
+          data: {
+            hrUserId: session?.id || null,
+            hrName: session?.fullName || session?.username || 'HR Operator',
+            action: `User ${session?.username || 'HR'} updated Offboard Status for Employee ${updated.lastName} ${updated.firstName} (Tabel #${updated.tabelNumber})`,
+            targetEmployeeId: updated.id,
+            departmentName: existingEmployee.currentDepartment?.name,
+            metadata: JSON.stringify({ action: 'OFFBOARD' }),
+          },
+        });
+
+        return updated;
       });
 
       return NextResponse.json({
@@ -123,7 +132,6 @@ export async function PUT(
     }
 
     // ── PAYLOAD SANITIZATION BEFORE PRISMA UPDATE ──
-    // Strictly map ONLY valid scalar fields from body to avoid non-schema or relation crashes
     const dataToUpdate: any = {};
 
     // Personal Details
@@ -203,10 +211,13 @@ export async function PUT(
         currentDepartment: true,
         educations: true,
         permits: true,
-        transfers: { include: { fromDepartment: true, toDepartment: true } },
-        leaves: true,
-        disciplinaryActions: true,
-        rewards: true,
+        transfers: {
+          where: { deletedAt: null },
+          include: { fromDepartment: true, toDepartment: true },
+        },
+        leaves: { where: { deletedAt: null } },
+        disciplinaryActions: { where: { deletedAt: null } },
+        rewards: { where: { deletedAt: null } },
       },
     });
 
@@ -278,14 +289,17 @@ export async function PUT(
         currentDepartment: true,
         educations: true,
         permits: true,
-        transfers: { include: { fromDepartment: true, toDepartment: true } },
-        leaves: true,
-        disciplinaryActions: true,
-        rewards: true,
+        transfers: {
+          where: { deletedAt: null },
+          include: { fromDepartment: true, toDepartment: true },
+        },
+        leaves: { where: { deletedAt: null } },
+        disciplinaryActions: { where: { deletedAt: null } },
+        rewards: { where: { deletedAt: null } },
       },
     });
 
-    // Audit Log Entries (Field-Level)
+    // ── AUDIT LOG: Field-Level Changes ──────────────────────────────────────
     const sectionName = tabSection || "Profil ma'lumotlari";
     const empName = `${updatedEmployee.lastName} ${updatedEmployee.firstName}`.trim();
     const username = session?.username || 'HR Operator';
@@ -304,8 +318,8 @@ export async function PUT(
       for (const key of changedKeys) {
         const oldVal = (existingEmployee as any)[key];
         const newVal = dataToUpdate[key];
-        const oldStr = oldVal instanceof Date ? oldVal.toISOString().split('T')[0] : String(oldVal ?? '—');
-        const newStr = newVal instanceof Date ? newVal.toISOString().split('T')[0] : String(newVal ?? '—');
+        const oldStr = oldVal instanceof Date ? toUTCDateString(oldVal) : String(oldVal ?? '—');
+        const newStr = newVal instanceof Date ? toUTCDateString(newVal) : String(newVal ?? '—');
 
         if (oldStr !== newStr) {
           await writeAuditLog({
@@ -339,23 +353,78 @@ export async function PUT(
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || 'Xodim ma\'lumotlarini yangilashda xatolik yuz berdi',
+        error: error?.message || "Xodim ma'lumotlarini yangilashda xatolik yuz berdi",
       },
       { status: 500 }
     );
   }
 }
 
+/**
+ * SOFT DELETE — replaces the previous hard delete.
+ *
+ * Sets `deletedAt = now()` instead of destroying the record.
+ * All related records (leaves, transfers, KPI, etc.) are preserved for audit.
+ * The employee will be invisible in all list queries that filter `deletedAt: null`.
+ */
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    await prisma.employee.delete({
-      where: { id: params.id },
+    const session = await resolveHrUser(req);
+    const now = new Date();
+
+    // Verify employee exists and is not already deleted
+    const existing = await prisma.employee.findFirst({
+      where: { id: params.id, deletedAt: null },
+      include: { currentDepartment: true },
     });
+
+    if (!existing) {
+      return NextResponse.json(
+        { success: false, error: "Xodim topilmadi yoki allaqachon o'chirilgan" },
+        { status: 404 }
+      );
+    }
+
+    // Atomic soft-delete + audit log
+    await prisma.$transaction(async (tx) => {
+      // 1. Soft-delete the employee
+      await tx.employee.update({
+        where: { id: params.id },
+        data: {
+          deletedAt: now,
+          status: 'OFFBOARDED',
+        },
+      });
+
+      // 2. Write audit log entry
+      await tx.auditLog.create({
+        data: {
+          hrUserId: session?.id || null,
+          hrName: session?.fullName || session?.username || 'HR Operator',
+          action: `Xodim [${existing.tabelNumber}] ${existing.lastName} ${existing.firstName} tizimdan o'chirildi (Soft Delete)`,
+          targetEmployeeId: params.id,
+          departmentName: existing.currentDepartment?.name,
+          ipAddress:
+            req.headers.get('x-forwarded-for') ||
+            req.headers.get('x-real-ip') ||
+            '127.0.0.1',
+          metadata: JSON.stringify({
+            action: 'SOFT_DELETE',
+            tabelNumber: existing.tabelNumber,
+            deletedAt: now.toISOString(),
+          }),
+        },
+      });
+    });
+
     statsCache.invalidate();
-    return NextResponse.json({ success: true, message: 'Xodim tizimdan o\'chirildi' });
+    return NextResponse.json({
+      success: true,
+      message: "Xodim tizimdan o'chirildi (ma'lumotlar saqlanib qoldi)",
+    });
   } catch (error: any) {
     console.error('Employee DELETE Error:', error);
     return NextResponse.json(
